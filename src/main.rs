@@ -13,12 +13,10 @@ fn main() {
         match file {
             Ok(f) => {
                 println!("{:?}", f);
-               if cnt == 0 {
                    let arch = importer.get_archives(&f);
                    println!("got an archive");
-                   cnt +=1;
                }
-            }
+
             Err(_e) => {
                 println!("could not read record!");
             }

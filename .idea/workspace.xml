@@ -13,10 +13,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/sexoffender.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/sexoffender.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -46,9 +42,9 @@
     <favorites_list name="untitled" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.5025025">
+    <splitter split-orientation="horizontal" split-proportion="0.61089385">
       <split-first>
-        <splitter split-orientation="horizontal" split-proportion="0.48372093">
+        <splitter split-orientation="horizontal" split-proportion="0.35727355">
           <split-first>
             <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
               <file pinned="false" current-in-tab="false">
@@ -63,8 +59,8 @@
               <file pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/src/main.rs">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="304">
-                      <caret line="16" column="55" selection-start-line="16" selection-start-column="55" selection-end-line="16" selection-end-column="55" />
+                    <state relative-caret-position="551">
+                      <caret line="29" column="25" selection-start-line="29" selection-start-column="25" selection-end-line="29" selection-end-column="25" />
                     </state>
                   </provider>
                 </entry>
@@ -82,7 +78,7 @@
                 <entry file="file://$PROJECT_DIR$/src/sexoffender.rs">
                   <provider selected="true" editor-type-id="text-editor">
                     <state relative-caret-position="161">
-                      <caret line="71" column="46" selection-start-line="71" selection-start-column="46" selection-end-line="71" selection-end-column="46" />
+                      <caret line="78" column="46" selection-start-line="78" selection-start-column="46" selection-end-line="78" selection-end-column="46" />
                       <folding>
                         <element signature="e#1008#1009#0" expanded="true" />
                         <element signature="e#1046#1047#0" expanded="true" />
@@ -107,11 +103,11 @@
               <file pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/src/sexoffender.rs">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="720">
-                      <caret line="144" lean-forward="true" selection-start-line="144" selection-end-line="144" />
+                    <state relative-caret-position="418">
+                      <caret line="145" column="12" selection-start-line="145" selection-start-column="12" selection-end-line="145" selection-end-column="12" />
                       <folding>
-                        <element signature="e#987#988#0" expanded="true" />
-                        <element signature="e#1025#1026#0" expanded="true" />
+                        <element signature="e#1264#1265#0" expanded="true" />
+                        <element signature="e#1302#1303#0" expanded="true" />
                       </folding>
                     </state>
                   </provider>
@@ -136,7 +132,7 @@
             <entry file="file://$PROJECT_DIR$/src/sexoffender.rs">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="171">
-                  <caret line="17" column="35" selection-start-line="17" selection-start-column="35" selection-end-line="17" selection-end-column="35" />
+                  <caret line="23" column="35" selection-start-line="23" selection-start-column="35" selection-end-line="23" selection-end-column="35" />
                 </state>
               </provider>
             </entry>
@@ -144,8 +140,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/ftp-3.0.1/src/ftp.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="372">
-                  <caret line="330" column="23" selection-start-line="330" selection-start-column="23" selection-end-line="330" selection-end-column="23" />
+                <state relative-caret-position="258">
+                  <caret line="324" column="37" lean-forward="true" selection-start-line="324" selection-start-column="37" selection-end-line="324" selection-end-column="37" />
                 </state>
               </provider>
             </entry>
@@ -186,9 +182,9 @@
     <option name="directoryName" value="TUVBgzts" />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1525" />
+    <option name="x" value="856" />
     <option name="y" value="47" />
-    <option name="width" value="3321" />
+    <option name="width" value="3869" />
     <option name="height" value="1394" />
   </component>
   <component name="ProjectView">
@@ -276,12 +272,12 @@
       <workItem from="1558649883994" duration="876000" />
       <workItem from="1558650779219" duration="10928000" />
       <workItem from="1558718437827" duration="22580000" />
-      <workItem from="1558792458594" duration="23049000" />
+      <workItem from="1558792458594" duration="28818000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="70223000" />
+    <option name="totallyTimeSpent" value="75992000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -293,12 +289,11 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="877" y="47" width="3321" height="1394" extended-state="0" />
-    <editor active="true" />
+    <frame x="985" y="47" width="3869" height="1394" extended-state="0" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49944383" visible="true" weight="0.07476351" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49885583" visible="true" weight="0.06405229" />
       <window_info id="Structure" order="1" sideWeight="0.5007825" side_tool="true" weight="0.080911495" />
-      <window_info id="Favorites" order="2" sideWeight="0.5005562" side_tool="true" visible="true" weight="0.07476351" />
+      <window_info id="Favorites" order="2" sideWeight="0.5011442" side_tool="true" visible="true" weight="0.06405229" />
       <window_info anchor="bottom" id="Inspection Results" weight="0.413928" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
@@ -309,8 +304,8 @@
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32942098" />
       <window_info anchor="bottom" id="Database Changes" order="7" />
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.32942098" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="9" sideWeight="0.5001526" visible="true" weight="0.29655713" />
-      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.4998474" side_tool="true" visible="true" weight="0.29655713" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="9" sideWeight="0.587451" visible="true" weight="0.31611893" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.41254902" side_tool="true" visible="true" weight="0.31611893" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -498,21 +493,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/sexoffender.rs">
+    <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="161">
-          <caret line="71" column="46" selection-start-line="71" selection-start-column="46" selection-end-line="71" selection-end-column="46" />
-          <folding>
-            <element signature="e#1008#1009#0" expanded="true" />
-            <element signature="e#1046#1047#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="551">
+          <caret line="29" column="25" selection-start-line="29" selection-start-column="25" selection-end-line="29" selection-end-column="25" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main.rs">
+    <entry file="file://$PROJECT_DIR$/src/sexoffender.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="304">
-          <caret line="16" column="55" selection-start-line="16" selection-start-column="55" selection-end-line="16" selection-end-column="55" />
+        <state relative-caret-position="418">
+          <caret line="145" column="12" selection-start-line="145" selection-start-column="12" selection-end-line="145" selection-end-column="12" />
+          <folding>
+            <element signature="e#1264#1265#0" expanded="true" />
+            <element signature="e#1302#1303#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
