@@ -1,24 +1,22 @@
 extern crate ftp;
-
 use ftp::{FtpStream, FtpError};
 use ftp::types::FileType;
 use std::iter::{Iterator, FromIterator};
 use std::fs;
 use std::path;
 use std::str;
-use std::io::{BufWriter, Write, ErrorKind};
+use std::io::{BufWriter, Write, Read, ErrorKind, BufReader, copy};
 use std::convert::AsRef;
 use core::borrow::Borrow;
 use std::process::id;
-use std::error::Error;
+use std::{self, error::Error};
+use zip;
+static SEX_OFFENDER_PATH: &'static str = "/state/sex_offender";
+static LOCAL_PATH: &'static str = "/home/d-rezzer/dev/ftp";
 
-//use std::intrinsics::init;
+const CHUNK_SIZE: usize = 2048;
 
-static SEX_OFFENDER_PATH: &str = "/state/sex_offender";
-static LOCAL_PATH: &str = "/home/d-rezzer/dev/ftp";
-const CHUNK_SIZE: usize = 4096;
-
-pub type Result<T> = ::std::result::Result<T, Box<std::error::Error>>;
+//pub type Result<T> = ::std::result::Result<T, Box<std::error::Error>>;
 
 pub enum SexOffenderImportError {
     ConnectionError(std::io::Error),
@@ -26,15 +24,15 @@ pub enum SexOffenderImportError {
     InvalidAddress(std::net::AddrParseError),
 }
 
-pub struct SexOffenderImporter {
+pub struct SexOffenderDownloader {
     ftp_stream: FtpStream,
 }
 
-impl SexOffenderImporter {
+impl SexOffenderDownloader {
     pub fn connect() -> Self {
         //these values, I assume will be a configuration.
 
-        let mut sex_offender_importer = SexOffenderImporter {
+        let mut sex_offender_importer = SexOffenderDownloader {
             ftp_stream: FtpStream::connect("ftptds.shadowsoft.com:21").unwrap_or_else(|err| {
                 panic!("{}", err);
             }),
@@ -50,7 +48,7 @@ impl SexOffenderImporter {
         self.ftp_stream.quit();
     }
 
-    fn get_file_info(&self, path: &str, line: &str) -> Result<FileInfo> {
+    fn get_file_info(&self, path: &str, line: &str) -> Result<FileInfo, Box<Error>> {
         let mut iter = line.split_whitespace().rev().take(5);
 
         let finfo = FileInfo {
@@ -68,33 +66,24 @@ impl SexOffenderImporter {
 
     /// returns a list of FileInfo for
     /// all record and image files for each available state.
-    pub fn get_file_list(&mut self) -> Vec<Result<FileInfo>> {
-        let sex_offender_path = "/state/sex_offender";
+    pub fn get_file_list(&mut self) -> Vec<Result<FileInfo, Box<Error>>> {
 
-        let state_folders = self.ftp_stream.nlst(Some("us")).unwrap();
-        let available_files: Vec<Result<FileInfo>> = state_folders
+        let state_folders = self.ftp_stream.nlst(Some("us")).unwrap(); //TODO: Handle possible error
+        let available_files: Vec<Result<FileInfo, Box<Error>>> = state_folders
             .into_iter()
-            .map(|p| {
-                let mut pp = p.to_string();
-                pp.push_str(sex_offender_path);
+            .map(|state_folder| {
 
-                //list the files available for this state
-                //map_err?
-                let res: Vec<Result<FileInfo>> = self.ftp_stream
-                    .list(Some(&pp))
+                let sex_offender_folder = format!("{}{}", state_folder.to_string(), SEX_OFFENDER_PATH);
+                let file_list: Vec<Result<FileInfo, Box<Error>>> = self.ftp_stream
+                    .list(Some(&sex_offender_folder))  //TODO: map_err?
                     .into_iter()
                     .flatten()
                     .filter(|fi| fi.contains("records") || fi.contains("images"))
-                    .map(|fi| {
-                        self.get_file_info(&p, &fi)
-                    }).filter(|fi|
-                    {
-                        !SexOffenderImporter::archive_exists(&fi.as_ref().unwrap())
-
-                })
+                    .map(|fi| self.get_file_info(&state_folder, &fi))
+                    .filter(|fi| !SexOffenderDownloader::archive_exists(&fi.as_ref().unwrap()))
                     .collect();
 
-                res
+                file_list
             })
             .flatten()
             .collect();
@@ -104,25 +93,19 @@ impl SexOffenderImporter {
 
 
     fn archive_exists(fileinfo: &FileInfo) -> bool {
-        let npath = format!("{}/{}", LOCAL_PATH, fileinfo.name.as_ref().unwrap());
-        println!("local file path: {}", &npath);
-        let exists = path::Path::new(&npath).exists();
-        println!("pat exists: {}", exists);
+        let exists = path::Path::new(&fileinfo.local_file_path()).exists();
 
         exists
     }
 
 
-    pub fn get_archives(&mut self, fileinfo: &FileInfo) -> Result<SexOffenderArchive> {
+    pub fn get_archives(&mut self, fileinfo: &FileInfo) -> Result<SexOffenderArchive, Box<Error>> {
 
-        //download
-        let p = fileinfo.path.as_ref().unwrap();
         let fname = fileinfo.name.as_ref().unwrap();
-        let fsize = fileinfo.size.as_ref().unwrap();
-        let fsize = fsize.parse::<usize>().unwrap();
-        let remote_path = format!("/{}{}", p, SEX_OFFENDER_PATH);
-        //change dir.
-        match self.ftp_stream.cwd(&remote_path) {
+        //make sure we're setup to dload binary files
+        self.ftp_stream.transfer_type(FileType::Binary)?;
+        //change ftp dir.
+        match self.ftp_stream.cwd(&fileinfo.remote_path()) {
             Ok(()) => {
                 println!("dir change success");
                 ()
@@ -132,43 +115,11 @@ impl SexOffenderImporter {
             }
         }
 
-        //make sure we're setup to dload binary files
-        self.ftp_stream.transfer_type(FileType::Binary);
-
         let res = self.ftp_stream.retr(&fname, |stream| {
-            //let mut local_path = String::from(LOCAL_PATH);
-           // local_path.push_str(fname);
-
-            let npath = format!("{}/{}", LOCAL_PATH, fname);
-            let mut pth = path::Path::new(&npath);
-            let mut file = fs::File::create(pth).unwrap();
-
-            let mut total_bytes: usize = 0;
-            let mut buff: [u8; CHUNK_SIZE] = [0; CHUNK_SIZE];
-
-            let mut bytes_read = stream.read(&mut buff).unwrap();
-            total_bytes += bytes_read;
-
-            while bytes_read > 0 {
-                let bytes_written = file.write(&buff[..bytes_read]).unwrap();
-
-                bytes_read = stream.read(&mut buff).unwrap();
-                total_bytes += bytes_read;
-
-                println!("bytes read: {}", bytes_read);
-                println!("bytes written: {}", total_bytes);
-            }
-
-            match file.flush() {
-                Ok(()) => {
-                    println!("bytes written:: {}", total_bytes);
-                }
-                Err(e) => println!("bad mojo {}", e),
-            }
-            println!("according to size: {}", fsize);
-
+            SexOffenderDownloader::write_archive(&fileinfo, stream);
             Ok(())
         });
+
 
         Ok(SexOffenderArchive {
             image: "none".to_string(),
@@ -177,9 +128,92 @@ impl SexOffenderImporter {
     }
 
 
+    fn write_archive(fileinfo: &FileInfo, stream: &mut Read) -> Result<usize, FtpError> {
+
+
+        let fsize = fileinfo.size.as_ref().unwrap();
+        let fsize = fsize.parse::<usize>().unwrap();
+        let local_path = fileinfo.local_file_path();
+
+        let mut local_path = path::Path::new(&local_path);
+        let mut local_file = fs::File::create(&local_path).unwrap();
+
+        let mut total_bytes: usize = 0;
+        let mut buff: [u8; CHUNK_SIZE] = [0; CHUNK_SIZE];
+
+        let mut bytes_read = stream.read(&mut buff).unwrap();
+        total_bytes += bytes_read;
+
+        while bytes_read > 0 {
+            let bytes_written = local_file.write(&buff[..bytes_read]).unwrap();
+
+            bytes_read = stream.read(&mut buff).unwrap();
+            total_bytes += bytes_read;
+
+            println!("bytes read: {}", bytes_read);
+            println!("bytes written: {}", total_bytes);
+        }
+
+        //TODO: if the file size from the server doesn't match
+        //the total bytes we've received then we didn't get the whole file
+        //das a problem. I wonder if the server supports ftp resume.
+        match local_file.flush() {
+            Ok(()) => {
+                println!("bytes written:: {}", total_bytes);
+            }
+            Err(e) => println!("bad mojo {}", e),
+        }
+        println!("according to size: {}", fsize);
+
+        Ok(bytes_read)
+    }
     //return the list of files that are newer than what we have
     fn filter_mod_time() {}
+
+    pub fn extract_archive(fileinfo: &FileInfo ) -> Result<(), Box<Error>> {
+        let local_path = fileinfo.local_file_path();
+        let file_name = path::Path::new(&local_path);
+
+        let file = fs::File::open(&file_name)?;
+        let mut archive = zip::ZipArchive::new(file)?;
+
+        for i in 0 .. archive.len() {
+            let mut file = archive.by_index(i)?;
+
+            let outpath = file.sanitized_name();
+            let extracted_file_path = format!("{}/{}", LOCAL_PATH, file.name());
+            let mut final_path = path::Path::new(&extracted_file_path);
+            //a little block
+            {
+                let comment = file.comment();
+                if !comment.is_empty() {
+                    println!("File {} comment: {}", i, comment);
+                }
+            }
+
+
+            //&*file.name  what is that syntax?
+            if (&*file.name()).ends_with('/') {
+                println!("File {} extracted to \"{}\"", i, outpath.as_path().display());
+                fs::create_dir_all(&outpath).unwrap();
+            } else {
+                println!("File {} extracted to \"{}\" ({} bytes)", i, final_path.display(), file.size());
+                /*if let Some(p) = outpath.parent() {
+                    if !p.exists() {
+                        fs::create_dir_all(&p).unwrap();
+                    }
+                }
+                */
+                let mut outfile = fs::File::create(&final_path).unwrap();
+                std::io::copy(&mut file, &mut outfile).unwrap();
+            }
+        }
+
+        Ok(())
+
+    }
 }
+
 
 pub struct SexOffenderArchive {
     image: String,
@@ -194,4 +228,20 @@ pub struct FileInfo {
     month: Option<String>,
     day: Option<String>,
     size: Option<String>, //convert this to i64
+}
+
+impl FileInfo {
+    pub fn local_file_path(&self) -> String {
+        format!("{}/{}", LOCAL_PATH, self.name.as_ref().unwrap())
+    }
+
+    pub fn remote_path(&self) -> String {
+
+        //let p = fileinfo.path.as_ref().unwrap();
+        format!("/{}{}", self.path.as_ref().unwrap(), SEX_OFFENDER_PATH)
+    }
+}
+
+pub struct ArchiveExtractor {
+
 }

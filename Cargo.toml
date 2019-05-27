@@ -6,5 +6,9 @@ edition = "2018"
 
 [dependencies]
 ftp = "3.0.1"
-rusqlite = "0.18.0"
 zip = "0.5.2"
+csv = "1.0.7"
+
+[dependencies.rusqlite]
+version = "0.18.0"
+features = ["bundled"]
