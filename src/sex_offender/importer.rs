@@ -6,7 +6,6 @@ use csv;
 use std::fs;
 use std::fs::{File};
 
-
 use rusqlite::{Connection, params, NO_PARAMS};
 use std::path::Path;
 use std::string::ToString;
@@ -43,7 +42,6 @@ pub fn open_csv_reader(file: File) -> Result<csv::Reader<File>, Box<Error>> {
 }
 
 pub fn create_table_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<Error>> {
-
 
     let mut q = format!("CREATE TABLE if not exists {} (", tname);
 
@@ -97,46 +95,32 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
 }
 
 pub fn import_csv_file(path: &Path) -> Result<(), Box<Error>> {
+
     let lpath = path::Path::new(path);
     let conn = Connection::open(SQL_PATH)?;
     let file = File::open(lpath).unwrap();
-
     let mut csv_reader = open_csv_reader(file)?;
     let table_name = String::from(lpath.file_stem().unwrap().to_str().unwrap());
-
     let mut table_query = create_table_query(&mut csv_reader, &table_name)?;
     conn.execute(&table_query, NO_PARAMS)?;
 
     let insert_query = create_insert_query(&mut csv_reader, &table_name)?;
-
     conn.execute("Begin Transaction;", NO_PARAMS);
-    let mut cols: Vec<String> = Vec::new();
 
-    let mut count = 0;
     for result in csv_reader.records() {
-        let record = result.unwrap();
-
-        //may not need the vec loop.
-        let listof: Vec<&str> = record.iter().collect();
-
-        for fld in record.iter() {
-            cols.push(String::from(fld));
-        }
-
-        match conn.execute(&insert_query, &listof) {
-            Ok(inserted) => {
-                count += 1;
-                //println!("{} rows inserted", count);
-            }
-            Err(err) => println!("FAIL {}", err),
-        }
-
-        cols.clear();
+        let record = result?;
+        let csv_values: Vec<&str> = record.iter().collect();
+        conn.execute(&insert_query, &csv_values)?;
     }
     conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
 
     Ok(())
 }
+pub fn import_images(path: &Path) -> Result<(), Box<Error>> {
 
+    let lpath = path::Path::new(path);
+    //lpath.iter().for_each()
+    Ok(())
+}
 
 
