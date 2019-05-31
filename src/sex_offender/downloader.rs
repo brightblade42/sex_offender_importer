@@ -1,9 +1,10 @@
+
 extern crate ftp;
 use ftp::{FtpStream, FtpError};
 use ftp::types::FileType;
 use std::iter::{Iterator, FromIterator};
-use std::fs;
-use std::path;
+use std::fs::{self, File};
+use std::path::{self, Path};
 use std::str;
 use std::io::{BufWriter, Write, Read, ErrorKind, BufReader, copy};
 use std::convert::AsRef;
@@ -11,6 +12,7 @@ use core::borrow::Borrow;
 use std::process::id;
 use std::{self, error::Error};
 use zip;
+use zip::ZipArchive;
 
 static SEX_OFFENDER_PATH: &'static str = "/state/sex_offender";
 static LOCAL_PATH: &'static str = "/home/d-rezzer/dev/ftp";
@@ -26,7 +28,7 @@ pub enum SexOffenderImportError {
 }
 
 pub struct Downloader {
-    ftp_stream: FtpStream,
+    stream: FtpStream,
 }
 
 impl Downloader {
@@ -34,19 +36,19 @@ impl Downloader {
         //these values, I assume will be a configuration.
 
         let mut sex_offender_importer = Downloader {
-            ftp_stream: FtpStream::connect("ftptds.shadowsoft.com:21").unwrap_or_else(|err| {
+            stream: FtpStream::connect("ftptds.shadowsoft.com:21").unwrap_or_else(|err| {
                 panic!("{}", err);
             }),
         };
 
         sex_offender_importer
-            .ftp_stream
+            .stream
             .login("swg_sample", "456_sample");
         sex_offender_importer
     }
 
     pub fn disconnect(&mut self) {
-        self.ftp_stream.quit();
+        self.stream.quit();
     }
 
     fn get_file_info(&self, path: &str, line: &str) -> Result<FileInfo, Box<Error>> {
@@ -65,23 +67,26 @@ impl Downloader {
     }
 
 
-    /// returns a list of FileInfo for
-    /// all record and image files for each available state.
-    pub fn get_file_list(&mut self) -> Vec<Result<FileInfo, Box<Error>>> {
 
-        let state_folders = self.ftp_stream.nlst(Some("us")).unwrap(); //TODO: Handle possible error
+
+    pub fn file_list(&mut self, filter: fn(&String) -> bool ) -> Vec<Result<FileInfo, Box<Error>>> {
+
+        let state_folders = self.stream.nlst(Some("us")).expect("Unable to get remote file listings");
+        //TODO: Handle possible error
         let available_files: Vec<Result<FileInfo, Box<Error>>> = state_folders
             .into_iter()
             .map(|state_folder| {
 
                 let sex_offender_folder = format!("{}{}", state_folder.to_string(), SEX_OFFENDER_PATH);
-                let file_list: Vec<Result<FileInfo, Box<Error>>> = self.ftp_stream
-                    .list(Some(&sex_offender_folder))  //TODO: map_err?
+                let file_list: Vec<Result<FileInfo, Box<Error>>> = self.stream
+                    .list(Some(&sex_offender_folder))
+                    // .map_err(|e| e.into())  //TODO: don't presently know how to handle this properly
                     .into_iter()
                     .flatten()
-                    .filter(|fi| fi.contains("records") || fi.contains("images"))
+                    .filter(filter)
                     .map(|fi| self.get_file_info(&state_folder, &fi))
-                    .filter(|fi| !Downloader::archive_exists(&fi.as_ref().unwrap()))
+                    //.filter(|fi| !Downloader::archive_exists(&fi.as_ref().unwrap()))
+                    .filter(|fi| Downloader::file_is_new(fi.as_ref().unwrap()))
                     .collect();
 
                 file_list
@@ -92,34 +97,42 @@ impl Downloader {
         available_files
     }
 
-
+    fn file_is_new(fileinfo: &FileInfo) -> bool {
+            //new means, remote file is newer or doesn't yet exist on local disk.
+          !Downloader::archive_exists(fileinfo) || Downloader::remote_file_is_newer(fileinfo)
+    }
     fn archive_exists(fileinfo: &FileInfo) -> bool {
-        let exists = path::Path::new(&fileinfo.local_file_path()).exists();
+        let exists = Path::new(&fileinfo.local_file_path()).exists();
 
         exists
     }
 
+    fn remote_file_is_newer(fileinfo: &FileInfo) -> bool {
+        //compare the local file mod time with fileinfo data
+        false
+    }
 
     pub fn get_archives(&mut self, fileinfo: &FileInfo) -> Result<SexOffenderArchive, Box<Error>> {
 
         let fname = fileinfo.name.as_ref().unwrap();
         //make sure we're setup to dload binary files
-        self.ftp_stream.transfer_type(FileType::Binary)?;
+        self.stream.transfer_type(FileType::Binary)?;
         //change ftp dir.
-        match self.ftp_stream.cwd(&fileinfo.remote_path()) {
+        match self.stream.cwd(&fileinfo.remote_path()) {
             Ok(()) => {
                 println!("dir change success");
+
+                let res = self.stream.retr(&fname, |stream| {
+                    Downloader::write_archive(&fileinfo, stream);
+                        Ok(())
+                });
+
                 ()
-            }
+            },
             Err(e) => {
                 println!("oops! {}", e);
             }
         }
-
-        let res = self.ftp_stream.retr(&fname, |stream| {
-            Downloader::write_archive(&fileinfo, stream);
-            Ok(())
-        });
 
 
         Ok(SexOffenderArchive {
@@ -135,19 +148,19 @@ impl Downloader {
         let fsize = fsize.parse::<usize>().unwrap();
         let local_path = fileinfo.local_file_path();
 
-        let mut local_path = path::Path::new(&local_path);
-        let mut local_file = fs::File::create(&local_path).unwrap();
+        let mut local_path = Path::new(&local_path);
+        let mut local_file = File::create(&local_path).expect("Unable to create archive file");
 
         let mut total_bytes: usize = 0;
         let mut buff: [u8; CHUNK_SIZE] = [0; CHUNK_SIZE];
 
-        let mut bytes_read = stream.read(&mut buff).unwrap();
+        let mut bytes_read = stream.read(&mut buff).expect("Unable to read bytes from stream");
         total_bytes += bytes_read;
 
         while bytes_read > 0 {
-            let bytes_written = local_file.write(&buff[..bytes_read]).unwrap();
+            let bytes_written = local_file.write(&buff[..bytes_read]).expect("Unable to write bytes");
 
-            bytes_read = stream.read(&mut buff).unwrap();
+            bytes_read = stream.read(&mut buff).expect("Unable to read bytes from stream");
             total_bytes += bytes_read;
         }
         //TODO: if the file size from the server doesn't match
@@ -166,48 +179,36 @@ impl Downloader {
     //return the list of files that are newer than what we have
     fn filter_mod_time() {}
 
+
+    fn extract_from(path: &path::Path) -> Result<(), Box<Error>> {
+
+       let file = BufReader::new(File::open(path).unwrap());
+
+           let mut archive = zip::ZipArchive::new(file)?;
+
+           for i in 0 .. archive.len() {
+
+              let mut arch_file = archive.by_index(i)?;
+
+               let outname = arch_file.sanitized_name();
+               let full_path = format!("{}/{}", LOCAL_PATH, outname.display());
+               let mut outfile = BufWriter::new(File::create(&full_path).unwrap());
+               std::io::copy(&mut arch_file, &mut outfile);
+               println!("wrote: {}", full_path);
+
+           }
+
+        Ok(())
+    }
+
     pub fn extract_archive(fileinfo: &FileInfo ) -> Result<Vec<CSVInfo>, Box<Error>> {
-        let local_path = fileinfo.local_file_path();
-        let file_name = path::Path::new(&local_path);
 
-        let mut csv_files: Vec<CSVInfo> = Vec::new();
-        let file = fs::File::open(&file_name)?;
-        let mut archive = zip::ZipArchive::new(file)?;
+        let local_archive_path = fileinfo.local_file_path();
+        let archived_file_name = Path::new(&local_archive_path);
 
-        for i in 0 .. archive.len() {
-            let mut file = archive.by_index(i)?;
+        let mut csv_files: Vec<CSVInfo> = Vec::new(); //store our list of csv files.
 
-            let outpath = file.sanitized_name();
-            let extracted_file_path = format!("{}/{}", LOCAL_PATH, file.name());
-            let mut final_path = path::Path::new(&extracted_file_path);
-
-            //&*file.name  what is that syntax?
-            //need to extract the child zip from images.
-            if (&*file.name()).ends_with('/') {
-
-                println!("File {} extracted to \"{}\"", i, outpath.as_path().display());
-                fs::create_dir_all(&outpath).unwrap();
-            } else if (&*file.name()).ends_with(".zip") {
-                //extract the zip within...
-                println!("we need to handle the inner Zippage.");
-            }
-            else {
-                println!("File {} extracted to \"{}\" ({} bytes)", i, final_path.display(), file.size());
-                /*if let Some(p) = outpath.parent() {
-                    if !p.exists() {
-                        fs::create_dir_all(&p).unwrap();
-                    }
-                }
-                */
-                let mut outfile = fs::File::create(&final_path).unwrap();
-                std::io::copy(&mut file, &mut outfile).unwrap();
-
-                csv_files.push(CSVInfo {
-                    name: String::from(file.name()),
-                    path: extracted_file_path,
-                })
-            }
-        }
+        Downloader::extract_from(archived_file_name);
 
         Ok(csv_files)
 
@@ -222,12 +223,12 @@ pub struct SexOffenderArchive {
 
 #[derive(Debug)]
 pub struct FileInfo {
-    path: Option<String>,
-    name: Option<String>,
-    year: Option<String>,
-    month: Option<String>,
-    day: Option<String>,
-    size: Option<String>, //convert this to i64
+    pub path: Option<String>,
+    pub name: Option<String>,
+    pub year: Option<String>,
+    pub month: Option<String>,
+    pub day: Option<String>,
+    pub size: Option<String>, //convert this to i64
 }
 
 impl FileInfo {
@@ -249,3 +250,25 @@ impl CSVInfo {
 
 }
 
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    #[test]
+    fn extract_nested_zip_file() {
+//        "/home/d-rezzer/dev/ftp/AZSX_2018_05_02_2355_records.zip"
+        println!("TESTING!");
+        let fileInfo = super::FileInfo {
+            path: Some("/home/d-rezzer/dev/ftp".to_string()),
+            name: Some("AZSX_2018_05_02_2355_images.zip".to_string()),
+            year: None,
+            month: None,
+            day: None,
+            size: None,
+        };
+
+        let s = Downloader::extract_archive(&fileInfo);
+        assert_eq!(true, true);
+    }
+
+}
