@@ -13,10 +13,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/sex_offender/downloader.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/sex_offender/downloader.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/sex_offender/importer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/sex_offender/importer.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -45,7 +43,7 @@
     <favorites_list name="untitled" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.5608108">
+    <splitter split-orientation="horizontal" split-proportion="0.4761327">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="false">
@@ -60,8 +58,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/sex_offender/downloader.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="967">
-                  <caret line="61" column="7" selection-start-line="61" selection-start-column="7" selection-end-line="61" selection-end-column="7" />
+                <state relative-caret-position="468">
+                  <caret line="234" column="16" selection-start-line="234" selection-start-column="16" selection-end-line="234" selection-end-column="16" />
                   <folding>
                     <element signature="e#1393#1394#0" expanded="true" />
                     <element signature="e#1427#1428#0" expanded="true" />
@@ -131,8 +129,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="792">
-                  <caret line="61" column="4" selection-start-line="61" selection-start-column="4" selection-end-line="61" selection-end-column="4" />
+                <state relative-caret-position="630">
+                  <caret line="76" column="47" selection-start-line="76" selection-start-column="47" selection-end-line="76" selection-end-column="47" />
                 </state>
               </provider>
             </entry>
@@ -160,8 +158,8 @@
         <option value="$PROJECT_DIR$/src/sex_offender/mod.rs" />
         <option value="$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/zip-0.5.2/src/read.rs" />
         <option value="$PROJECT_DIR$/src/sex_offender/importer.rs" />
-        <option value="$PROJECT_DIR$/src/main.rs" />
         <option value="$PROJECT_DIR$/src/sex_offender/downloader.rs" />
+        <option value="$PROJECT_DIR$/src/main.rs" />
       </list>
     </option>
   </component>
@@ -169,9 +167,9 @@
     <option name="directoryName" value="TUVBgzts" />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="140" />
-    <option name="y" value="282" />
-    <option name="width" value="3155" />
+    <option name="x" value="210" />
+    <option name="y" value="430" />
+    <option name="width" value="3310" />
     <option name="height" value="1365" />
   </component>
   <component name="ProjectView">
@@ -294,7 +292,7 @@
       <workItem from="1559150964591" duration="3417000" />
       <workItem from="1559159618879" duration="33541000" />
       <workItem from="1559331223067" duration="3816000" />
-      <workItem from="1559336656082" duration="11299000" />
+      <workItem from="1559336656082" duration="25633000" />
     </task>
     <servers />
   </component>
@@ -310,7 +308,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="162264000" />
+    <option name="totallyTimeSpent" value="176598000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -322,17 +320,16 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="140" y="282" width="3155" height="1365" extended-state="0" />
-    <editor active="true" />
+    <frame x="210" y="430" width="3310" height="1365" extended-state="0" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.21709402" visible="true" weight="0.084217295" />
-      <window_info id="Structure" order="1" sideWeight="0.782906" side_tool="true" visible="true" weight="0.084217295" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.2172352" visible="true" weight="0.08022045" />
+      <window_info id="Structure" order="1" sideWeight="0.7827648" side_tool="true" visible="true" weight="0.08022045" />
       <window_info id="Favorites" order="2" sideWeight="0.501292" side_tool="true" weight="0.08518006" />
       <window_info anchor="bottom" id="Inspection Results" order="0" weight="0.413928" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="Find" order="2" />
       <window_info anchor="bottom" id="Run" order="3" weight="0.33118454" />
-      <window_info anchor="bottom" id="Debug" order="4" visible="true" weight="0.057211924" />
+      <window_info anchor="bottom" id="Debug" order="4" visible="true" weight="0.102336824" />
       <window_info anchor="bottom" id="Cvs" order="5" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="6" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="7" weight="0.3290267" />
@@ -344,7 +341,7 @@
       <window_info anchor="right" id="Cargo" order="3" weight="0.27337843" />
       <window_info anchor="right" id="Database" order="4" weight="0.3298846" />
       <window_info anchor="right" id="Event Log" order="5" sideWeight="0.41258094" weight="0.24761024" />
-      <window_info active="true" anchor="right" id="Terminal" order="6" sideWeight="0.58741903" visible="true" weight="0.24975891" />
+      <window_info active="true" anchor="right" id="Terminal" order="6" sideWeight="0.58741903" visible="true" weight="0.36742193" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -355,8 +352,13 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/sex_offender/downloader.rs</url>
-          <line>304</line>
+          <line>384</line>
           <option name="timeStamp" value="11" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/sex_offender/downloader.rs</url>
+          <line>184</line>
+          <option name="timeStamp" value="19" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -474,21 +476,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="468">
-          <caret line="29" column="77" selection-start-line="29" selection-start-column="77" selection-end-line="29" selection-end-column="77" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/sex_offender/downloader.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="967">
-          <caret line="61" column="7" selection-start-line="61" selection-start-column="7" selection-end-line="61" selection-end-column="7" />
+        <state relative-caret-position="468">
+          <caret line="234" column="16" selection-start-line="234" selection-start-column="16" selection-end-line="234" selection-end-column="16" />
           <folding>
             <element signature="e#1393#1394#0" expanded="true" />
             <element signature="e#1427#1428#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="630">
+          <caret line="76" column="47" selection-start-line="76" selection-start-column="47" selection-end-line="76" selection-end-column="47" />
         </state>
       </provider>
     </entry>
