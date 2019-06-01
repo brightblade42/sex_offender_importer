@@ -94,6 +94,8 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
     Ok(insert_query)
 }
 
+//reads a csv file and imports the data into a sqlite db.
+//the filename is the name of the table. easy.
 pub fn import_csv_file(path: &Path) -> Result<(), Box<Error>> {
 
     let lpath = path::Path::new(path);
@@ -107,6 +109,7 @@ pub fn import_csv_file(path: &Path) -> Result<(), Box<Error>> {
     let insert_query = create_insert_query(&mut csv_reader, &table_name)?;
     conn.execute("Begin Transaction;", NO_PARAMS);
 
+    //insert a record (line of csv) into sqlite table.
     for result in csv_reader.records() {
         let record = result?;
         let csv_values: Vec<&str> = record.iter().collect();
@@ -116,11 +119,16 @@ pub fn import_csv_file(path: &Path) -> Result<(), Box<Error>> {
 
     Ok(())
 }
+
+//insert all the image files into a database table. Sounds wrong but it
+//oh so right.
 pub fn import_images(path: &Path) -> Result<(), Box<Error>> {
 
     let lpath = path::Path::new(path);
     //lpath.iter().for_each()
     Ok(())
 }
+
+
 
 
