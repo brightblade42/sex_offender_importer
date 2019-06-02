@@ -16,7 +16,6 @@ use zip::ZipArchive;
 
 static SEX_OFFENDER_PATH: &'static str = "/state/sex_offender";
 static LOCAL_PATH: &'static str = "/home/d-rezzer/dev/ftp";
-static FTP_ADDR: &'static str = "ftptds.shadowsoft.com:21";
 
 const CHUNK_SIZE: usize = 2048;
 
@@ -40,19 +39,18 @@ pub enum DownloadOption {
 }
 
 impl Downloader {
-    pub fn connect() -> Self {
+    pub fn connect(addr: &str, user: &str, pwd: &str) -> Result<Self, Box<Error>> {
         //these values, I assume will be a configuration.
 
         let mut sex_offender_importer = Downloader {
-            stream: FtpStream::connect(FTP_ADDR).unwrap_or_else(|err| {
-                panic!("{}", err);
-            }),
+            stream: FtpStream::connect(addr)?,
         };
 
         sex_offender_importer
             .stream
-            .login("swg_sample", "456_sample");
-        sex_offender_importer
+            .login(user, pwd);
+
+        Ok(sex_offender_importer)
     }
 
     pub fn disconnect(&mut self) {
@@ -63,16 +61,6 @@ impl Downloader {
 
         let mut iter = line.split_whitespace().rev().take(5);
 
-       /*
-        let finfo = RecordInfo {
-            rpath: Some(path.to_string()),
-            name: Some(iter.next().unwrap().to_string()),
-            year: Some(iter.next().unwrap().to_string()),
-            month: Some(iter.next().unwrap().to_string()),
-            day: Some(iter.next().unwrap().to_string()),
-            size: Some(iter.next().unwrap().to_string()),
-        };
-*/
         let fin = FileInfo::Record(RecordInfo {
             rpath: Some(path.to_string()),
             name: Some(iter.next().unwrap().to_string()),

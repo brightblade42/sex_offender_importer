@@ -10,6 +10,11 @@ use crate::sex_offender::importer::import_csv_file2;
 
 //use crate::sexoffender::SexOffenderImportError;
 //
+
+static FTP_ADDR: &'static str = "ftptds.shadowsoft.com:21";
+static FTP_USER: &'static str = "swg_sample";
+static FTP_PWD: &'static str = "456_sample";
+
 fn main() {
 
     let start = Instant::now();
@@ -19,7 +24,7 @@ fn main() {
 }
 
 fn get_remote_files() {
-    let mut downloader = Downloader::connect();
+    let mut downloader = Downloader::connect(FTP_ADDR, FTP_USER, FTP_PWD).expect("Unable to connect to ftp server.");
 
 
     let record_filter = |x: &String | x.contains("records") || x.contains("images");
@@ -62,7 +67,6 @@ fn get_remote_files() {
 
 
     flist.push(Ok(mock_image));
-
     use sex_offender::downloader::ExtractedFile::*;
 
      let ip = path::PathBuf::from("/home/d-rezzer/dev/ftp/us/arkansas/ARSexOffenders_2018_04_17_1726_images.zip");

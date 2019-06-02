@@ -15,8 +15,6 @@
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/sex_offender/downloader.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/sex_offender/downloader.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/sex_offender/importer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/sex_offender/importer.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -60,8 +58,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/sex_offender/downloader.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="570">
-                  <caret line="236" column="105" lean-forward="true" selection-start-line="236" selection-start-column="105" selection-end-line="236" selection-end-column="105" />
+                <state relative-caret-position="246">
+                  <caret line="218" column="57" lean-forward="true" selection-start-line="218" selection-start-column="57" selection-end-line="218" selection-end-column="57" />
                   <folding>
                     <element signature="e#1393#1394#0" expanded="true" />
                     <element signature="e#1427#1428#0" expanded="true" />
@@ -77,8 +75,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="638">
-                  <caret line="68" column="86" selection-start-line="68" selection-start-column="86" selection-end-line="68" selection-end-column="86" />
+                <state relative-caret-position="458">
+                  <caret line="61" selection-start-line="61" selection-end-line="61" />
                 </state>
               </provider>
             </entry>
@@ -264,7 +262,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="187230000" />
+    <option name="totallyTimeSpent" value="189071000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -277,7 +275,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="9" y="0" width="3394" height="1401" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.21678966" visible="true" weight="0.07820895" />
       <window_info id="Structure" order="1" sideWeight="0.78321034" side_tool="true" visible="true" weight="0.07820895" />
@@ -433,21 +430,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="468">
-          <caret line="29" selection-start-line="29" selection-end-line="29" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/sex_offender/downloader.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="570">
-          <caret line="236" column="105" lean-forward="true" selection-start-line="236" selection-start-column="105" selection-end-line="236" selection-end-column="105" />
+        <state relative-caret-position="246">
+          <caret line="218" column="57" lean-forward="true" selection-start-line="218" selection-start-column="57" selection-end-line="218" selection-end-column="57" />
           <folding>
             <element signature="e#1393#1394#0" expanded="true" />
             <element signature="e#1427#1428#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="458">
+          <caret line="61" selection-start-line="61" selection-end-line="61" />
         </state>
       </provider>
     </entry>
