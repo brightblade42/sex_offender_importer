@@ -229,12 +229,13 @@ impl Downloader {
                let mut outfile = BufWriter::new(File::create(fp.as_path()).unwrap());
                std::io::copy(&mut arch_file, &mut outfile);
                //println!("wrote: {}", fp.display());
+               let tag = &fileinfo.name()[..2];
 
                extracted_files.push(
                    match fileinfo {
 
-                       FileInfo::Record(_) =>  ExtractedFile::Csv(fp),
-                       FileInfo::Image(_) => ExtractedFile::ImageArchive(fp)
+                       FileInfo::Record(_) =>  ExtractedFile::Csv { path: fp, state: String::from(tag) },
+                       FileInfo::Image(_) => ExtractedFile::ImageArchive { path: fp, state: String::from(tag) }
                });
            }
 
@@ -245,8 +246,9 @@ impl Downloader {
 }
 #[derive(Debug)]
 pub enum ExtractedFile {
-    Csv(path::PathBuf),
-    ImageArchive(path::PathBuf)
+    //Csv(path::PathBuf),
+    Csv { path: PathBuf, state: String},
+    ImageArchive { path: PathBuf, state: String}
 }
 
 
@@ -287,6 +289,7 @@ impl FileInfo {
 
        }
     }
+
     pub fn base_path(&self) -> path::PathBuf {
         use FileInfo::*;
 
