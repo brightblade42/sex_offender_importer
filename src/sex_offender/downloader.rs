@@ -4,7 +4,7 @@ use ftp::{FtpStream, FtpError};
 use ftp::types::FileType;
 use std::iter::{Iterator, FromIterator};
 use std::fs::{self, File};
-use std::path::{self, Path};
+use std::path::{self, Path, PathBuf};
 use std::str;
 use std::io::{BufWriter, Write, Read, ErrorKind, BufReader, copy};
 use std::convert::AsRef;
@@ -63,7 +63,8 @@ impl Downloader {
 
         let mut iter = line.split_whitespace().rev().take(5);
 
-        let finfo = FileInfo {
+       /*
+        let finfo = RecordInfo {
             rpath: Some(path.to_string()),
             name: Some(iter.next().unwrap().to_string()),
             year: Some(iter.next().unwrap().to_string()),
@@ -71,8 +72,17 @@ impl Downloader {
             day: Some(iter.next().unwrap().to_string()),
             size: Some(iter.next().unwrap().to_string()),
         };
+*/
+        let fin = FileInfo::Record(RecordInfo {
+            rpath: Some(path.to_string()),
+            name: Some(iter.next().unwrap().to_string()),
+            year: Some(iter.next().unwrap().to_string()),
+            month: Some(iter.next().unwrap().to_string()),
+            day: Some(iter.next().unwrap().to_string()),
+            size: Some(iter.next().unwrap().to_string()),
+        });
 
-        Ok(finfo)
+        Ok(fin)
     }
 
 
@@ -133,7 +143,7 @@ impl Downloader {
 
     pub fn save_archive(&mut self, fileinfo: &FileInfo) -> Result<SexOffenderArchive, Box<Error>> {
 
-        let fname = fileinfo.name.as_ref().unwrap();
+        let fname = fileinfo.name();//.as_ref().unwrap();
         //make sure we're setup to dload binary files
         self.stream.transfer_type(FileType::Binary)?;
         //change ftp dir.
@@ -164,9 +174,6 @@ impl Downloader {
     //write the archive file we got from ftp to disk.
     fn write_archive(fileinfo: &FileInfo, stream: &mut Read) -> Result<usize, FtpError> {
 
-        let fsize = fileinfo.size.as_ref().unwrap();
-        let fsize = fsize.parse::<usize>().unwrap();
-
         let mut file_path = fileinfo.file_path();//Path::new(&local_file_path);
         let mut base_path =  fileinfo.base_path(); //Path::new(&local_base_path);
 
@@ -195,7 +202,7 @@ impl Downloader {
             }
             Err(e) => println!("bad mojo {}", e),
         }
-        println!("according to size: {}", fsize);
+        //println!("according to size: {}", fsize);
 
         Ok(bytes_read)
     }
@@ -203,9 +210,9 @@ impl Downloader {
     fn filter_mod_time() {}
 
 
-    pub fn extract_archive(fileinfo: &FileInfo) -> Result<Vec<CSVInfo>, Box<Error>> {
+    pub fn extract_archive(fileinfo: &FileInfo) -> Result<Vec<ExtractedFile>, Box<Error>> {
 
-        let mut csv_files: Vec<CSVInfo> = Vec::new(); //store our list of csv files.
+        let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
         let archive_path = fileinfo.file_path();
        let file = BufReader::new(File::open(archive_path).unwrap());
 
@@ -216,26 +223,32 @@ impl Downloader {
               let mut arch_file = archive.by_index(i)?;
 
                let outname = arch_file.sanitized_name();
-               let mut fp = fileinfo.base_path();
+               let mut fp = fileinfo.extract_path();
+               fs::create_dir_all(fp.as_path());
                fp.push(outname);
                let mut outfile = BufWriter::new(File::create(fp.as_path()).unwrap());
                std::io::copy(&mut arch_file, &mut outfile);
-               println!("wrote: {}", fp.display());
+               //println!("wrote: {}", fp.display());
+               let tag = &fileinfo.name()[..2];
 
+               extracted_files.push(
+                   match fileinfo {
+
+                       FileInfo::Record(_) =>  ExtractedFile::Csv { path: fp, state: String::from(tag) },
+                       FileInfo::Image(_) => ExtractedFile::ImageArchive { path: fp, state: String::from(tag) }
+               });
            }
 
-        Ok(csv_files)
+        Ok(extracted_files)
     }
 
-    pub fn extract_archiveX(fileinfo: &FileInfo ) -> Result<Vec<CSVInfo>, Box<Error>> {
 
-        let mut csv_files: Vec<CSVInfo> = Vec::new(); //store our list of csv files.
-
-        //Downloader::extract_from(fileinfo.file_path().as_path());
-
-        Ok(csv_files)
-
-    }
+}
+#[derive(Debug)]
+pub enum ExtractedFile {
+    //Csv(path::PathBuf),
+    Csv { path: PathBuf, state: String},
+    ImageArchive { path: PathBuf, state: String}
 }
 
 
@@ -244,8 +257,14 @@ pub struct SexOffenderArchive {
     record: String,
 }
 
+
 #[derive(Debug)]
-pub struct FileInfo {
+pub struct ImageInfo {
+    pub rpath: Option<String>,
+    pub name: Option<String>,
+}
+#[derive(Debug)]
+pub struct RecordInfo {
     pub rpath: Option<String>,
     pub name: Option<String>,
     pub year: Option<String>,
@@ -254,35 +273,80 @@ pub struct FileInfo {
     pub size: Option<String>, //convert this to i64
 }
 
+
+pub enum FileInfo {
+    Record(RecordInfo),
+    Image(ImageInfo),
+}
+
 impl FileInfo {
 
+    pub fn name(&self) -> String {
+        use FileInfo::*;
+       match *self {
+           Record(ref r) => r.name.as_ref().unwrap().to_string(),
+           Image(ref i) => i.name.as_ref().unwrap().to_string(), //as_ref().unwrap()
+
+       }
+    }
+
     pub fn base_path(&self) -> path::PathBuf {
-        path::PathBuf::from( format!("{}/{}", LOCAL_PATH, self.rpath.as_ref().unwrap()))
+        use FileInfo::*;
+
+        path::PathBuf::from(
+            match *self {
+                Record(ref r) => format!("{}/{}", LOCAL_PATH, r.rpath.as_ref().unwrap()),
+                Image(ref i) => format ! ("{}/{}", LOCAL_PATH, i.rpath.as_ref().unwrap()),
+
+            }
+        )
     }
 
     pub fn file_path(&self) -> path::PathBuf {
+        use FileInfo::*;
 
         let mut fp = self.base_path();
-        fp.push(self.name.as_ref().unwrap());
+        match  *self {
+            Record(ref r ) => fp.push(r.name.as_ref().unwrap()),
+            Image(ref i) => fp.push(i.name.as_ref().unwrap()),
+
+        };
 
         fp
 
     }
 
-    pub fn remote_path(&self) -> path::PathBuf {
-        let rpath = format!("/{}{}", self.rpath.as_ref().unwrap(), SEX_OFFENDER_PATH);
-        path::PathBuf::from(rpath)
+     pub fn remote_path(&self) -> path::PathBuf {
+         use FileInfo::*;
+
+         path::PathBuf::from(
+            match *self {
+                Record(ref r) => format!("/{}{}", r.rpath.as_ref().unwrap(), SEX_OFFENDER_PATH),
+                Image(ref i) => format!("/{}{}", i.rpath.as_ref().unwrap(), SEX_OFFENDER_PATH),
+
+            }
+         )
+
     }
+
+    pub fn extract_path(&self) -> path::PathBuf {
+        use FileInfo::*;
+
+        let mut fp = self.base_path();
+
+        match  *self {
+            Record(ref r ) => fp.push("records"),
+            Image(ref i) => fp.push("images"),
+
+        };
+
+        fp
+    }
+
 }
 
-pub struct CSVInfo {
-    pub name: String,
-    pub path: String,
 
-}
-impl CSVInfo {
 
-}
 
 #[cfg(test)]
 mod tests {

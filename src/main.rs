@@ -1,17 +1,18 @@
 mod sex_offender;
 extern crate ftp;
-use crate::sex_offender::downloader::{Downloader, CSVInfo, FileInfo, DownloadOption};
-use sex_offender::importer::import_csv_file;
+use crate::sex_offender::downloader::{Downloader,  RecordInfo, FileInfo, DownloadOption, ExtractedFile};
+use sex_offender::importer::import_data;
+
 use std::path;
 use std::time::{Duration, Instant};
 use core::borrow::Borrow;
+use crate::sex_offender::importer::import_csv_file2;
 
 //use crate::sexoffender::SexOffenderImportError;
 //
 fn main() {
 
     let start = Instant::now();
-    //extract_nested_zip_file();
     get_remote_files();
     let duration = start.elapsed();
     println!("all done. Took : {:?}", duration);
@@ -24,11 +25,9 @@ fn get_remote_files() {
     let record_filter = |x: &String | x.contains("records") || x.contains("images");
     let records_only = |x: &String| x.contains("records");
     let az_only = |x: &String| x.contains("AR") && x.contains("records");
-//    let file_list = downloader.get_file_list();
-//    let file_list = downloader.file_list(filter);
 
-//    let file_list = downloader.file_list(record_filter, FileOption::Only_New);
-    let mut file_list = downloader.file_list(az_only, DownloadOption::Always);
+
+    let mut file_list = downloader.file_list(records_only, DownloadOption::Always);
     let mut cnt = 0;
 
     if file_list.is_empty() {
@@ -50,27 +49,48 @@ fn get_remote_files() {
         }
     }
 
-    let mock_image = FileInfo {
+    use sex_offender::downloader::ImageInfo;
+
+    let mock_image = FileInfo::Image(ImageInfo {
         rpath: Some("us/arkansas".to_string()),
         name: Some("ARSexOffenders_2018_04_17_1726_images.zip".to_string()),
-        year: None,
-        month: None,
-        day: None,
-        size: None,
-    };
+    });
+
+    let mock_name = &mock_image.name();
+    let mock_com = &mock_image.base_path().display().to_string();
+    //let items = mock_com.split("/");
+
 
     flist.push(Ok(mock_image));
 
+    use sex_offender::downloader::ExtractedFile::*;
+
+     let ip = path::PathBuf::from("/home/d-rezzer/dev/ftp/us/arkansas/ARSexOffenders_2018_04_17_1726_images.zip");
+     let imgarc = ExtractedFile::ImageArchive { path: ip, state: String::from(&mock_com[..2])};
+
+     let mut cnt = 0;
     for file in flist.iter_mut() {
         match file {
             Ok(f) => {
-                Downloader::extract_archive(&f);
+                let mut ext = Downloader::extract_archive(&f);
+                //create an image thign to test.
+                for ef in ext.unwrap().iter() {
+                    //import_data(&ef);
+                    if let Csv {path,state} = ef {
+                        println!("{:?}", path);
+                        println!("{:?}", state);
+
+                    } else {
+                        println!("child zip: {:?}", ef);
+                    }
+                }
             },
             Err(err) => {
                 println!("I have no idea what i am doing!");
             }
         }
     }
+
     //need to test image extraction without downloading.
 
     /*
@@ -87,48 +107,7 @@ fn get_remote_files() {
     downloader.disconnect();
 }
 
-fn extract_nested_zip_file() {
-//        "/home/d-rezzer/dev/ftp/AZSX_2018_05_02_2355_records.zip"
-    println!("TESTING!");
-    let fileInfo = FileInfo {
-        rpath: Some("/home/d-rezzer/dev/ftp".to_string()),
-        name: Some("AZSX_2018_05_02_2355_images.zip".to_string()),
-        year: None,
-        month: None,
-        day: None,
-        size: None,
-    };
 
-
- let fileInfo2 = FileInfo {
-        rpath: Some("/home/d-rezzer/dev/ftp".to_string()),
-        name: Some("AZSX_2018_05_02_2355_records.zip".to_string()),
-        year: None,
-        month: None,
-        day: None,
-        size: None,
-    };
-
- let fileInfo3 = FileInfo {
-        rpath: Some("/home/d-rezzer/dev/ftp".to_string()),
-        name: Some("ARSexOffenders_2018_04_17_1726_images.zip".to_string()),
-        year: None,
-        month: None,
-        day: None,
-        size: None,
-    };
-let fileInfo4 = FileInfo {
-        rpath: Some("/home/d-rezzer/dev/ftp/images".to_string()),
-        name: Some("ARSexOffenders_images.1.zip".to_string()),
-        year: None,
-        month: None,
-        day: None,
-        size: None,
-    };
-
-//    let r = Downloader::extract_archive(&fileInfo3);
-    let s = Downloader::extract_archive(&fileInfo4);
-}
 
 
 
