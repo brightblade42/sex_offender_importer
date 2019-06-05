@@ -15,28 +15,7 @@ use zip::ZipArchive;
 
 static SQL_PATH: &'static str = "/home/d-rezzer/dev/ftp/sexoffenders.sqlite";
 
-/*
-fn _do_main() {
-    let path = "/home/d-rezzer/dev/ftp";
 
-
-    if let Ok(entries) = fs::read_dir(&path) {
-        println!("hello computer:");
-
-        for entry in entries {
-            if let Ok(entry) = entry {
-                let name = String::from(entry.file_name().to_str().unwrap());
-                if name.ends_with("csv") {
-                    let x = import_csv_file(path::Path::new(&format!("{}/{}", &path, &name)));
-                    println!("err: {:?}", x);
-                }
-            } else {
-                println!("booo");
-            }
-        }
-    }
-
-}*/
 
 fn open_csv_reader(file: File) -> Result<csv::Reader<File>, Box<Error>> {
     let mut rdr = csv::ReaderBuilder::new()
@@ -44,6 +23,94 @@ fn open_csv_reader(file: File) -> Result<csv::Reader<File>, Box<Error>> {
         .from_reader(file);
 
     Ok(rdr)
+}
+
+fn create_default_index(name: &str) -> String {
+    format!(
+        r#"CREATE INDEX {}_idx ON {} (
+         ID,
+         State
+     );"#, name,name)
+
+}
+fn create_main() -> String {
+
+    //n.split("_").collect::<Vec<&str>>();
+    String::from(r#"CREATE TABLE IF NOT EXISTS main (
+         ID,
+         DOB,
+         DateOfBirth,
+         DriversLicenseStateNumber,
+         Address,
+         Eyes,
+         Hair,
+         Name,
+         Race,
+         ScarsTattoos,
+         Scars_Tattoos,
+         Sex,
+         Age,
+         Height,
+         Level,
+         RiskLevel,
+         Status,
+         Weight,
+         State
+     )"#)
+
+}
+
+fn create_addresses() -> String {
+    String::from(r#"CREATE TABLE IF NOT EXISTS  addresses (
+         id,
+         type,
+         address1,
+         address2,
+         name,
+         state
+     )"#)
+
+}
+
+fn create_aliases() -> String {
+    String::from(r#"CREATE TABLE IF NOT EXISTS aliases (
+        id,
+         alias,
+         dob,
+         age,
+         state
+     )"#)
+
+}
+
+fn create_offenses() -> String {
+    String::from(r#"CREATE TABLE IF NOT EXISTS offenses (
+         id,
+         offense,
+         description,
+         date_convicted,
+         conviction_state,
+         release_date,
+         details,
+         state
+     )"#)
+
+}
+
+fn create_db(conn: &Connection) -> Result<(), Box<Error>> {
+
+    //let conn = Connection::open(SQL_PATH)?;
+   // conn.execute("BEGIN TRANSACTION", NO_PARAMS);
+    conn.execute(create_main().as_str(), NO_PARAMS).expect("Unable to create main");
+    conn.execute(create_addresses().as_str(), NO_PARAMS).expect("unable to create addresses");
+    conn.execute(create_aliases().as_str(), NO_PARAMS).expect("unable to create aliases");
+    conn.execute(create_offenses().as_str(), NO_PARAMS).expect("unable to create offenses");
+    conn.execute(create_default_index("main").as_str(), NO_PARAMS).expect("unable to create main index");
+    conn.execute(create_default_index("addresses").as_str(), NO_PARAMS);
+    conn.execute(create_default_index("aliases").as_str(), NO_PARAMS);
+    conn.execute(create_default_index("offenses").as_str(), NO_PARAMS);
+    //conn.execute("COMMIT TRANSACTION", NO_PARAMS);
+    Ok(())
 }
 
 fn create_table_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<Error>> {
@@ -55,10 +122,12 @@ fn create_table_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<Str
         format!("{} {}, ", acc, head)
     });
 
+    create_table.push_str("state )"); //add our extra state field and close the ()
     //get rid of trailing comma
-    let chars_to_trim: &[char] = &[' ', ','];
-    let trimmed_str: &str = create_table.trim_matches(chars_to_trim);
-    let mut create_table = format!("{})", trimmed_str);
+    //let chars_to_trim: &[char] = &[' ', ','];
+   // let trimmed_str: &str = create_table.trim_matches(chars_to_trim);
+   // let mut create_table = format!("{})", trimmed_str);
+     //let mut create_table = format!("{})", create_table);
     println!("----------------------------------------");
     println!("{}", create_table);
     println!("----------------------------------------");
@@ -81,12 +150,15 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
         format!("{} {}, ", acc, head)
     });
 
+    //create the raw data tables. essentialy a copy of whatever crayzee
+    //csv format we get.
+    insert_query.push_str("state ) VALUES ("); //add last field and open VALUES.
     let chars_to_trim: &[char] = &[' ', ','];
     //remove trailing comma
-    let trimmed_iq: &str = insert_query.trim_matches(chars_to_trim);
+    //let trimmed_iq: &str = insert_query.trim_matches(chars_to_trim);
 
     //begin the Value part of insert query
-    let mut insert_query = format!("{}) VALUES (", trimmed_iq);
+    //let mut insert_query = format!("{}) VALUES (", trimmed_iq);
 
     //add value parameter placeholders
     let header_count = reader.headers().unwrap().len();
@@ -94,9 +166,10 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
         insert_query.push_str("?,");
     }
 
+    insert_query.push_str("?)"); //our state parameter.
     //remove training comma
-    let mut insert_query = String::from(insert_query.trim_matches(chars_to_trim));
-    insert_query.push_str(")");
+//    let mut insert_query = String::from(insert_query.trim_matches(chars_to_trim));
+//    insert_query.push_str(")");
     println!("------------------------------------");
     println!("{}", insert_query);
     println!("------------------------------------");
@@ -105,19 +178,33 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
 }
 
 use super::downloader::{ExtractedFile};
-pub fn import_data(file: &ExtractedFile) -> Result<(), Box<Error>> {
+use core::borrow::Borrow;
+pub fn prepare_import() -> Result<(), Box<Error>> {
+  let conn = Connection::open(SQL_PATH)?;
+
+    create_db(&conn).expect("something didn't create good.");
+    conn.close();
+    Ok(())
+}
+pub fn import_data(extractedfile: &ExtractedFile) -> Result<(), Box<Error>> {
 
     use ExtractedFile::*;
     let conn = Connection::open(SQL_PATH)?;
 
-    match file {
+    match extractedfile {
 
         Csv { path, state}  => {
 
+            //this should be filtered out, really.
+            let dsp = path.display().to_string();
+            if dsp.contains("screenshot") || dsp.contains("photos") {
+                return Ok(());
+            }
             let file = File::open(path)?; //.unwrap();
             let mut csv_reader = open_csv_reader(file)?;
 
             let table_name = String::from(path.file_stem().unwrap().to_str().unwrap());
+            //let table_name = table_name.split("_").collect::<Vec<&str>>()[1];
             let mut table_query = create_table_query(&mut csv_reader, &table_name)?;
             conn.execute(&table_query, NO_PARAMS)?;
 
@@ -126,15 +213,21 @@ pub fn import_data(file: &ExtractedFile) -> Result<(), Box<Error>> {
 
             //insert a record (line of csv) into sqlite table.
             for result in csv_reader.records() {
-                let record = result?;
-                let csv_values: Vec<&str> = record.iter().collect();
-                conn.execute(&insert_query, &csv_values)?;
+                let record = result.expect("unable to get csv record");
+                let mut csv_values: Vec<&str> = record.iter().collect();
+                csv_values.push(state.as_str());
+                let res = conn.execute(&insert_query, &csv_values);
+
+                if let Err(e) = res {
+                    println!("conn error: {:?}", e);
+                }
             }
             conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
         },
 
         ImageArchive {path, state } => {
-
+            ()
+/*
 
             let blob_table = create_blob_table_query();
             conn.execute(&blob_table.unwrap(), NO_PARAMS);
@@ -146,7 +239,7 @@ pub fn import_data(file: &ExtractedFile) -> Result<(), Box<Error>> {
             //validate,
             //write to Vec<u8>
             //write bytes to db.
-            let mut blobby: Vec<u8> = vec![];
+            let mut blob: Vec<u8> = vec![];
 
             let file = BufReader::new(File::open(path).unwrap());
             let mut archive = zip::ZipArchive::new(file)?;
@@ -163,22 +256,24 @@ pub fn import_data(file: &ExtractedFile) -> Result<(), Box<Error>> {
                 println!("name: {} size: {}", img_name.display(), img_size);
 
                 let name = img_name.display().to_string();
-                //let mut bufW = BufWriter::new(blobby);
-                std::io::copy(&mut img_file, &mut blobby);
+                //let mut bufW = BufWriter::new(blobby_mcgee);
+                std::io::copy(&mut img_file, &mut blob);
 
-               conn.execute("INSERT into PHOTO (name, size, data) VALUES (?,?,?)",
-                            params![name,img_size, blobby ])?;
+               let r = conn.execute("INSERT into PHOTO (name, size, data) VALUES (?,?,?)",
+                            params![name,img_size, blob ])?;
 
-                blobby.clear();
+                blob.clear();
 
 
             }
 
             conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
-
+*/
         }
 
     };
+
+    conn.close();
     Ok(())
 }
 

@@ -1,7 +1,7 @@
 mod sex_offender;
 extern crate ftp;
 use crate::sex_offender::downloader::{Downloader,  RecordInfo, FileInfo, DownloadOption, ExtractedFile};
-use sex_offender::importer::import_data;
+use sex_offender::importer::{import_data, prepare_import};
 
 use std::path;
 use std::time::{Duration, Instant};
@@ -73,13 +73,16 @@ fn get_remote_files() {
      let imgarc = ExtractedFile::ImageArchive { path: ip, state: String::from(&mock_com[..2])};
 
      let mut cnt = 0;
+    prepare_import();
+
     for file in flist.iter_mut() {
         match file {
             Ok(f) => {
                 let mut ext = Downloader::extract_archive(&f);
                 //create an image thign to test.
                 for ef in ext.unwrap().iter() {
-                    //import_data(&ef);
+
+                    import_data(&ef);
                     if let Csv {path,state} = ef {
                         println!("{:?}", path);
                         println!("{:?}", state);
@@ -95,17 +98,6 @@ fn get_remote_files() {
         }
     }
 
-    //need to test image extraction without downloading.
-
-    /*
-                     let csv_files =Downloader::extract_archive(&f);
-
-                   for cf in csv_files.unwrap() {
-                       import_csv_file(path::Path::new(&cf.path)).expect("Unable to import csv file!");
-                   }
-
-
-    */
 
 
     downloader.disconnect();
