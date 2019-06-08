@@ -1,4 +1,4 @@
-Insert into SexOffender(id,name,dateOfBirth, state,aliases, offenses, addresses, personalDetails)
+Insert into SexOffender(id,name,dateOfBirth, state,aliases, offenses, addresses, personalDetails, photos)
 select id,name,DateOfBirth, state,
 ( SELECT json_group_array (alias)
 		FROM
@@ -50,6 +50,11 @@ select id,name,DateOfBirth, state,
                 FROM
 
             ARSexOffenders_main arm where arm.ID = ARSexOffenders_main.id and arm.state = ARSexOffenders_main.state
-   )) as personalDetails
+   )) as personalDetails,
+
+       (select json_group_array(PhotoFile)
+                from (select PhotoFile from AZSexOffenders_photos azp
+                     where azp.id = ARSexOffenders_main.id
+                  and azp.state = ARSexOffenders_main.state)) as photos
 
 from ARSexOffenders_main

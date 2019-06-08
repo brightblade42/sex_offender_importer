@@ -15,7 +15,7 @@ use zip;
 use zip::ZipArchive;
 
 static SEX_OFFENDER_PATH: &'static str = "/state/sex_offender";
-static LOCAL_PATH: &'static str = "/home/d-rezzer/dev/ftp";
+static LOCAL_PATH: &'static str = "/home/d-rezer/dev/eyemetric/ftp";
 
 const CHUNK_SIZE: usize = 2048;
 
@@ -242,6 +242,7 @@ pub struct ImageInfo {
     pub name: Option<String>,
 }
 
+
 #[derive(Debug)]
 pub struct RecordInfo {
     pub rpath: Option<String>,
@@ -325,7 +326,7 @@ mod tests {
 //        "/home/d-rezzer/dev/ftp/AZSX_2018_05_02_2355_records.zip"
         println!("TESTING!");
         let fileInfo = super::FileInfo {
-            rpath: Some("/home/d-rezzer/dev/ftp".to_string()),
+            rpath: Some("/home/d-rezer/dev/eyemetric/ftp".to_string()),
             name: Some("AZSX_2018_05_02_2355_images.zip".to_string()),
             year: None,
             month: None,
