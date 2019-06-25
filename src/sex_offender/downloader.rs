@@ -1,5 +1,5 @@
 extern crate ftp;
-
+extern crate serde;
 use ftp::{FtpStream, FtpError};
 use ftp::types::FileType;
 use std::iter::{Iterator, FromIterator};
@@ -13,9 +13,10 @@ use std::process::id;
 use std::{self, error::Error};
 use zip;
 use zip::ZipArchive;
-
+use serde_derive::{Serialize, Deserialize};
+use serde_json;
 static SEX_OFFENDER_PATH: &'static str = "/state/sex_offender";
-static LOCAL_PATH: &'static str = "/home/d-rezer/dev/eyemetric/ftp";
+static LOCAL_PATH: &'static str = "/home/d-rezzer/dev/eyemetric/ftp";
 
 const CHUNK_SIZE: usize = 2048;
 
@@ -57,27 +58,38 @@ impl Downloader {
         self.stream.quit();
     }
 
-    fn get_file_info(&self, path: &str, line: &str) -> Result<FileInfo, Box<Error>> {
-        let mut iter = line.split_whitespace().rev().take(5);
+
+    fn create_file_info(&self, remote_file_path: &str, ftp_line: &str) -> Result<FileInfo, Box<Error>> {
+        let mut line = ftp_line.split_whitespace();
+        let size = line.nth(4).unwrap();
+        let name = line.last().unwrap();
+        let nsplit: Vec<&str> = name.split("_").collect();
+
+        let y = nsplit.get(1).unwrap();
+        let m = nsplit.get(2).unwrap();
+        let d = nsplit.get(3).unwrap();
+
 
         let fin = FileInfo::Record(RecordInfo {
-            rpath: Some(path.to_string()),
-            name: Some(iter.next().unwrap().to_string()),
-            year: Some(iter.next().unwrap().to_string()),
-            month: Some(iter.next().unwrap().to_string()),
-            day: Some(iter.next().unwrap().to_string()),
-            size: Some(iter.next().unwrap().to_string()),
+            rpath: Some(remote_file_path.to_string()),
+            name: Some(name.to_string()),
+            year: Some(y.to_string()),
+            month: Some(m.to_string()),
+            day: Some(d.to_string()),
+            size: Some(size.to_string()),
         });
 
+        println!("{:?}", &fin);
         Ok(fin)
     }
 
 
     ///returns a list of available files for download from remote server.
     ///a filter can be passed in to narrow the list.
-    pub fn file_list(&mut self, filter: fn(&String) -> bool, file_opt: DownloadOption) -> Vec<Result<FileInfo, Box<Error>>> {
+    pub fn remote_file_list(&mut self, filter: fn(&String) -> bool, file_opt: DownloadOption) -> Vec<Result<FileInfo, Box<Error>>> {
 
         //TODO: This list should be logged and checked against later when filtering on new files.
+        //top level state folders (ie us/new_jersey)
         let state_folders = self.stream.nlst(Some("us")).expect("Unable to get remote file listings");
 
         let on_file_option = |fi: &FileInfo| {
@@ -87,18 +99,22 @@ impl Downloader {
             }
         };
 
+        let hard_filter = |x: &String| !x.contains(".txt") && !x.contains("united_states");
 
         let available_files: Vec<Result<FileInfo, Box<Error>>> = state_folders
             .into_iter()
             .map(|state_folder| {
                 let sex_offender_folder = format!("{}{}", state_folder.to_string(), SEX_OFFENDER_PATH);
+                println!("{}", &sex_offender_folder);
+
                 let file_list: Vec<Result<FileInfo, Box<Error>>> = self.stream
-                    .list(Some(&sex_offender_folder))
+                    .list(Some(&sex_offender_folder)) //list remote dir
                     .into_iter()
                     .flatten()
+                    .filter(hard_filter)
                     .filter(filter)
                     .inspect(|line| println!("{}", line))
-                    .map(|line| self.get_file_info(&state_folder, &line))
+                    .map(|line| self.create_file_info(&state_folder, &line))
                     .filter(|fi| on_file_option(fi.as_ref().unwrap()))
                     .collect();
 
@@ -123,6 +139,8 @@ impl Downloader {
     }
 
 
+//TODO: examine the last downloaded file list with the current one. update
+//only newer files, replace file list "manifest"
     fn remote_file_is_newer(fileinfo: &FileInfo) -> bool {
         //compare the local file mod time with fileinfo data
         false
@@ -222,7 +240,7 @@ impl Downloader {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize,Deserialize)]
 pub enum ExtractedFile {
     //Csv(path::PathBuf),
     Csv { path: PathBuf, state: String },
@@ -236,14 +254,14 @@ pub struct SexOffenderArchive {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Serialize,Deserialize)]
 pub struct ImageInfo {
     pub rpath: Option<String>,
     pub name: Option<String>,
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Serialize,Deserialize)]
 pub struct RecordInfo {
     pub rpath: Option<String>,
     pub name: Option<String>,
@@ -254,6 +272,8 @@ pub struct RecordInfo {
 }
 
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "type")]
 pub enum FileInfo {
     Record(RecordInfo),
     Image(ImageInfo),
