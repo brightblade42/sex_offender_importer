@@ -25,25 +25,33 @@ static FTP_USER: &'static str = "swg_eyemetric";
 static FTP_PWD: &'static str = "metric123swg99";
 
 fn main() {
+
+    println!("Begin Server Query phase. ");
     let start = Instant::now();
-    let file_list = get_remote_files();
+    let file_list = get_remote_files(); //all available files on remote server.
     //let flist: Vec<FileInfo> = file_list.into_iter().flatten().collect();
     //let jlist = serde_json::to_string(&flist);
+    //all the files we haven't downloaded yet.
+    //file names contain the date they were created and therefore updated offender data
+    //for a state will be a name we don't have.
     let avail_updates = Downloader::available_updates(file_list);
-    //println!("{:?}", jlist );
     let duration = start.elapsed();
-    println!("all done. Took : {:?}", duration);
+    println!("remote file listing complete. Took : {:?}", duration);
+
+    println!("Begin Download Phase");
+
 }
+
 fn get_remote_files() -> Vec<Result<FileInfo, Box<error::Error>>> {
      let mut downloader = Downloader::connect(FTP_ADDR, FTP_USER, FTP_PWD).expect("Unable to connect to ftp server.");
     //set up some filters
+    //we only want record and image files. The server has more that we don't use.
     let record_filter = |x: &String| x.contains("records") || x.contains("images");
     let records_only = |x: &String| x.contains("records");
+
     let az_only = |x: &String| x.contains("AR") && x.contains("records");
 
     let mut file_list = downloader.remote_file_list(record_filter, DownloadOption::Always);
-    //file_list.serialize();
-    let mut cnt = 0;
 
 /*
   let mut flist = &mut file_list;
@@ -63,78 +71,8 @@ fn get_remote_files() -> Vec<Result<FileInfo, Box<error::Error>>> {
     */
     file_list
 
-} 
-fn get_remote_files2() {
-
-    let mut downloader = Downloader::connect(FTP_ADDR, FTP_USER, FTP_PWD).expect("Unable to connect to ftp server.");
-    let record_filter = |x: &String| x.contains("records") || x.contains("images");
-    let records_only = |x: &String| x.contains("records");
-    let az_only = |x: &String| x.contains("AR") && x.contains("records");
-
-     
-    let mut file_list = downloader.remote_file_list(record_filter, DownloadOption::Always);
-    let mut cnt = 0;
-
-    
-    if file_list.is_empty() {
-        println!("There was nothing new to dload!");
-    }
-
-    let mut flist = &mut file_list;
-    for file in flist.iter_mut() {
-        match file {
-            Ok(f) => {
-                
-                let arch = downloader.save_archive(&f);
-                //let csv_files =Downloader::extract_archive(&f);
-                println!("saved: {:?}", f.file_path().display());
-            }
-            Err(e) => {
-                println!("could not read record! {:?}", e);
-            }
-        }
-    }
-    /*
-    use sex_offender::downloader::ImageInfo;
-    let mock_image = FileInfo::Image(ImageInfo {
-        rpath: Some("us/arkansas".to_string()),
-        name: Some("ARSexOffenders_2018_04_17_1726_images.zip".to_string()),
-    });
-
-    let mock_name = &mock_image.name();
-    let mock_com = &mock_image.base_path().display().to_string();
-    flist.push(Ok(mock_image));
-    use sex_offender::downloader::ExtractedFile::*;
-    let ip = path::PathBuf::from("/home/d-rezer/dev/eyemetric/ftp/us/arkansas/ARSexOffenders_2018_04_17_1726_images.zip");
-    let imgarc = ExtractedFile::ImageArchive { path: ip, state: String::from(&mock_com[..2]) };
-    let mut cnt = 0;
-    prepare_import();
-
-    for file in flist.iter_mut() {
-        match file {
-            Ok(f) => {
-                let mut ext = Downloader::extract_archive(&f);
-                //create an image thign to test.
-                for ef in ext.unwrap().iter() {
-                    import_data(&ef);
-                    if let Csv { path, state } = ef {
-                        println!("{:?}", path);
-                        println!("{:?}", state);
-                    } else {
-                        println!("child zip: {:?}", ef);
-                    }
-                }
-            }
-            Err(err) => {
-                println!("I have no idea what i am doing!");
-            }
-        }
-    }
-
-    */
-
-    downloader.disconnect();
 }
+
 
 
 

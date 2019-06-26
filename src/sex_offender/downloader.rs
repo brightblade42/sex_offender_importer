@@ -58,13 +58,13 @@ impl Downloader {
 
         sex_offender_importer
             .stream
-            .login(user, pwd);
+            .login(user, pwd).expect("Unable to login to ftp site");
 
         Ok(sex_offender_importer)
     }
 
     pub fn disconnect(&mut self) {
-        self.stream.quit();
+        self.stream.quit().expect("Unable to quite ftp Stream");
     }
 
 
@@ -76,7 +76,7 @@ impl Downloader {
         }
         let size = line.nth(4).unwrap();
         let name = line.last().unwrap();
-        let nsplit: Vec<&str> = name.split("_").collect();
+        let nsplit: Vec<&str> = name.split('_').collect();
 
         let y = nsplit.get(1).unwrap();
         let m = nsplit.get(2).unwrap();
@@ -144,7 +144,7 @@ impl Downloader {
     /// but since they failed to download previously we'll use a different mechanism
     /// to get them.
     ///
-    pub fn available_updates(remote_files: Vec<Result<FileInfo>>) -> &'static str {//Vec<FileInfo> {
+    pub fn available_updates(remote_files: Vec<Result<FileInfo>>) -> Vec<FileInfo> {
         //get the difference between what we've previously imported and the remote files,
         //if any
         let conn = Connection::open(IMPORT_LOG).expect("unable to open a proper db connection");
@@ -156,51 +156,37 @@ impl Downloader {
             )
             .unwrap();
 
-        let res = conn.execute("CREATE TEMP TABLE remote_file_list_temp (rpath, name, last_modified, size, status", NO_PARAMS,)
-            .unwrap();
+        let res = conn.execute("CREATE TABLE if not exists remote_file_list_temp(rpath, name, last_modified, size, status);", NO_PARAMS)
+            .expect("Unable to create remote_file_list_temp table");
 
         conn.execute("BEGIN TRANSACTION", NO_PARAMS).expect("Unable to start transaction");
-        for rfile in &remote_files {
-            //let cr = rfile.clone();
-            conn.execute_named("INSERT INTO remote_file_list_temp (rpath, name, last_modified, size, status",
-                         &to_params_named(&rfile.clone().unwrap()).unwrap().to_slice()).unwrap();
+        for rfile in remote_files {
+            if let Ok(FileInfo::Record(ri)) = rfile {
 
+                conn.execute_named("INSERT INTO remote_file_list_temp (rpath, name, last_modified, size, status) VALUES (:rpath, :name, :last_modified, :size, :status )",
+                                   &to_params_named(ri).unwrap().to_slice()).expect("Unable to insert row into temp table");
+            }
         }
-        conn.execute("COMMIT TRANSACTION", NO_PARAMS);
 
-        let mut stmt = conn.prepare("SELECT * from remote_file_list_temp").expect("a temp insert");
+        conn.execute("COMMIT TRANSACTION", NO_PARAMS).expect("Failed to Commit Transaction!");
+        let mut stmt = conn.prepare("select * from remote_file_list_temp where name NOT IN (select name from remote_file_list")
+            .expect("Unable to get an updated file listing");
 
-        let mut tmp_import = stmt
-            .query_and_then(NO_PARAMS, from_row::<FileInfo>)
+        let tmp_import = stmt
+            .query_and_then(NO_PARAMS, from_row::<RecordInfo>)
             .expect("Unable to get remote_file_list from Import Log");
 
-        for fi in tmp_import {
-            println!("=================");
-            println!("{:?}", fi);
-            println!("=================");
-        }
-       /*
-        let mut stmt = conn.prepare("SELECT * from remote_file_list where status = 'None'").expect("unable to prepare query");
-        let mut import_log = stmt
-            .query_and_then(NO_PARAMS, from_row::<FileInfo>)
-            .expect("Unable to get remote_file_list from Import Log");
+        tmp_import.map(|r| FileInfo::Record(r.unwrap())).collect()
 
-        //by_ref vs borrow?
-        //There's nothing in the log. Shiny new virgin download!
-        if let 0 = import_log.by_ref().count() {
-            //we should insert
-            return remote_files.into_iter().map(|r| r.unwrap()).collect();
-        }
-        //let cnt = import_log.by_ref().count();
-        //let cnt = import_log.borrow().count();
-        //TODO: this seems bonkers, refactor when you know what you're doing.
-        let h_log: HashSet<FileInfo> = import_log.into_iter().map(|r| r.unwrap()).collect();
-        let h_remote_files: HashSet<FileInfo> = remote_files.into_iter().map(|r| r.unwrap()).collect();
-        let update_diff: Vec<FileInfo> = h_remote_files.difference(&h_log).into_iter().cloned().collect();
+    }
 
-        update_diff
-        */
-        "stuff happened"
+    pub fn download_remote_files(&mut self, remote_file_list: Vec<FileInfo>) -> Vec<SexOffenderArchive> {
+
+        let arch_list: Vec<SexOffenderArchive> = remote_file_list.into_iter().map(|r| {
+            self.save_archive(&r).expect("Unable to complete saving archive")
+        }).collect();
+
+        arch_list
     }
 
     ///returns true if the file on the server is newer than what we have.
@@ -225,35 +211,36 @@ impl Downloader {
     ///downloads the remote archive file and writes to disk.
     pub fn save_archive(&mut self, fileinfo: &FileInfo) -> Result<SexOffenderArchive> {
         let fname = fileinfo.name();//.as_ref().unwrap();
+
         //make sure we're setup to dload binary files
         self.stream.transfer_type(FileType::Binary)?;
         //change ftp dir.
-        match self.stream.cwd(&fileinfo.remote_path().to_str().unwrap()) {
+
+        let size: usize = match self.stream.cwd(&fileinfo.remote_path().to_str().unwrap()) {
             Ok(()) => {
                 println!("dir change success");
 
                 let res = self.stream.retr(&fname, |stream| {
-                    Downloader::write_archive(&fileinfo, stream);
-                    Ok(())
+                   let sz = Downloader::write_archive(&fileinfo, stream).expect("Unable to write archive!");
+                    Ok(sz)
                 });
 
-                ()
+                (0)
             }
-            Err(e) => {
-                println!("oops! {}", e);
-            }
-        }
+            Err(e) => (0)
+
+        };
 
         Ok(SexOffenderArchive {
-            image: "none".to_string(),
-            record: "none".to_string(),
+            path: fileinfo.file_path().clone(),
+            size,
         })
     }
 
     ///write the archive file we got from ftp to disk.
     fn write_archive(fileinfo: &FileInfo, stream: &mut Read) -> Result<usize> {
-        let mut file_path = fileinfo.file_path();
-        let mut base_path = fileinfo.base_path();
+        let file_path = fileinfo.file_path();
+        let base_path = fileinfo.base_path();
 
         fs::create_dir_all(&base_path)?;
         println!("local base dir: {}", base_path.display());
@@ -326,8 +313,8 @@ pub enum ExtractedFile {
 
 
 pub struct SexOffenderArchive {
-    image: String,
-    record: String,
+    path: PathBuf,
+    size: usize,
 }
 
 
@@ -346,12 +333,9 @@ pub struct DownloadInfo {
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone)]
 pub enum RecordStatus {
     None,
-    InFlight(DownloadInfo),
-    Failed {
-        cause: String,
-        dloadInfo: DownloadInfo,
-    },
-    Success,
+    InFlight,
+    Failed,
+    Downloaded,
 }
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone)]
