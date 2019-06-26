@@ -27,9 +27,10 @@ static FTP_PWD: &'static str = "metric123swg99";
 fn main() {
     let start = Instant::now();
     let file_list = get_remote_files();
-    let flist: Vec<FileInfo> = file_list.into_iter().flatten().collect();
-    let jlist = serde_json::to_string(&flist);
-    println!("{:?}", jlist );
+    //let flist: Vec<FileInfo> = file_list.into_iter().flatten().collect();
+    //let jlist = serde_json::to_string(&flist);
+    let avail_updates = Downloader::available_updates(file_list);
+    //println!("{:?}", jlist );
     let duration = start.elapsed();
     println!("all done. Took : {:?}", duration);
 }

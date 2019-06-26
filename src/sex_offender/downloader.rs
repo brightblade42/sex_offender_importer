@@ -15,9 +15,9 @@ use zip;
 use zip::ZipArchive;
 use serde_derive::{Serialize, Deserialize};
 use serde_json;
-use rusqlite::{self, Connection, NO_PARAMS};
-use serde_rusqlite;
-use serde_rusqlite::from_row;
+use rusqlite::{self, Connection,  NO_PARAMS, ToSql};
+
+use serde_rusqlite::{from_row, to_params_named};
 use std::collections::HashSet;
 use std::clone::Clone;
 
@@ -137,17 +137,58 @@ impl Downloader {
         available_files
     }
 
-    fn available_updates(remote_files: Vec<Result<FileInfo>>) -> Vec<FileInfo> {
+    ///returns a list of files that we have not tried to import previously.
+    ///Note: it's possible that there are failed downloads in the log. We skip
+    /// those possible downloads as they will be handled by a reschedule task.
+    /// In other words, it's possible that the remote list contains files we want
+    /// but since they failed to download previously we'll use a different mechanism
+    /// to get them.
+    ///
+    pub fn available_updates(remote_files: Vec<Result<FileInfo>>) -> &'static str {//Vec<FileInfo> {
         //get the difference between what we've previously imported and the remote files,
         //if any
         let conn = Connection::open(IMPORT_LOG).expect("unable to open a proper db connection");
-        let mut stmt = conn.prepare("SELECT * from remote_file_list").expect("unable to prepare query");
+
+        let res = conn
+            .execute(
+                "CREATE TABLE if not exists remote_file_list (rpath, name, last_modified, size, status) ",
+                NO_PARAMS,
+            )
+            .unwrap();
+
+        let res = conn.execute("CREATE TEMP TABLE remote_file_list_temp (rpath, name, last_modified, size, status", NO_PARAMS,)
+            .unwrap();
+
+        conn.execute("BEGIN TRANSACTION", NO_PARAMS).expect("Unable to start transaction");
+        for rfile in &remote_files {
+            //let cr = rfile.clone();
+            conn.execute_named("INSERT INTO remote_file_list_temp (rpath, name, last_modified, size, status",
+                         &to_params_named(&rfile.clone().unwrap()).unwrap().to_slice()).unwrap();
+
+        }
+        conn.execute("COMMIT TRANSACTION", NO_PARAMS);
+
+        let mut stmt = conn.prepare("SELECT * from remote_file_list_temp").expect("a temp insert");
+
+        let mut tmp_import = stmt
+            .query_and_then(NO_PARAMS, from_row::<FileInfo>)
+            .expect("Unable to get remote_file_list from Import Log");
+
+        for fi in tmp_import {
+            println!("=================");
+            println!("{:?}", fi);
+            println!("=================");
+        }
+       /*
+        let mut stmt = conn.prepare("SELECT * from remote_file_list where status = 'None'").expect("unable to prepare query");
         let mut import_log = stmt
             .query_and_then(NO_PARAMS, from_row::<FileInfo>)
             .expect("Unable to get remote_file_list from Import Log");
 
         //by_ref vs borrow?
+        //There's nothing in the log. Shiny new virgin download!
         if let 0 = import_log.by_ref().count() {
+            //we should insert
             return remote_files.into_iter().map(|r| r.unwrap()).collect();
         }
         //let cnt = import_log.by_ref().count();
@@ -158,8 +199,10 @@ impl Downloader {
         let update_diff: Vec<FileInfo> = h_remote_files.difference(&h_log).into_iter().cloned().collect();
 
         update_diff
-
+        */
+        "stuff happened"
     }
+
     ///returns true if the file on the server is newer than what we have.
     fn file_is_new(fileinfo: &FileInfo) -> bool {
         //new means, remote file is newer or doesn't yet exist on local disk.
