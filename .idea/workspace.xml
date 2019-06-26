@@ -16,7 +16,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/sex_offender/downloader.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/sex_offender/downloader.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -46,57 +45,44 @@
     <favorites_list name="untitled" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.32994923">
-      <split-first>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/src/sex_offender/downloader.rs">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="235">
-                  <caret line="264" column="3" selection-start-line="264" selection-end-line="271" selection-end-column="1" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/Cargo.toml">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="338">
-                  <caret line="13" column="12" selection-start-line="13" selection-start-column="12" selection-end-line="13" selection-end-column="12" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/sql/ar_import_template.sql">
-              <provider selected="true" editor-type-id="text-editor" />
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/sex_offender/importer.rs">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2626">
-                  <caret line="101" column="35" selection-start-line="101" selection-start-column="35" selection-end-line="101" selection-end-column="35" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-first>
-      <split-second>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/src/main.rs">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="182">
-                  <caret line="25" selection-start-line="25" selection-end-line="25" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-second>
-    </splitter>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/sex_offender/downloader.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="598">
+              <caret line="150" column="20" selection-start-line="150" selection-start-column="20" selection-end-line="150" selection-end-column="20" />
+              <folding>
+                <element signature="e#1753#1754#0" expanded="true" />
+                <element signature="e#1787#1788#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Cargo.toml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="338">
+              <caret line="13" column="25" selection-start-line="13" selection-start-column="25" selection-end-line="13" selection-end-column="25" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/sql/ar_import_template.sql">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/sex_offender/importer.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2626">
+              <caret line="101" column="35" selection-start-line="101" selection-start-column="35" selection-end-line="101" selection-end-column="35" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -117,8 +103,8 @@
         <option value="$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/zip-0.5.2/src/read.rs" />
         <option value="$PROJECT_DIR$/sql/az_import_template.sql" />
         <option value="$PROJECT_DIR$/src/sex_offender/importer.rs" />
-        <option value="$PROJECT_DIR$/Cargo.toml" />
         <option value="$PROJECT_DIR$/src/main.rs" />
+        <option value="$PROJECT_DIR$/Cargo.toml" />
         <option value="$PROJECT_DIR$/src/sex_offender/downloader.rs" />
       </list>
     </option>
@@ -126,11 +112,11 @@
   <component name="MacroExpansionManager">
     <option name="directoryName" value="TUVBgzts" />
   </component>
-  <component name="ProjectFrameBounds" extendedState="1">
-    <option name="x" value="418" />
-    <option name="y" value="46" />
-    <option name="width" value="3076" />
-    <option name="height" value="1312" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="1042" />
+    <option name="y" value="61" />
+    <option name="width" value="2398" />
+    <option name="height" value="1285" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -273,7 +259,7 @@
       <workItem from="1560268802199" duration="771000" />
       <workItem from="1560371986614" duration="2071000" />
       <workItem from="1561154354982" duration="9887000" />
-      <workItem from="1561410998913" duration="5405000" />
+      <workItem from="1561410998913" duration="13382000" />
     </task>
     <servers />
   </component>
@@ -289,7 +275,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="262335000" />
+    <option name="totallyTimeSpent" value="270312000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -301,11 +287,11 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="262" y="55" width="3076" height="1312" extended-state="1" />
+    <frame x="421" y="61" width="2851" height="1285" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.50201774" visible="true" weight="0.13645352" />
-      <window_info id="Structure" order="1" sideWeight="0.49798223" side_tool="true" visible="true" weight="0.13645352" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.50247526" visible="true" weight="0.1473834" />
+      <window_info id="Structure" order="1" sideWeight="0.49752474" side_tool="true" visible="true" weight="0.1473834" />
       <window_info id="Favorites" order="2" sideWeight="0.48392284" side_tool="true" weight="0.09645609" />
       <window_info anchor="bottom" id="Inspection Results" order="0" weight="0.413928" />
       <window_info anchor="bottom" id="Message" order="1" />
@@ -321,10 +307,10 @@
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="Cargo" order="3" weight="0.27337843" />
-      <window_info anchor="right" id="Database" order="4" weight="0.3298846" />
+      <window_info anchor="right" id="Cargo" order="3" weight="0.27293473" />
+      <window_info anchor="right" id="Database" order="4" weight="0.32952988" />
       <window_info anchor="right" id="Event Log" order="5" sideWeight="0.41258094" weight="0.24761024" />
-      <window_info active="true" anchor="right" id="Terminal" order="6" sideWeight="0.58741903" visible="true" weight="0.2791694" />
+      <window_info active="true" anchor="right" id="Terminal" order="6" sideWeight="0.58741903" visible="true" weight="0.31826273" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -335,7 +321,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/sex_offender/downloader.rs</url>
-          <line>345</line>
+          <line>392</line>
           <option name="timeStamp" value="11" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
@@ -345,7 +331,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/sex_offender/downloader.rs</url>
-          <line>82</line>
+          <line>93</line>
           <option name="timeStamp" value="28" />
         </line-breakpoint>
       </breakpoints>
@@ -483,21 +469,25 @@
     <entry file="file://$PROJECT_DIR$/Cargo.toml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="338">
-          <caret line="13" column="12" selection-start-line="13" selection-start-column="12" selection-end-line="13" selection-end-column="12" />
+          <caret line="13" column="25" selection-start-line="13" selection-start-column="25" selection-end-line="13" selection-end-column="25" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="182">
-          <caret line="25" selection-start-line="25" selection-end-line="25" />
+        <state relative-caret-position="234">
+          <caret line="27" column="30" selection-start-line="27" selection-start-column="30" selection-end-line="27" selection-end-column="30" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/sex_offender/downloader.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="235">
-          <caret line="264" column="3" selection-start-line="264" selection-end-line="271" selection-end-column="1" />
+        <state relative-caret-position="598">
+          <caret line="150" column="20" selection-start-line="150" selection-start-column="20" selection-end-line="150" selection-end-column="20" />
+          <folding>
+            <element signature="e#1753#1754#0" expanded="true" />
+            <element signature="e#1787#1788#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
