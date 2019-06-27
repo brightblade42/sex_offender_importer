@@ -1,9 +1,9 @@
-mod sex_offender;
+extern crate sex_offender;
 use std::error;
 extern crate ftp;
 use serde;
 
-use crate::sex_offender::downloader::{Downloader, RecordInfo, FileInfo, DownloadOption, ExtractedFile};
+use sex_offender::downloader::{Downloader, RecordInfo, FileInfo, DownloadOption, ExtractedFile};
 use sex_offender::importer::{import_data, prepare_import};
 
 use std::path;
@@ -14,7 +14,7 @@ use crate::sex_offender::importer::import_csv_file2;
 //use crate::sexoffender::SexOffenderImportError;
 //  FTP hostname:     ftptds.shadowsoft.com
 //    username:             swg_eyemetric
-//    password:             metric123swg99  
+//    password:             metric123swg99
 struct FtpSite {
     addr: String,
     user: String,
@@ -46,15 +46,15 @@ fn main() {
 */
     println!("Begin Download Phase");
 
-    let top10: Vec<FileInfo> = avail_updates; //.into_iter().take(10).collect();
+    let top: Vec<FileInfo> = avail_updates; //.into_iter().take(10).collect();
 
-/*    for f in top2 {
-        println!("{:?}", f);
-    }
-    */
+        for f in top {
+            println!("{:?}", f);
+        }
 
 
-    let arch_list = downloader.download_remote_files(top10);
+
+    //let arch_list = downloader.download_remote_files(top10);
     downloader.disconnect();
 }
 
@@ -65,33 +65,25 @@ fn get_remote_files(downloader: &mut Downloader) -> Vec<Result<FileInfo, Box<err
     let records_only = |x: &String| x.contains("records");
 
     let az_only = |x: &String| x.contains("AR") && x.contains("records");
-   // let azed_filter = |x: &String| x.starts_with()
+    // let azed_filter = |x: &String| x.starts_with()
     let mut file_list = downloader.remote_file_list(record_filter, DownloadOption::Always);
 
-/*
-  let mut flist = &mut file_list;
-    for file in flist.iter_mut() {
-        match file {
-            Ok(f) => {
+    /*
+      let mut flist = &mut file_list;
+        for file in flist.iter_mut() {
+            match file {
+                Ok(f) => {
 
-                let arch = downloader.save_archive(&f);
-                //let csv_files =Downloader::extract_archive(&f);
-                println!("saved: {:?}", f.file_path().display());
-            }
-            Err(e) => {
-                println!("could not read record! {:?}", e);
+                    let arch = downloader.save_archive(&f);
+                    //let csv_files =Downloader::extract_archive(&f);
+                    println!("saved: {:?}", f.file_path().display());
+                }
+                Err(e) => {
+                    println!("could not read record! {:?}", e);
+                }
             }
         }
-    }
-    */
+        */
     file_list
 
 }
-
-
-
-
-
-
-
-
