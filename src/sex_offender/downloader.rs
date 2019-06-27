@@ -15,7 +15,7 @@ use zip;
 use zip::ZipArchive;
 use serde_derive::{Serialize, Deserialize};
 use serde_json;
-use rusqlite::{self, Connection,  NO_PARAMS, ToSql};
+use rusqlite::{self, Connection,params,  NO_PARAMS, ToSql};
 
 use serde_rusqlite::{from_row, to_params_named};
 use std::collections::HashSet;
@@ -86,11 +86,12 @@ impl Downloader {
             rpath: Some(remote_file_path.to_string()),
             name: Some(name.to_string()),
             last_modified: Some(format!("{}-{}-{}", y, m, d)),
-            size: Some(size.to_string()),
+            size: Some(size.parse().unwrap()),
+
             status: RecordStatus::None, //None is the beginning state.
         });
 
-        println!("{:?}", &fin);
+//        println!("{:?}", &fin);
         Ok(fin)
     }
 
@@ -116,7 +117,7 @@ impl Downloader {
             .into_iter()
             .map(|state_folder| {
                 let sex_offender_folder = format!("{}{}", state_folder.to_string(), SEX_OFFENDER_PATH);
-                println!("{}", &sex_offender_folder);
+                //println!("{}", &sex_offender_folder);
 
                 let file_list: Vec<Result<FileInfo>> = self.stream
                     .list(Some(&sex_offender_folder)) //list remote dir
@@ -124,7 +125,7 @@ impl Downloader {
                     .flatten()
                     .filter(hard_filter)
                     .filter(filter)
-                    .inspect(|line| println!("{}", line))
+                    //.inspect(|line| println!("{}", line))
                     .map(|line| self.create_file_info(&state_folder, &line))
                     .filter(|fi| on_file_option(fi.as_ref().unwrap()))
                     .collect();
@@ -151,17 +152,17 @@ impl Downloader {
 
         let res = conn
             .execute(
-                "CREATE TABLE if not exists remote_file_list (rpath, name, last_modified, size, status) ",
+                "CREATE TABLE if not exists remote_file_list (rpath, name, last_modified, size integer, status) ",
                 NO_PARAMS,
             )
             .unwrap();
 
-        let res = conn.execute("CREATE TABLE if not exists remote_file_list_temp(rpath, name, last_modified, size, status);", NO_PARAMS)
+        let res = conn.execute("CREATE TEMP TABLE if not exists remote_file_list_temp (rpath, name, last_modified, size integer, status);", NO_PARAMS)
             .expect("Unable to create remote_file_list_temp table");
 
         conn.execute("BEGIN TRANSACTION", NO_PARAMS).expect("Unable to start transaction");
-        for rfile in remote_files {
-            if let Ok(FileInfo::Record(ri)) = rfile {
+        for r_file in remote_files {
+            if let Ok(FileInfo::Record(ri)) = r_file {
 
                 conn.execute_named("INSERT INTO remote_file_list_temp (rpath, name, last_modified, size, status) VALUES (:rpath, :name, :last_modified, :size, :status )",
                                    &to_params_named(ri).unwrap().to_slice()).expect("Unable to insert row into temp table");
@@ -169,7 +170,7 @@ impl Downloader {
         }
 
         conn.execute("COMMIT TRANSACTION", NO_PARAMS).expect("Failed to Commit Transaction!");
-        let mut stmt = conn.prepare("select * from remote_file_list_temp where name NOT IN (select name from remote_file_list")
+        let mut stmt = conn.prepare("select * from remote_file_list_temp where name NOT IN (select name from remote_file_list) order by size")
             .expect("Unable to get an updated file listing");
 
         let tmp_import = stmt
@@ -183,12 +184,43 @@ impl Downloader {
     pub fn download_remote_files(&mut self, remote_file_list: Vec<FileInfo>) -> Vec<SexOffenderArchive> {
 
         let arch_list: Vec<SexOffenderArchive> = remote_file_list.into_iter().map(|r| {
-            self.save_archive(&r).expect("Unable to complete saving archive")
+            println!("downloading {} .... ", r.name());
+            let res = self.save_archive(&r).expect("Unable to complete saving archive");
+
+            if let FileInfo::Record(r) = r {
+                self.log_download(&r);
+            }
+
+            res
         }).collect();
 
         arch_list
     }
 
+    fn log_download(&self, record_info: &RecordInfo) {
+        let conn = Connection::open(IMPORT_LOG).expect("unable to open a proper db connection");
+
+        /*
+        let name = record_info.name.as_ref().unwrap();
+        let rpath = record_info.rpath.as_ref().unwrap();;
+        let last_mod = record_info.last_modified.as_ref().unwrap();
+        let size = record_info.size.as_ref().unwrap();
+        let status = "Downloaded";
+        */
+        //params![photo_id,name,img_size, blob,state]).expect("A damn image import");
+        //let rc = conn.execute("INSERT INTO remote_file_list (rpath, name, last_modified, size, status) VALUES (?,?, ?,?,?)",
+          //                              params![rpath,name,last_mod, size, status]);
+
+
+        let rc = conn.execute_named("INSERT INTO remote_file_list (rpath, name, last_modified, size, status) VALUES (:rpath, :name, :last_modified, :size, :status )",
+                           &to_params_named(record_info).unwrap().to_slice()).expect("Unable to insert row into temp table");
+
+        conn.execute("Update remote_file_list set status = 'Downloaded' where name=?",
+                     &[record_info.name.as_ref().unwrap()]);
+
+        //println!("logged download {:?}", record_info.name.unwrap() );
+
+    }
     ///returns true if the file on the server is newer than what we have.
     fn file_is_new(fileinfo: &FileInfo) -> bool {
         //new means, remote file is newer or doesn't yet exist on local disk.
@@ -343,7 +375,7 @@ pub struct RecordInfo {
     pub rpath: Option<String>,
     pub name: Option<String>,
     pub last_modified: Option<String>,
-    pub size: Option<String>, //convert this to i64
+    pub size: Option<i64>, //convert this to i64
     pub status: RecordStatus,
 }
 

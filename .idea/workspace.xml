@@ -48,8 +48,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="570">
-              <caret line="53" column="90" selection-start-line="53" selection-start-column="90" selection-end-line="53" selection-end-column="90" />
+            <state relative-caret-position="468">
+              <caret line="48" column="47" selection-start-line="48" selection-start-column="47" selection-end-line="48" selection-end-column="47" />
             </state>
           </provider>
         </entry>
@@ -57,12 +57,21 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/sex_offender/downloader.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="545">
-              <caret line="235" column="16" selection-start-line="235" selection-start-column="16" selection-end-line="235" selection-end-column="16" />
+            <state relative-caret-position="-442">
+              <caret line="278" column="70" selection-start-line="278" selection-start-column="70" selection-end-line="278" selection-end-column="70" />
               <folding>
                 <element signature="e#1753#1754#0" expanded="true" />
                 <element signature="e#1787#1788#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/sex_offender/importer.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="337">
+              <caret line="189" column="17" selection-start-line="189" selection-start-column="17" selection-end-line="189" selection-end-column="17" />
             </state>
           </provider>
         </entry>
@@ -89,8 +98,8 @@
         <option value="$PROJECT_DIR$/sql/az_import_template.sql" />
         <option value="$PROJECT_DIR$/src/sex_offender/importer.rs" />
         <option value="$PROJECT_DIR$/Cargo.toml" />
-        <option value="$PROJECT_DIR$/src/main.rs" />
         <option value="$PROJECT_DIR$/src/sex_offender/downloader.rs" />
+        <option value="$PROJECT_DIR$/src/main.rs" />
       </list>
     </option>
   </component>
@@ -98,9 +107,9 @@
     <option name="directoryName" value="TUVBgzts" />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="2118" />
-    <option name="y" value="97" />
-    <option name="width" value="3076" />
+    <option name="x" value="1473" />
+    <option name="y" value="15" />
+    <option name="width" value="2512" />
     <option name="height" value="1376" />
   </component>
   <component name="ProjectView">
@@ -244,7 +253,7 @@
       <workItem from="1560268802199" duration="771000" />
       <workItem from="1560371986614" duration="2071000" />
       <workItem from="1561154354982" duration="9887000" />
-      <workItem from="1561410998913" duration="31733000" />
+      <workItem from="1561410998913" duration="42869000" />
     </task>
     <servers />
   </component>
@@ -260,7 +269,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="288663000" />
+    <option name="totallyTimeSpent" value="299799000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -272,11 +281,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="946" y="121" width="3076" height="1376" extended-state="0" />
-    <editor active="true" />
+    <frame x="1488" y="95" width="1689" height="1376" extended-state="1" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.5019048" visible="true" weight="0.13645352" />
-      <window_info id="Structure" order="1" sideWeight="0.49809524" side_tool="true" visible="true" weight="0.13645352" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.5019048" visible="true" weight="0.19914997" />
+      <window_info id="Structure" order="1" sideWeight="0.49809524" side_tool="true" visible="true" weight="0.19914997" />
       <window_info id="Favorites" order="2" sideWeight="0.48392284" side_tool="true" weight="0.09645609" />
       <window_info anchor="bottom" id="Inspection Results" order="0" weight="0.413928" />
       <window_info anchor="bottom" id="Message" order="1" />
@@ -295,7 +303,7 @@
       <window_info anchor="right" id="Cargo" order="3" weight="0.27293473" />
       <window_info anchor="right" id="Database" order="4" weight="0.32952988" />
       <window_info anchor="right" id="Event Log" order="5" sideWeight="0.41258094" weight="0.24761024" />
-      <window_info active="true" anchor="right" id="Terminal" order="6" sideWeight="0.58741903" visible="true" weight="0.4027686" />
+      <window_info active="true" anchor="right" id="Terminal" order="6" sideWeight="0.58741903" visible="true" weight="0.7820279" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -306,13 +314,8 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/sex_offender/downloader.rs</url>
-          <line>424</line>
+          <line>453</line>
           <option name="timeStamp" value="11" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/main.rs</url>
-          <line>38</line>
-          <option name="timeStamp" value="27" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -366,13 +369,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/sql/ar_import_template.sql">
       <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/sex_offender/importer.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2626">
-          <caret line="101" column="35" selection-start-line="101" selection-start-column="35" selection-end-line="101" selection-end-column="35" />
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Cargo.toml">
       <provider selected="true" editor-type-id="text-editor">
@@ -485,10 +481,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/sex_offender/importer.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="337">
+          <caret line="189" column="17" selection-start-line="189" selection-start-column="17" selection-end-line="189" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/sex_offender/downloader.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="545">
-          <caret line="235" column="16" selection-start-line="235" selection-start-column="16" selection-end-line="235" selection-end-column="16" />
+        <state relative-caret-position="-442">
+          <caret line="278" column="70" selection-start-line="278" selection-start-column="70" selection-end-line="278" selection-end-column="70" />
           <folding>
             <element signature="e#1753#1754#0" expanded="true" />
             <element signature="e#1787#1788#0" expanded="true" />
@@ -498,8 +501,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="570">
-          <caret line="53" column="90" selection-start-line="53" selection-start-column="90" selection-end-line="53" selection-end-column="90" />
+        <state relative-caret-position="468">
+          <caret line="48" column="47" selection-start-line="48" selection-start-column="47" selection-end-line="48" selection-end-column="47" />
         </state>
       </provider>
     </entry>

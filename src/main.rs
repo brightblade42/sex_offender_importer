@@ -26,9 +26,10 @@ static FTP_PWD: &'static str = "metric123swg99";
 
 fn main() {
 
+    let mut downloader = Downloader::connect(FTP_ADDR, FTP_USER, FTP_PWD).expect("Unable to connect to ftp server.");
     println!("Begin Server Query phase. ");
     let start = Instant::now();
-    let file_list = get_remote_files(); //all available files on remote server.
+    let file_list = get_remote_files(&mut downloader); //all available files on remote server.
     //let flist: Vec<FileInfo> = file_list.into_iter().flatten().collect();
     //let jlist = serde_json::to_string(&flist);
     //all the files we haven't downloaded yet.
@@ -38,19 +39,33 @@ fn main() {
     let duration = start.elapsed();
     println!("remote file listing complete. Took : {:?}", duration);
 
+    /*
+   for av_aup in avail_updates {
+       println!("{:?}", av_aup);
+   }
+*/
     println!("Begin Download Phase");
 
+    let top10: Vec<FileInfo> = avail_updates; //.into_iter().take(10).collect();
+
+/*    for f in top2 {
+        println!("{:?}", f);
+    }
+    */
+
+
+    let arch_list = downloader.download_remote_files(top10);
+    downloader.disconnect();
 }
 
-fn get_remote_files() -> Vec<Result<FileInfo, Box<error::Error>>> {
-     let mut downloader = Downloader::connect(FTP_ADDR, FTP_USER, FTP_PWD).expect("Unable to connect to ftp server.");
+fn get_remote_files(downloader: &mut Downloader) -> Vec<Result<FileInfo, Box<error::Error>>> {
     //set up some filters
     //we only want record and image files. The server has more that we don't use.
     let record_filter = |x: &String| x.contains("records") || x.contains("images");
     let records_only = |x: &String| x.contains("records");
 
     let az_only = |x: &String| x.contains("AR") && x.contains("records");
-
+   // let azed_filter = |x: &String| x.starts_with()
     let mut file_list = downloader.remote_file_list(record_filter, DownloadOption::Always);
 
 /*
