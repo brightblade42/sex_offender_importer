@@ -1,5 +1,6 @@
 pub mod downloader;
 pub mod importer;
+pub mod config;
 
 #[cfg(test)]
 mod tests {

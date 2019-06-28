@@ -23,7 +23,8 @@ use std::collections::HashSet;
 use std::clone::Clone;
 
 //TODO: get path info from ENV vars instead of hardcoding.
-static SEX_OFFENDER_PATH: &'static str = "/state/sex_offender";
+//static SEX_OFFENDER_PATH: &'static str = "/state/sex_offender";
+static SEX_OFFENDER_PATH: &'static str = "";
 static LOCAL_PATH: &'static str = "/home/d-rezzer/dev/eyemetric/ftp";
 static IMPORT_LOG: &'static str = "/home/d-rezzer/dev/eyemetric/ftp/importlog.sqlite";
 const CHUNK_SIZE: usize = 2048;
@@ -99,12 +100,14 @@ impl Downloader {
 
     ///returns a list of available files for download from remote server.
     ///a filter can be passed in to narrow the list.
-    pub fn remote_file_list(&mut self, filter: fn(&String) -> bool, file_opt: DownloadOption) -> Vec<Result<FileInfo>> {
+    pub fn remote_file_list(&mut self, filter: fn(&String) -> bool, file_opt: DownloadOption, remote_path: PathBuf) -> Vec<Result<FileInfo>> {
 
-        //TODO: This list should be logged and checked against later when filtering on new files.
-        //top level state folders (ie us/new_jersey)
-        let state_folders = self.stream.nlst(Some("us")).expect("Unable to get remote file listings");
 
+        let state_folders = self.stream.nlst(remote_path.to_str()).expect("Unable to get a listing");
+       /*let state_folders = match remote_path {
+           Some(path) => self.stream.nlst(path.to_str()).expect("Unable to get a listing"),
+           None => self.stream.nlst(Some("us")).expect("Unable to get a listing"),
+       };*/
         let on_file_option = |fi: &FileInfo| {
             match file_opt {
                 DownloadOption::Always => true,
