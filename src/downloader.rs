@@ -17,21 +17,28 @@ use zip::ZipArchive;
 use serde_derive::{Serialize, Deserialize};
 use serde_json;
 use rusqlite::{self, Connection,params,  NO_PARAMS, ToSql};
-
 use serde_rusqlite::{from_row, to_params_named};
 use std::collections::HashSet;
 use std::clone::Clone;
+//use crate::config::{CfgPaths, CfgPath, Config, Env}; //TODO: Why does this need to begin with crate?
+use crate::config::{self, Config, PathVars};
+//use crate::config;
 
+//static CONFIG_PATH: &'static str = "/home/d-rezzer/code/eyemetric/sexoffenderimporter/sql/config.sqlite";
 //TODO: get path info from ENV vars instead of hardcoding.
 //static SEX_OFFENDER_PATH: &'static str = "/state/sex_offender";
 static SEX_OFFENDER_PATH: &'static str = "";
-static LOCAL_PATH: &'static str = "/home/d-rezzer/dev/eyemetric/ftp";
+//static LOCAL_PATH: &'static str = "/home/d-rezzer/dev/eyemetric/ftp";
 static IMPORT_LOG: &'static str = "/home/d-rezzer/dev/eyemetric/ftp/importlog.sqlite";
 const CHUNK_SIZE: usize = 2048;
+
+
 type GenError = Box<std::error::Error>;
 //type GenResult<T> = Result<T, GenError>;
 
 pub type Result<T> = ::std::result::Result<T, Box<std::error::Error>>;
+
+
 
 pub enum SexOffenderImportError {
     ConnectionError(std::io::Error),
@@ -41,6 +48,7 @@ pub enum SexOffenderImportError {
 
 pub struct Downloader {
     stream: FtpStream,
+    config: PathVars,
 }
 
 
@@ -51,11 +59,13 @@ pub enum DownloadOption {
 }
 
 impl Downloader {
-    pub fn connect(addr: &str, user: &str, pwd: &str) -> Result<Self> {
+    pub fn connect(addr: &str, user: &str, pwd: &str, config: PathVars) -> Result<Self>
+     {
         //these values, I assume will be a configuration.
 
         let mut sex_offender_importer = Downloader {
             stream: FtpStream::connect(addr)?,
+            config,
         };
 
         sex_offender_importer
@@ -100,28 +110,28 @@ impl Downloader {
 
     ///returns a list of available files for download from remote server.
     ///a filter can be passed in to narrow the list.
-    pub fn remote_file_list(&mut self, filter: fn(&String) -> bool, file_opt: DownloadOption, remote_path: PathBuf) -> Vec<Result<FileInfo>> {
+    pub fn remote_file_list(&mut self, filter: fn(&String) -> bool, file_opt: DownloadOption) -> Vec<Result<FileInfo>> {
 
+       let paths =  &self.config.vars; //TODO: consider loading once instead of every function call.
+       let remote_base_path = &paths["remote_base_path"];
+        let sex_offender_path = &paths["sex_offender_path"].to_string();
+        let state_folders = self.stream.nlst(Some(remote_base_path)).expect("Unable to get a remote file listing");
 
-        let state_folders = self.stream.nlst(remote_path.to_str()).expect("Unable to get a listing");
-       /*let state_folders = match remote_path {
-           Some(path) => self.stream.nlst(path.to_str()).expect("Unable to get a listing"),
-           None => self.stream.nlst(Some("us")).expect("Unable to get a listing"),
-       };*/
-        let on_file_option = |fi: &FileInfo| {
+        /*let on_file_option = |fi: &FileInfo| {
             match file_opt {
                 DownloadOption::Always => true,
                 DownloadOption::Only_New => Downloader::file_is_new(fi),
             }
         };
-
+        */
         let hard_filter = |x: &String| !x.contains(".txt") && !x.contains("united_states");
 
         let available_files: Vec<Result<FileInfo>> = state_folders
             .into_iter()
             .map(|state_folder| {
-                let sex_offender_folder = format!("{}{}", state_folder.to_string(), SEX_OFFENDER_PATH);
-                //println!("{}", &sex_offender_folder);
+
+                let sex_offender_folder = format!("{}{}", state_folder.to_string(),sex_offender_path);
+                println!("{}", &sex_offender_folder);
 
                 let file_list: Vec<Result<FileInfo>> = self.stream
                     .list(Some(&sex_offender_folder)) //list remote dir
@@ -131,7 +141,7 @@ impl Downloader {
                     .filter(filter)
                     //.inspect(|line| println!("{}", line))
                     .map(|line| self.create_file_info(&state_folder, &line))
-                    .filter(|fi| on_file_option(fi.as_ref().unwrap()))
+                    //.filter(|fi| on_file_option(fi.as_ref().unwrap()))
                     .collect();
 
                 file_list
@@ -144,7 +154,7 @@ impl Downloader {
 
     ///returns a list of files that we have not tried to import previously.
     ///Note: it's possible that there are failed downloads in the log. We skip
-    /// those possible downloads as they will be handled by a reschedule task.
+    /// those possible downloads as they will be handled by a reschedule task (WIP).
     /// In other words, it's possible that the remote list contains files we want
     /// but since they failed to download previously we'll use a different mechanism
     /// to get them.
@@ -154,6 +164,7 @@ impl Downloader {
         //if any
         let conn = Connection::open(IMPORT_LOG).expect("unable to open a proper db connection");
 
+        //table to store a log of available archives and the status of their downloads
         let res = conn
             .execute(
                 "CREATE TABLE if not exists remote_file_list (rpath, name, last_modified, size integer, status) ",
@@ -161,6 +172,7 @@ impl Downloader {
             )
             .unwrap();
 
+        //Temp table to hold a new file listing to compare to any existing remote file listing.
         let res = conn.execute("CREATE TEMP TABLE if not exists remote_file_list_temp (rpath, name, last_modified, size integer, status);", NO_PARAMS)
             .expect("Unable to create remote_file_list_temp table");
 
@@ -174,6 +186,8 @@ impl Downloader {
         }
 
         conn.execute("COMMIT TRANSACTION", NO_PARAMS).expect("Failed to Commit Transaction!");
+        //get file listing that do NOT exist in the remote_file_list table. These are fresh fishies.
+        //The very first time there will be nothing in the remote_file_list table, only the remote_file_list_temp table.
         let mut stmt = conn.prepare("select * from remote_file_list_temp where name NOT IN (select name from remote_file_list) order by size")
             .expect("Unable to get an updated file listing");
 
@@ -181,6 +195,7 @@ impl Downloader {
             .query_and_then(NO_PARAMS, from_row::<RecordInfo>)
             .expect("Unable to get remote_file_list from Import Log");
 
+        //return the freshest of the freshies.
         tmp_import.map(|r| FileInfo::Record(r.unwrap())).collect()
 
     }
@@ -191,6 +206,7 @@ impl Downloader {
             println!("downloading {} .... ", r.name());
             let res = self.save_archive(&r).expect("Unable to complete saving archive");
 
+            println!("{:?}", &r);
             if let FileInfo::Record(r) = r {
                 self.log_download(&r);
             }
@@ -204,29 +220,15 @@ impl Downloader {
     fn log_download(&self, record_info: &RecordInfo) {
         let conn = Connection::open(IMPORT_LOG).expect("unable to open a proper db connection");
 
-        /*
-        let name = record_info.name.as_ref().unwrap();
-        let rpath = record_info.rpath.as_ref().unwrap();;
-        let last_mod = record_info.last_modified.as_ref().unwrap();
-        let size = record_info.size.as_ref().unwrap();
-        let status = "Downloaded";
-        */
-        //params![photo_id,name,img_size, blob,state]).expect("A damn image import");
-        //let rc = conn.execute("INSERT INTO remote_file_list (rpath, name, last_modified, size, status) VALUES (?,?, ?,?,?)",
-          //                              params![rpath,name,last_mod, size, status]);
-
-
         let rc = conn.execute_named("INSERT INTO remote_file_list (rpath, name, last_modified, size, status) VALUES (:rpath, :name, :last_modified, :size, :status )",
                            &to_params_named(record_info).unwrap().to_slice()).expect("Unable to insert row into temp table");
 
         conn.execute("Update remote_file_list set status = 'Downloaded' where name=?",
                      &[record_info.name.as_ref().unwrap()]);
 
-        //println!("logged download {:?}", record_info.name.unwrap() );
-
     }
     ///returns true if the file on the server is newer than what we have.
-    fn file_is_new(fileinfo: &FileInfo) -> bool {
+    /*fn file_is_new(fileinfo: &FileInfo) -> bool {
         //new means, remote file is newer or doesn't yet exist on local disk.
         !Downloader::archive_exists(fileinfo) || Downloader::remote_file_is_newer(fileinfo)
     }
@@ -236,6 +238,7 @@ impl Downloader {
         println!("archive exists: {}", exists);
         exists
     }
+    */
 
 
 //TODO: examine the last downloaded file list with the current one. update
@@ -244,20 +247,48 @@ impl Downloader {
         //compare the local file mod time with fileinfo data
         false
     }
-    ///downloads the remote archive file and writes to disk.
-    pub fn save_archive(&mut self, fileinfo: &FileInfo) -> Result<SexOffenderArchive> {
-        let fname = fileinfo.name();//.as_ref().unwrap();
 
+    fn remote_ftp_path(&mut self, fileinfo: &FileInfo) -> PathBuf {
+
+        let p = match fileinfo {
+            FileInfo::Record(r) => {
+                PathBuf::from(r.rpath.as_ref().unwrap())
+            }
+            _ => PathBuf::new(),
+        };
+
+       p
+
+    }
+    pub fn local_archive_base(fileinfo: &FileInfo, config: &PathVars ) -> PathBuf {
+        PathBuf::from(&config.vars["local_archive_path"])
+    }
+
+    pub fn local_archive_path(fileinfo: &FileInfo, config: &PathVars) -> PathBuf {
+
+        let mut p = Downloader::local_archive_base(fileinfo, config);
+        p.push(fileinfo.name());
+        p
+    }
+    ///downloads the remote archive file and writes to disk.
+
+    pub fn save_archive(&mut self, fileinfo: &FileInfo) -> Result<SexOffenderArchive> {
+        let fname = fileinfo.name();
+
+        let conf= &self.config;
+        let local_archive_path = Downloader::local_archive_path(fileinfo, conf);
         //make sure we're setup to dload binary files
+
         self.stream.transfer_type(FileType::Binary)?;
         //change ftp dir.
-
         let size: usize = match self.stream.cwd(&fileinfo.remote_path().to_str().unwrap()) {
             Ok(()) => {
                 println!("dir change success");
 
+
+              // self.stream.retr()
                 let res = self.stream.retr(&fname, |stream| {
-                   let sz = Downloader::write_archive(&fileinfo, stream).expect("Unable to write archive!");
+                   let sz = Downloader::write_archive(&fileinfo, stream, conf).expect("Unable to write archive!");
                     Ok(sz)
                 });
 
@@ -268,19 +299,20 @@ impl Downloader {
         };
 
         Ok(SexOffenderArchive {
-            path: fileinfo.file_path().clone(),
+            path: local_archive_path, //fileinfo.file_path().clone(),
             size,
         })
     }
 
     ///write the archive file we got from ftp to disk.
-    fn write_archive(fileinfo: &FileInfo, stream: &mut Read) -> Result<usize> {
-        let file_path = fileinfo.file_path();
-        let base_path = fileinfo.base_path();
+    fn write_archive(fileinfo: &FileInfo, stream: &mut Read, config: &PathVars) -> Result<SexOffenderArchive> {
 
-        fs::create_dir_all(&base_path)?;
-        println!("local base dir: {}", base_path.display());
-        let mut local_file = BufWriter::new(File::create(&file_path)?);
+        let local_archive_base = Downloader::local_archive_base(fileinfo, config);
+        let local_archive_file = Downloader::local_archive_path(fileinfo, config);
+
+        fs::create_dir_all(&local_archive_base)?;
+        println!("local base dir: {}", local_archive_base.display());
+        let mut local_file = BufWriter::new(File::create(&local_archive_file)?);
 
         let mut total_bytes: usize = 0;
         let mut buff: [u8; CHUNK_SIZE] = [0; CHUNK_SIZE];
@@ -303,36 +335,90 @@ impl Downloader {
             Err(e) => println!("bad mojo {}", e),
         }
 
-        Ok(bytes_read)
+
+        Ok(SexOffenderArchive {
+            path: local_archive_file, //fileinfo.file_path().clone(),
+            size: total_bytes,
+        })
     }
     //return the list of files that are newer than what we have
     fn filter_mod_time() {}
 
     ///extracts an arcive into a list of ExtractedFile types.
     /// An Extracted file can be one of two variants. Csv or ImageArchive
-    pub fn extract_archive(fileinfo: &FileInfo) -> Result<Vec<ExtractedFile>> {
+    ///
+    pub fn extract_archive2(&mut self, sx_archive: SexOffenderArchive) -> Result<Vec<ExtractedFile>> {
         let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
-        let archive_path = fileinfo.file_path();
-        let file = BufReader::new(File::open(archive_path)?);
+        let mut archive_path: PathBuf = sx_archive.path;
+
+        let file = BufReader::new(File::open(&archive_path)?);
+        let mut archive = zip::ZipArchive::new(file)?;
+
+        for i in 0..archive.len() {
+            let mut embedded_file = archive.by_index(i)?;
+
+            let mut extraction_path = archive_path.parent().unwrap().to_path_buf();
+            println!("extr: {:?}", extraction_path);
+            let fname = embedded_file.sanitized_name();
+            let state_abbrev = &fname.to_str().unwrap()[..2];
+
+            extraction_path.push(state_abbrev);
+
+            if archive_path.to_string_lossy().contains("records") {
+                extraction_path.push("records");
+            } else {
+                extraction_path.push("images");
+            }
+             println!("{:?}", extraction_path);
+             fs::create_dir_all(&extraction_path).expect("Unable to create extraction path");
+
+            extraction_path.push(&fname);
+            let mut outfile = BufWriter::new(File::create(&extraction_path)?);
+            std::io::copy(&mut embedded_file, &mut outfile)?;
+            println!("wrote: {}", extraction_path.display());
+
+
+            let ex_file = if fname.to_string_lossy().contains("records") {
+                ExtractedFile::Csv { path: extraction_path.clone(), state: String::from(state_abbrev) }
+            } else {
+                ExtractedFile::ImageArchive { path: extraction_path.clone(), state: String::from(state_abbrev) }
+            };
+
+            extracted_files.push(ex_file);
+        }
+        Ok(extracted_files)
+    }
+
+    pub fn extract_archive(&mut self, fileinfo: &FileInfo) -> Result<Vec<ExtractedFile>> {
+        let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
+        let mut archive_path = Downloader::local_archive_path(fileinfo, &self.config);
+        let file = BufReader::new(File::open(&archive_path)?);
 
         let mut archive = zip::ZipArchive::new(file)?;
 
         for i in 0..archive.len() {
-            let mut arch_file = archive.by_index(i)?;
+            let mut embedded_file = archive.by_index(i)?;
 
-            let outname = arch_file.sanitized_name();
-            let mut fp = fileinfo.extract_path();
-            fs::create_dir_all(fp.as_path())?;
-            fp.push(outname);
-            let mut outfile = BufWriter::new(File::create(fp.as_path())?);
-            std::io::copy(&mut arch_file, &mut outfile)?;
-            //println!("wrote: {}", fp.display());
+            //let outname = embedded_file.sanitized_name();
+            //let mut fp = fileinfo.extract_path();
+            archive_path.push( match fileinfo {
+                FileInfo::Record(r) =>  "records",
+                FileInfo::Image(i)  => "images",
+
+            }) ;
+            //fs::create_dir_all(fp.as_path())?;
+            fs::create_dir_all(&archive_path)?;
+
+            archive_path.push(embedded_file.sanitized_name());
+            let mut outfile = BufWriter::new(File::create(&archive_path)?);
+            std::io::copy(&mut embedded_file, &mut outfile)?;
+            println!("wrote: {}", archive_path.display());
             let tag = &fileinfo.name()[..2];
 
             extracted_files.push(
                 match fileinfo {
-                    FileInfo::Record(_) => ExtractedFile::Csv { path: fp, state: String::from(tag) },
-                    FileInfo::Image(_) => ExtractedFile::ImageArchive { path: fp, state: String::from(tag) }
+                    FileInfo::Record(_) => ExtractedFile::Csv { path: archive_path.clone(), state: String::from(tag) },
+                    FileInfo::Image(_) => ExtractedFile::ImageArchive { path: archive_path.clone(), state: String::from(tag) }
                 });
         }
 
@@ -348,6 +434,7 @@ pub enum ExtractedFile {
 }
 
 
+#[derive(Debug, Serialize,Deserialize)]
 pub struct SexOffenderArchive {
     path: PathBuf,
     size: usize,
@@ -400,6 +487,11 @@ impl FileInfo {
         }
     }
 
+   pub fn base_path(info: &FileInfo) -> path::PathBuf {
+      PathBuf::from("/some/cool/path")
+
+   }
+/*
     pub fn base_path(&self) -> path::PathBuf {
         use FileInfo::*;
 
@@ -422,7 +514,7 @@ impl FileInfo {
 
         fp
     }
-
+*/
     pub fn remote_path(&self) -> path::PathBuf {
         use FileInfo::*;
 
@@ -434,6 +526,7 @@ impl FileInfo {
         )
     }
 
+    /*
     pub fn extract_path(&self) -> path::PathBuf {
         use FileInfo::*;
 
@@ -445,7 +538,7 @@ impl FileInfo {
         };
 
         fp
-    }
+    } */
 }
 
 
