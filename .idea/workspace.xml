@@ -14,9 +14,8 @@
   <component name="ChangeListManager">
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/config.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/sql/config.sqlite" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/downloader.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/downloader.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/importer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -47,20 +46,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="312">
-              <caret line="39" lean-forward="true" selection-start-line="39" selection-end-line="39" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libstd/panicking.rs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="258">
-              <caret line="276" selection-start-line="276" selection-end-line="276" />
+            <state relative-caret-position="730">
+              <caret line="59" column="30" selection-start-line="59" selection-start-column="30" selection-end-line="59" selection-end-column="30" />
             </state>
           </provider>
         </entry>
@@ -68,26 +58,31 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libpanic_unwind/lib.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="435">
-              <caret line="94" selection-start-line="94" selection-end-line="94" />
+            <state relative-caret-position="311">
+              <caret line="87" selection-start-line="87" selection-end-line="87" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/downloader.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="780">
-              <caret line="381" column="1" selection-start-line="381" selection-start-column="1" selection-end-line="381" selection-end-column="1" />
+            <state relative-caret-position="697">
+              <caret line="396" column="48" selection-start-line="396" selection-start-column="48" selection-end-line="396" selection-end-column="48" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/importer.rs">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/rusqlite-0.18.0/src/types/to_sql.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="184">
-              <caret line="128" column="25" selection-start-line="128" selection-start-column="25" selection-end-line="128" selection-end-column="25" />
+            <state relative-caret-position="496">
+              <caret line="93" column="4" selection-start-line="93" selection-start-column="4" selection-end-line="93" selection-end-column="4" />
             </state>
           </provider>
         </entry>
@@ -127,8 +122,9 @@
         <option value="$PROJECT_DIR$/src/conf.rs" />
         <option value="$PROJECT_DIR$/src/lib.rs" />
         <option value="$PROJECT_DIR$/src/config.rs" />
-        <option value="$PROJECT_DIR$/src/main.rs" />
+        <option value="$PROJECT_DIR$/src/importer.rs" />
         <option value="$PROJECT_DIR$/src/downloader.rs" />
+        <option value="$PROJECT_DIR$/src/main.rs" />
       </list>
     </option>
   </component>
@@ -136,8 +132,8 @@
     <option name="directoryName" value="TUVBgzts" />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="322" />
-    <option name="y" value="136" />
+    <option name="x" value="201" />
+    <option name="y" value="328" />
     <option name="width" value="2179" />
     <option name="height" value="1021" />
   </component>
@@ -286,7 +282,7 @@
       <workItem from="1561410998913" duration="44678000" />
       <workItem from="1561655807034" duration="5608000" />
       <workItem from="1561669347747" duration="62628000" />
-      <workItem from="1562184620890" duration="13372000" />
+      <workItem from="1562184620890" duration="34844000" />
     </task>
     <servers />
   </component>
@@ -302,7 +298,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="383216000" />
+    <option name="totallyTimeSpent" value="404688000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -316,14 +312,14 @@
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="3440" height="1390" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.83908045" visible="true" weight="0.16333137" />
-      <window_info id="Structure" order="1" sideWeight="0.16091955" side_tool="true" visible="true" weight="0.16333137" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.8388541" visible="true" weight="0.16333137" />
+      <window_info id="Structure" order="1" sideWeight="0.16114593" side_tool="true" visible="true" weight="0.16333137" />
       <window_info id="Favorites" order="2" sideWeight="0.48392284" side_tool="true" weight="0.09645609" />
       <window_info anchor="bottom" id="Inspection Results" order="0" weight="0.413928" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="Find" order="2" />
       <window_info anchor="bottom" id="Run" order="3" weight="0.4229309" />
-      <window_info anchor="bottom" id="Debug" order="4" visible="true" weight="0.14123006" />
+      <window_info anchor="bottom" id="Debug" order="4" visible="true" weight="0.15186028" />
       <window_info anchor="bottom" id="Cvs" order="5" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="6" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="7" weight="0.3290267" />
@@ -336,7 +332,7 @@
       <window_info anchor="right" id="Cargo" order="3" weight="0.27293473" />
       <window_info anchor="right" id="Database" order="4" weight="0.32952988" />
       <window_info anchor="right" id="Event Log" order="5" sideWeight="0.41258094" weight="0.24761024" />
-      <window_info active="true" anchor="right" id="Terminal" order="6" sideWeight="0.58741903" visible="true" weight="0.3849323" />
+      <window_info active="true" anchor="right" id="Terminal" order="6" sideWeight="0.58741903" visible="true" weight="0.36374336" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -347,13 +343,23 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/downloader.rs</url>
-          <line>550</line>
+          <line>578</line>
           <option name="timeStamp" value="11" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/main.rs</url>
-          <line>48</line>
+          <line>70</line>
           <option name="timeStamp" value="20" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/main.rs</url>
+          <line>36</line>
+          <option name="timeStamp" value="22" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/importer.rs</url>
+          <line>75</line>
+          <option name="timeStamp" value="24" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -369,13 +375,25 @@
         <watch expression="fo'" language="Rust" />
         <watch expression="fp" language="Rust" />
         <watch expression="file_path" language="Rust" />
+        <watch expression="avail_updates" language="Rust" />
         <watch expression="base_path" language="Rust" />
         <watch expression="remote_file_list" language="Rust" />
+        <watch expression="sx_arch_files" language="Rust" />
       </configuration>
     </watches-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="watch">
+      <expression>
+        <expression-string>sx_arch_files</expression-string>
+        <language-id>Rust</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>avail_updates</expression-string>
+        <language-id>Rust</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>remote_file_list</expression-string>
         <language-id>Rust</language-id>
@@ -413,11 +431,6 @@
       </expression>
       <expression>
         <expression-string>rpath</expression-string>
-        <language-id>Rust</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>fname</expression-string>
         <language-id>Rust</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -592,15 +605,15 @@
     </entry>
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libpanic_unwind/lib.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="435">
-          <caret line="94" selection-start-line="94" selection-end-line="94" />
+        <state relative-caret-position="311">
+          <caret line="87" selection-start-line="87" selection-end-line="87" />
         </state>
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libstd/rt.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="885">
-          <caret line="63" column="60" selection-start-line="63" selection-start-column="60" selection-end-line="63" selection-end-column="60" />
+        <state relative-caret-position="528">
+          <caret line="40" column="44" selection-start-line="40" selection-start-column="44" selection-end-line="40" selection-end-column="44" />
           <folding>
             <element signature="e#2235#2236#0" expanded="true" />
             <element signature="e#2299#2300#0" expanded="true" />
@@ -615,24 +628,27 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/importer.rs">
+    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/rusqlite-0.18.0/src/types/to_sql.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="184">
-          <caret line="128" column="25" selection-start-line="128" selection-start-column="25" selection-end-line="128" selection-end-column="25" />
+        <state relative-caret-position="496">
+          <caret line="93" column="4" selection-start-line="93" selection-start-column="4" selection-end-line="93" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/importer.rs">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/downloader.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="697">
+          <caret line="396" column="48" selection-start-line="396" selection-start-column="48" selection-end-line="396" selection-end-column="48" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="312">
-          <caret line="39" lean-forward="true" selection-start-line="39" selection-end-line="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/downloader.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="780">
-          <caret line="381" column="1" selection-start-line="381" selection-start-column="1" selection-end-line="381" selection-end-column="1" />
+        <state relative-caret-position="730">
+          <caret line="59" column="30" selection-start-line="59" selection-start-column="30" selection-end-line="59" selection-end-column="30" />
         </state>
       </provider>
     </entry>

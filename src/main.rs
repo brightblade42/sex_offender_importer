@@ -44,9 +44,31 @@ fn main() {
     //let sx_arch_files = downloader.download_remote_files(top_one);
     let sx_arch_files = downloader.download_remote_files(avail_updates);
 
+    prepare_import();
     for sx_file in sx_arch_files {
-        let exfile = downloader.extract_archive2(sx_file);
-        println!("ex: {:?}", exfile);
+        let exfiles = downloader.extract_archive2(sx_file);
+        let exfileL = match exfiles {
+            Ok(ext) => {
+                ext
+            },
+            Err(e) => {
+                println!("BAD MOJO! {}", e);
+                continue; //skip bad data. we'll log it. tag it and bag it.
+            }
+        };
+        for exfile in exfileL { //.expect("Bad exfiles") {
+            match import_data(&exfile) {
+                Ok(()) => {
+                    println!("imported file {:?}", &exfile);
+                }
+                Err(e) => {
+                    println!("Error importing file {:?}", e);
+                    println!("ex: {:?}", &exfile);
+                }
+            }
+        }
+
+       // println!("ex: {:?}", exfile);
     }
 
 

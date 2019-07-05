@@ -12,8 +12,7 @@ use std::string::ToString;
 
 use zip;
 use zip::ZipArchive;
-
-static SQL_PATH: &'static str = "/home/d-rezer/dev/eyemetric/ftp/sexoffenders.sqlite";
+static SQL_PATH: &'static str = "/home/d-rezzer/dev/sex_offender/archives/sexoffenders.sqlite";
 
 fn open_csv_reader(file: File) -> Result<csv::Reader<File>, Box<Error>> {
     let mut rdr = csv::ReaderBuilder::new()
@@ -25,12 +24,18 @@ fn open_csv_reader(file: File) -> Result<csv::Reader<File>, Box<Error>> {
 
 fn create_default_index(name: &str) -> String {
     format!(
-        r#"CREATE unique INDEX {}_idx ON {} (
+        r#"CREATE unique INDEX if not exists {}_idx ON {} (
          ID,
          State
      );"#, name, name)
 }
-
+fn create_default_non_unique_index(name: &str) -> String {
+    format!(
+        r#"CREATE INDEX if not exists {}_idx ON {} (
+         ID,
+         State
+     );"#, name, name)
+}
 fn create_main() -> String {
     String::from(r#"CREATE TABLE IF NOT EXISTS SexOffender (
         id Integer,
@@ -47,7 +52,7 @@ fn create_main() -> String {
 
 
 fn create_photos() -> String {
-    String::from(r#"CREATE TABLE IF NOT EXISTS photos (
+    String::from(r#"CREATE TABLE IF NOT EXISTS Photos (
         id INTEGER,
         name TEXT,
         size Integer,
@@ -57,11 +62,20 @@ fn create_photos() -> String {
 }
 
 fn create_db(conn: &Connection) -> Result<(), Box<Error>> {
+
+    set_pragmas(conn);
     conn.execute(create_main().as_str(), NO_PARAMS).expect("Unable to create main");
     conn.execute(create_photos().as_str(), NO_PARAMS).expect("unable to create photos");
     conn.execute(create_default_index("SexOffender").as_str(), NO_PARAMS).expect("unable to create main index");
-    conn.execute(create_default_index("photos").as_str(), NO_PARAMS).expect("Unable to create photos index");
+    conn.execute(create_default_non_unique_index("Photos").as_str(), NO_PARAMS).expect("Unable to create photos index");
     Ok(())
+}
+
+fn set_pragmas(conn: &Connection) {
+//
+  conn.pragma_update(None, "journal_mode",&String::from("OFF")).expect("Unable to set Pragma");
+    //conn.execute("PRAGMA journal_mode=OFF", NO_PARAMS).expect("Unable to set PRAGMA");
+    let x = "";
 }
 
 fn create_table_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<Error>> {
@@ -71,15 +85,15 @@ fn create_table_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<Str
         format!("{} {}, ", acc, head)
     });
     create_table.push_str("state )"); //add our extra state field and close the ()
-    println!("----------------------------------------");
-    println!("{}", create_table);
-    println!("----------------------------------------");
+    //println!("----------------------------------------");
+    //println!("{}", create_table);
+    //println!("----------------------------------------");
 
     Ok(create_table)
 }
 
 fn create_blob_table_query() -> Result<String, Box<Error>> {
-    Ok(String::from("CREATE TABLE if not exists Photo (id,name, size, data)"))
+    Ok(String::from("CREATE TABLE if not exists Photos (id,name, size, data)"))
 }
 
 fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<Error>> {
@@ -104,15 +118,15 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
 
     insert_query.push_str("?)"); //our state parameter.
 
-    println!("------------------------------------");
-    println!("{}", insert_query);
-    println!("------------------------------------");
+    //println!("------------------------------------");
+    //println!("{}", insert_query);
+    //println!("------------------------------------");
 
     Ok(insert_query)
 }
 
 use super::downloader::ExtractedFile;
-use core::borrow::Borrow;
+use core::borrow::{Borrow, BorrowMut};
 
 pub fn prepare_import() -> Result<(), Box<Error>> {
     let conn = Connection::open(SQL_PATH)?;
@@ -146,15 +160,26 @@ pub fn import_data(extracted_file: &ExtractedFile) -> Result<(), Box<Error>> {
             conn.execute("Begin Transaction;", NO_PARAMS);
 
             //insert a record (line of csv) into sqlite table.
-            for result in csv_reader.records() {
-                let record = result.expect("unable to get csv record");
-                let mut csv_values: Vec<&str> = record.iter().collect();
-                csv_values.push(state.as_str());
-                let res = conn.execute(&insert_query, &csv_values);
+            for result in csv_reader.byte_records() {//.records() {
+                match result  {  //.expect("unable to get csv record");
+                    Ok(record) => {
+//                        let mut csv_values: Vec<&str> = record.iter().collect();
+                        //record.push_field()
+                        //let mut csv_values: &[u8] = record.iter().collect();
+                        let mut rec = record.clone();
+                        rec.push_field(state.as_bytes());
+                       // csv_values.push_field(state.as_bytes());
+                        let res = conn.execute(&insert_query, &rec);
+                        //println!("{:?}", rec);
 
-                if let Err(e) = res {
-                    println!("conn error: {:?}", e);
+                    },
+                    Err(e) => {
+                        println!("Row data error: {}", e);
+                    }
                 }
+                /*if let Err(e) = res {
+                    println!("conn error: {:?}", e);
+                }*/
             }
             conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
         }
@@ -181,7 +206,7 @@ pub fn import_data(extracted_file: &ExtractedFile) -> Result<(), Box<Error>> {
                 let mut img_file = archive.by_index(i)?;
                 let img_name = img_file.sanitized_name();
                 let img_size = img_file.size() as u32;
-                println!("name: {} size: {}", img_name.display(), img_size);
+                //println!("name: {} size: {}", img_name.display(), img_size);
                 let name = img_name.display().to_string();
                 let idx = if let Some(p) = name.find('_') {
                     p

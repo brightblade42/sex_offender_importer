@@ -173,13 +173,17 @@ impl Downloader {
             .unwrap();
 
         //Temp table to hold a new file listing to compare to any existing remote file listing.
-        let res = conn.execute("CREATE TEMP TABLE if not exists remote_file_list_temp (rpath, name, last_modified, size integer, status);", NO_PARAMS)
+        //let res = conn.execute("CREATE TEMP TABLE if not exists remote_file_list_temp (rpath, name, last_modified, size integer, status);", NO_PARAMS)
+         //   .expect("Unable to create remote_file_list_temp table");
+
+        let res = conn.execute("CREATE TABLE if not exists remote_file_list_temp (rpath, name, last_modified, size integer, status);", NO_PARAMS)
             .expect("Unable to create remote_file_list_temp table");
 
         conn.execute("BEGIN TRANSACTION", NO_PARAMS).expect("Unable to start transaction");
         for r_file in remote_files {
             if let Ok(FileInfo::Record(ri)) = r_file {
 
+                //println!("{:?}", &ri);
                 conn.execute_named("INSERT INTO remote_file_list_temp (rpath, name, last_modified, size, status) VALUES (:rpath, :name, :last_modified, :size, :status )",
                                    &to_params_named(ri).unwrap().to_slice()).expect("Unable to insert row into temp table");
             }
@@ -188,7 +192,7 @@ impl Downloader {
         conn.execute("COMMIT TRANSACTION", NO_PARAMS).expect("Failed to Commit Transaction!");
         //get file listing that do NOT exist in the remote_file_list table. These are fresh fishies.
         //The very first time there will be nothing in the remote_file_list table, only the remote_file_list_temp table.
-        let mut stmt = conn.prepare("select * from remote_file_list_temp where name NOT IN (select name from remote_file_list) order by size")
+        let mut stmt = conn.prepare("select * from remote_file_list_temp where rpath NOT IN (select rpath from remote_file_list) order by size")
             .expect("Unable to get an updated file listing");
 
         let tmp_import = stmt
@@ -350,17 +354,20 @@ impl Downloader {
     pub fn extract_archive2(&mut self, sx_archive: SexOffenderArchive) -> Result<Vec<ExtractedFile>> {
         let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
         let mut archive_path: PathBuf = sx_archive.path;
-
+        let mut state_abbrev = &archive_path.file_name().unwrap().to_str().unwrap()[..2];
         let file = BufReader::new(File::open(&archive_path)?);
         let mut archive = zip::ZipArchive::new(file)?;
-
         for i in 0..archive.len() {
             let mut embedded_file = archive.by_index(i)?;
 
+            if state_abbrev == "TX" { //Texas is a problem. Lots of files, all fucked.
+                continue;
+            }
             let mut extraction_path = archive_path.parent().unwrap().to_path_buf();
-            println!("extr: {:?}", extraction_path);
+          //  println!("extr: {:?}", extraction_path);
             let fname = embedded_file.sanitized_name();
-            let state_abbrev = &fname.to_str().unwrap()[..2];
+
+            //let state_abbrev = &fname.to_str().unwrap()[..2];
 
             extraction_path.push(state_abbrev);
 
@@ -378,13 +385,34 @@ impl Downloader {
             println!("wrote: {}", extraction_path.display());
 
 
-            let ex_file = if fname.to_string_lossy().contains("records") {
+           match fname.extension() {
+               Some(ext) if ext == "csv" || ext == "txt" => {
+                    let ex_file = ExtractedFile::Csv { path: extraction_path.clone(), state: String::from(state_abbrev)};
+                    println!("{:?}", &ex_file);
+
+                   extracted_files.push(ex_file);
+               },
+               Some(ext) if ext == "zip" => {
+                  let ex_file =  ExtractedFile::ImageArchive { path: extraction_path.clone(), state: String::from(state_abbrev) };
+                   extracted_files.push(ex_file);
+               }
+               None => {
+                   println!("No file extension found in extracted file!");
+
+               },
+               _ => {
+                   println!("Unsupported file extension found and ignored.");
+               }
+
+           }
+           /*
+            let ex_file = if fname.contains("csv")  || fname.{
                 ExtractedFile::Csv { path: extraction_path.clone(), state: String::from(state_abbrev) }
             } else {
                 ExtractedFile::ImageArchive { path: extraction_path.clone(), state: String::from(state_abbrev) }
             };
 
-            extracted_files.push(ex_file);
+            extracted_files.push(ex_file); */
         }
         Ok(extracted_files)
     }
