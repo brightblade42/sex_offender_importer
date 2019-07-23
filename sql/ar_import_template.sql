@@ -1,4 +1,5 @@
-Insert into SexOffender(id,name,dateOfBirth, state,aliases, offenses, addresses, personalDetails, photos)
+--Insert into SexOffender(id,name,dateOfBirth, state,aliases, offenses, addresses, personalDetails, photos)
+CREATE VIEW AR_SexOffender as 
 select id,name,DateOfBirth, state,
 ( SELECT json_group_array (alias)
 		FROM
@@ -6,7 +7,7 @@ select id,name,DateOfBirth, state,
 				FROM ARSexOffenders_aliases als
 				WHERE als.id = ARSexOffenders_main.id
 				AND ARSexOffenders_main.state = als.state)
-) as aliases,
+) as "aliases",
 
 (SELECT
 		json_group_array (

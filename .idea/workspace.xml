@@ -14,6 +14,8 @@
   <component name="ChangeListManager">
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sql/ar_import_template.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ar_import_template.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sql/az_import_template.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/az_import_template.sql" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/downloader.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/downloader.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/importer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
@@ -49,17 +51,17 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="730">
-              <caret line="59" column="30" selection-start-line="59" selection-start-column="30" selection-end-line="59" selection-end-column="30" />
+            <state relative-caret-position="113">
+              <caret line="51" column="37" lean-forward="true" selection-start-line="51" selection-start-column="37" selection-end-line="51" selection-end-column="37" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libpanic_unwind/lib.rs">
+        <entry file="file://$PROJECT_DIR$/src/lib.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="311">
-              <caret line="87" selection-start-line="87" selection-end-line="87" />
+            <state relative-caret-position="105">
+              <caret line="3" selection-start-line="3" selection-end-line="3" />
             </state>
           </provider>
         </entry>
@@ -67,31 +69,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/downloader.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="697">
-              <caret line="396" column="48" selection-start-line="396" selection-start-column="48" selection-end-line="396" selection-end-column="48" />
+            <state relative-caret-position="11865">
+              <caret line="341" column="22" selection-start-line="341" selection-start-column="22" selection-end-line="341" selection-end-column="22" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/importer.rs">
-          <provider selected="true" editor-type-id="text-editor" />
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/rusqlite-0.18.0/src/types/to_sql.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="496">
-              <caret line="93" column="4" selection-start-line="93" selection-start-column="4" selection-end-line="93" selection-end-column="4" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/ftp-3.0.1/src/ftp.rs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="314">
-              <caret line="332" selection-start-line="332" selection-end-line="332" />
+            <state relative-caret-position="1308">
+              <caret line="198" column="71" selection-start-line="198" selection-start-column="71" selection-end-line="198" selection-end-column="71" />
             </state>
           </provider>
         </entry>
@@ -131,11 +119,11 @@
   <component name="MacroExpansionManager">
     <option name="directoryName" value="TUVBgzts" />
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="201" />
-    <option name="y" value="328" />
-    <option name="width" value="2179" />
-    <option name="height" value="1021" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="86" />
+    <option name="y" value="100" />
+    <option name="width" value="3212" />
+    <option name="height" value="1397" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -169,7 +157,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../rust/scratch" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -282,7 +270,9 @@
       <workItem from="1561410998913" duration="44678000" />
       <workItem from="1561655807034" duration="5608000" />
       <workItem from="1561669347747" duration="62628000" />
-      <workItem from="1562184620890" duration="34844000" />
+      <workItem from="1562184620890" duration="36993000" />
+      <workItem from="1562609546697" duration="39988000" />
+      <workItem from="1563902739672" duration="1357000" />
     </task>
     <servers />
   </component>
@@ -298,7 +288,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="404688000" />
+    <option name="totallyTimeSpent" value="448182000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -310,16 +300,17 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="3440" height="1390" extended-state="6" />
+    <frame x="86" y="100" width="3212" height="1397" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.8388541" visible="true" weight="0.16333137" />
-      <window_info id="Structure" order="1" sideWeight="0.16114593" side_tool="true" visible="true" weight="0.16333137" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.43783373" visible="true" weight="0.1252372" />
+      <window_info id="Structure" order="1" sideWeight="0.5621663" side_tool="true" visible="true" weight="0.1252372" />
       <window_info id="Favorites" order="2" sideWeight="0.48392284" side_tool="true" weight="0.09645609" />
       <window_info anchor="bottom" id="Inspection Results" order="0" weight="0.413928" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="Find" order="2" />
-      <window_info anchor="bottom" id="Run" order="3" weight="0.4229309" />
-      <window_info anchor="bottom" id="Debug" order="4" visible="true" weight="0.15186028" />
+      <window_info anchor="bottom" id="Run" order="3" weight="0.4226804" />
+      <window_info anchor="bottom" id="Debug" order="4" weight="0.21978022" />
       <window_info anchor="bottom" id="Cvs" order="5" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="6" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="7" weight="0.3290267" />
@@ -332,7 +323,7 @@
       <window_info anchor="right" id="Cargo" order="3" weight="0.27293473" />
       <window_info anchor="right" id="Database" order="4" weight="0.32952988" />
       <window_info anchor="right" id="Event Log" order="5" sideWeight="0.41258094" weight="0.24761024" />
-      <window_info active="true" anchor="right" id="Terminal" order="6" sideWeight="0.58741903" visible="true" weight="0.36374336" />
+      <window_info active="true" anchor="right" id="Terminal" order="6" sideWeight="0.58741903" visible="true" weight="0.23086654" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -343,23 +334,18 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/downloader.rs</url>
-          <line>578</line>
+          <line>543</line>
           <option name="timeStamp" value="11" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/main.rs</url>
-          <line>70</line>
-          <option name="timeStamp" value="20" />
+          <url>file://$PROJECT_DIR$/src/downloader.rs</url>
+          <line>384</line>
+          <option name="timeStamp" value="29" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/main.rs</url>
-          <line>36</line>
-          <option name="timeStamp" value="22" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/importer.rs</url>
-          <line>75</line>
-          <option name="timeStamp" value="24" />
+          <url>file://$PROJECT_DIR$/src/downloader.rs</url>
+          <line>294</line>
+          <option name="timeStamp" value="38" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -379,11 +365,17 @@
         <watch expression="base_path" language="Rust" />
         <watch expression="remote_file_list" language="Rust" />
         <watch expression="sx_arch_files" language="Rust" />
+        <watch expression="sx_archive" language="Rust" />
       </configuration>
     </watches-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="watch">
+      <expression>
+        <expression-string>sx_archive</expression-string>
+        <language-id>Rust</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>sx_arch_files</expression-string>
         <language-id>Rust</language-id>
@@ -429,11 +421,6 @@
         <language-id>Rust</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>rpath</expression-string>
-        <language-id>Rust</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
@@ -442,7 +429,6 @@
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libstd/io/stdio.rs" />
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libcore/cell.rs" />
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libstd/thread/local.rs" />
-    <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/liballoc/string.rs" />
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libcore/ops/arith.rs" />
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libcore/slice/mod.rs" />
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libcore/fmt/mod.rs" />
@@ -503,13 +489,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/lib.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="52">
-          <caret line="2" column="14" selection-start-line="2" selection-start-column="14" selection-end-line="2" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libcore/macros.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="442">
@@ -539,13 +518,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/config.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1170">
-          <caret line="72" lean-forward="true" selection-start-line="72" selection-end-line="72" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libcore/result.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="366">
@@ -557,98 +529,115 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/rusqlite-0.18.0/src/types/to_sql.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3873">
+          <caret line="92" column="12" selection-start-line="92" selection-start-column="12" selection-end-line="92" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/ftp-3.0.1/src/ftp.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="314">
+        <state relative-caret-position="6710">
           <caret line="332" selection-start-line="332" selection-end-line="332" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/liballoc/vec.rs">
+    <entry file="file://$PROJECT_DIR$/src/config.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="340">
-          <caret line="1720" selection-start-line="1720" selection-end-line="1720" />
+        <state relative-caret-position="286">
+          <caret line="38" column="33" lean-forward="true" selection-start-line="38" selection-start-column="33" selection-end-line="38" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/liballoc/string.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="291">
+          <caret line="2061" selection-start-line="2061" selection-end-line="2061" />
           <folding>
-            <element signature="e#59213#59214#0" expanded="true" />
-            <element signature="e#59255#59256#0" expanded="true" />
+            <element signature="e#62137#62138#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libcore/iter/traits/iterator.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="340">
-          <caret line="1464" selection-start-line="1464" selection-end-line="1464" />
+        <state relative-caret-position="265">
+          <caret line="1465" selection-start-line="1465" selection-end-line="1465" />
           <folding>
-            <element signature="e#21821#21822#0" expanded="true" />
-            <element signature="e#21875#21876#0" expanded="true" />
-            <element signature="e#55152#55153#0" expanded="true" />
-            <element signature="e#55203#55204#0" expanded="true" />
-            <element signature="e#57621#57622#0" expanded="true" />
-            <element signature="e#57701#57702#0" expanded="true" />
+            <element signature="e#21825#21826#0" expanded="true" />
+            <element signature="e#21879#21880#0" expanded="true" />
+            <element signature="e#57555#57556#0" expanded="true" />
+            <element signature="e#57635#57636#0" expanded="true" />
+            <element signature="e#58#59#0" expanded="true" />
+            <element signature="e#82#83#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libcore/iter/adapters/mod.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="262">
-          <caret line="587" selection-start-line="587" selection-end-line="587" />
-          <folding>
-            <element signature="e#16089#16090#0" expanded="true" />
-            <element signature="e#16137#16138#0" expanded="true" />
-            <element signature="e#19386#19387#0" expanded="true" />
-            <element signature="e#19429#19430#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libpanic_unwind/lib.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="311">
-          <caret line="87" selection-start-line="87" selection-end-line="87" />
         </state>
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libstd/rt.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="528">
-          <caret line="40" column="44" selection-start-line="40" selection-start-column="44" selection-end-line="40" selection-end-column="44" />
+        <state relative-caret-position="611">
+          <caret line="64" selection-start-line="64" selection-end-line="64" />
           <folding>
             <element signature="e#2235#2236#0" expanded="true" />
-            <element signature="e#2299#2300#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libstd/panicking.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="258">
-          <caret line="276" selection-start-line="276" selection-end-line="276" />
+        <state relative-caret-position="230">
+          <caret line="278" selection-start-line="278" selection-end-line="278" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/rusqlite-0.18.0/src/types/to_sql.rs">
+    <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/liballoc/vec.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="496">
-          <caret line="93" column="4" selection-start-line="93" selection-start-column="4" selection-end-line="93" selection-end-column="4" />
+        <state relative-caret-position="265">
+          <caret line="1731" selection-start-line="1731" selection-end-line="1731" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libcore/iter/adapters/mod.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="314">
+          <caret line="589" selection-start-line="589" selection-end-line="589" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libpanic_unwind/lib.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2049">
+          <caret line="92" selection-start-line="92" selection-end-line="92" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/lib.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="3" selection-start-line="3" selection-end-line="3" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/downloader.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="11865">
+          <caret line="341" column="22" selection-start-line="341" selection-start-column="22" selection-end-line="341" selection-end-column="22" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/importer.rs">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/downloader.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="697">
-          <caret line="396" column="48" selection-start-line="396" selection-start-column="48" selection-end-line="396" selection-end-column="48" />
+        <state relative-caret-position="1308">
+          <caret line="198" column="71" selection-start-line="198" selection-start-column="71" selection-end-line="198" selection-end-column="71" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="730">
-          <caret line="59" column="30" selection-start-line="59" selection-start-column="30" selection-end-line="59" selection-end-column="30" />
+        <state relative-caret-position="113">
+          <caret line="51" column="37" lean-forward="true" selection-start-line="51" selection-start-column="37" selection-end-line="51" selection-end-column="37" />
         </state>
       </provider>
     </entry>

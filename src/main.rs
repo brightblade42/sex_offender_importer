@@ -3,50 +3,63 @@ use std::error;
 extern crate ftp;
 use serde;
 
-use sex_offender::downloader::{Downloader, RecordInfo, FileInfo, DownloadOption, ExtractedFile};
+use sex_offender::downloader::{DownloadOption, Downloader, ExtractedFile, FileInfo, RecordInfo};
 use sex_offender::importer::{import_data, prepare_import};
 
-use std::path;
-use std::time::{Duration, Instant};
 use core::borrow::Borrow;
-use crate::sex_offender::importer::import_csv_file2;
-use rusqlite::{Connection, params, NO_PARAMS};
-use sex_offender::config::{self, FtpConfig, Config, Env, PathVars};
-use std::path::{PathBuf, Path};
+use rusqlite::{params, Connection, NO_PARAMS};
+use sex_offender::config::{self, Config, Env, FtpConfig, PathVars};
 use std::collections::HashMap;
-
+use std::path;
+use std::path::{Path, PathBuf};
+use std::time::{Duration, Instant};
 
 fn main() {
+    let path_config = config::PathVars::new(config::Env::Dev);
+    let ftp_conf = FtpConfig::init(config::Env::Test);
 
-    let pv = config::PathVars::new(config::Env::Dev);
+    //let path_config = config::PathVars::new(config::Env::Production);
+    //let ftp_conf =  FtpConfig::init(config::Env::Production);
 
-    let ftp_conf =  FtpConfig::init(config::Env::Test);
-    let addr = format!("{}:{}",&ftp_conf.address, &ftp_conf.port);
+    let addr = format!("{}:{}", &ftp_conf.address, &ftp_conf.port);
 
-    let mut downloader = Downloader::connect(&addr, &ftp_conf.user, &ftp_conf.pass, pv).expect("to connect to ftp server.");
+    let mut downloader = Downloader::connect(&addr, &ftp_conf.user, &ftp_conf.pass, path_config)
+        .expect("to connect to ftp server.");
 
     println!("Begin Server Query phase. ");
     let start = Instant::now();
 
-    let file_list = get_remote_file_list(&mut downloader); //FileInfo vec
-    //println!("{:?}", file_list);
+    let file_list = get_remote_file_list(&mut downloader); //all the files we could get
+                                                           //println!("{:?}", file_list);
 
     let duration = start.elapsed();
     println!("remote file listing complete. Took : {:?}", duration);
 
-    let avail_updates = Downloader::available_updates(file_list);
-
-   //let top_one = avail_updates.into_iter().take(2).collect();
-
-
+    let avail_updates = Downloader::available_updates(file_list); //the files we need
+    println!("available file count: {}", &avail_updates.len());
+    //let avail_updates: Vec<FileInfo> = avail_updates.into_iter().take(1).collect();
+    for upd in &avail_updates {
+        println!(
+            "hello: {}",
+            &format!(
+                "name: {}   path: {:?}",
+                upd.name().as_str(),
+                upd.remote_path().to_str()
+            )
+        );
+    }
 
     println!("Begin Download Phase");
     //let sx_arch_files = downloader.download_remote_files(top_one);
-    let sx_arch_files = downloader.download_remote_files(avail_updates);
+    //let sx_arch_files = downloader.download_remote_files(avail_updates);
 
-    prepare_import();
+    //println!("Finished downloading... ready for extraction");
+
+    //    prepare_import();
+
+    /*
     for sx_file in sx_arch_files {
-        let exfiles = downloader.extract_archive2(sx_file);
+        let exfiles = downloader.extract_archive(sx_file);
         let exfileL = match exfiles {
             Ok(ext) => {
                 ext
@@ -56,7 +69,9 @@ fn main() {
                 continue; //skip bad data. we'll log it. tag it and bag it.
             }
         };
-        for exfile in exfileL { //.expect("Bad exfiles") {
+
+       //there can be many files stored in the archive. loop em!
+        for exfile in exfileL {
             match import_data(&exfile) {
                 Ok(()) => {
                     println!("imported file {:?}", &exfile);
@@ -70,13 +85,12 @@ fn main() {
 
        // println!("ex: {:?}", exfile);
     }
-
-
-    //println!("{:?}",sx_arch);
+    */
     println!("End of line...");
-downloader.disconnect();
 
+    downloader.disconnect();
 }
+
 
 fn get_remote_file_list(downloader: &mut Downloader) -> Vec<Result<FileInfo, Box<error::Error>>> {
     //set up some filters
@@ -87,23 +101,21 @@ fn get_remote_file_list(downloader: &mut Downloader) -> Vec<Result<FileInfo, Box
     let az_only = |x: &String| x.contains("AR") && x.contains("records");
     let mut file_list = downloader.remote_file_list(record_filter, DownloadOption::Always);
 
-
     /*
-      let mut flist = &mut file_list;
-        for file in flist.iter_mut() {
-            match file {
-                Ok(f) => {
+    let mut flist = &mut file_list;
+      for file in flist.iter_mut() {
+          match file {
+              Ok(f) => {
 
-                    let arch = downloader.save_archive(&f);
-                    //let csv_files =Downloader::extract_archive(&f);
-                    println!("saved: {:?}", f.file_path().display());
-                }
-                Err(e) => {
-                    println!("could not read record! {:?}", e);
-                }
-            }
-        }
-        */
+                  let arch = downloader.save_archive(&f);
+                  //let csv_files =Downloader::extract_archive(&f);
+                  println!("saved: {:?}", f.file_path().display());
+              }
+              Err(e) => {
+                  println!("could not read record! {:?}", e);
+              }
+          }
+      }
+      */
     file_list
-
 }

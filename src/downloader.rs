@@ -20,15 +20,9 @@ use rusqlite::{self, Connection,params,  NO_PARAMS, ToSql};
 use serde_rusqlite::{from_row, to_params_named};
 use std::collections::HashSet;
 use std::clone::Clone;
-//use crate::config::{CfgPaths, CfgPath, Config, Env}; //TODO: Why does this need to begin with crate?
 use crate::config::{self, Config, PathVars};
-//use crate::config;
 
-//static CONFIG_PATH: &'static str = "/home/d-rezzer/code/eyemetric/sexoffenderimporter/sql/config.sqlite";
-//TODO: get path info from ENV vars instead of hardcoding.
-//static SEX_OFFENDER_PATH: &'static str = "/state/sex_offender";
 static SEX_OFFENDER_PATH: &'static str = "";
-//static LOCAL_PATH: &'static str = "/home/d-rezzer/dev/eyemetric/ftp";
 static IMPORT_LOG: &'static str = "/home/d-rezzer/dev/eyemetric/ftp/importlog.sqlite";
 const CHUNK_SIZE: usize = 2048;
 
@@ -117,13 +111,6 @@ impl Downloader {
         let sex_offender_path = &paths["sex_offender_path"].to_string();
         let state_folders = self.stream.nlst(Some(remote_base_path)).expect("Unable to get a remote file listing");
 
-        /*let on_file_option = |fi: &FileInfo| {
-            match file_opt {
-                DownloadOption::Always => true,
-                DownloadOption::Only_New => Downloader::file_is_new(fi),
-            }
-        };
-        */
         let hard_filter = |x: &String| !x.contains(".txt") && !x.contains("united_states");
 
         let available_files: Vec<Result<FileInfo>> = state_folders
@@ -131,7 +118,7 @@ impl Downloader {
             .map(|state_folder| {
 
                 let sex_offender_folder = format!("{}{}", state_folder.to_string(),sex_offender_path);
-                println!("{}", &sex_offender_folder);
+               // println!("{}", &sex_offender_folder);
 
                 let file_list: Vec<Result<FileInfo>> = self.stream
                     .list(Some(&sex_offender_folder)) //list remote dir
@@ -141,7 +128,6 @@ impl Downloader {
                     .filter(filter)
                     //.inspect(|line| println!("{}", line))
                     .map(|line| self.create_file_info(&state_folder, &line))
-                    //.filter(|fi| on_file_option(fi.as_ref().unwrap()))
                     .collect();
 
                 file_list
@@ -173,18 +159,19 @@ impl Downloader {
             .unwrap();
 
         //Temp table to hold a new file listing to compare to any existing remote file listing.
-        //let res = conn.execute("CREATE TEMP TABLE if not exists remote_file_list_temp (rpath, name, last_modified, size integer, status);", NO_PARAMS)
-         //   .expect("Unable to create remote_file_list_temp table");
-
-        let res = conn.execute("CREATE TABLE if not exists remote_file_list_temp (rpath, name, last_modified, size integer, status);", NO_PARAMS)
+        let res = conn.execute("CREATE TEMP TABLE if not exists remote_file_list_temp (rpath, name, last_modified, size integer, status);", NO_PARAMS)
             .expect("Unable to create remote_file_list_temp table");
 
+        //let res = conn.execute("CREATE TABLE if not exists remote_file_list_temp (rpath, name, last_modified, size integer, status);", NO_PARAMS)
+         //   .expect("Unable to create remote_file_list_temp table");
+
         conn.execute("BEGIN TRANSACTION", NO_PARAMS).expect("Unable to start transaction");
+
         for r_file in remote_files {
             if let Ok(FileInfo::Record(ri)) = r_file {
 
-                //println!("{:?}", &ri);
-                conn.execute_named("INSERT INTO remote_file_list_temp (rpath, name, last_modified, size, status) VALUES (:rpath, :name, :last_modified, :size, :status )",
+                conn.execute_named(r#"INSERT INTO remote_file_list_temp (rpath, name, last_modified, size, status)
+                                       VALUES (:rpath, :name, :last_modified, :size, :status )"#,
                                    &to_params_named(ri).unwrap().to_slice()).expect("Unable to insert row into temp table");
             }
         }
@@ -192,8 +179,10 @@ impl Downloader {
         conn.execute("COMMIT TRANSACTION", NO_PARAMS).expect("Failed to Commit Transaction!");
         //get file listing that do NOT exist in the remote_file_list table. These are fresh fishies.
         //The very first time there will be nothing in the remote_file_list table, only the remote_file_list_temp table.
-        let mut stmt = conn.prepare("select * from remote_file_list_temp where rpath NOT IN (select rpath from remote_file_list) order by size")
-            .expect("Unable to get an updated file listing");
+        let mut stmt = conn.prepare(r#"SELECT * from remote_file_list_temp
+                                        WHERE name NOT IN (select name from remote_file_list)
+                                        order by size"#)
+                            .expect("Unable to get an updated file listing");
 
         let tmp_import = stmt
             .query_and_then(NO_PARAMS, from_row::<RecordInfo>)
@@ -203,7 +192,7 @@ impl Downloader {
         tmp_import.map(|r| FileInfo::Record(r.unwrap())).collect()
 
     }
-
+///cool
     pub fn download_remote_files(&mut self, remote_file_list: Vec<FileInfo>) -> Vec<SexOffenderArchive> {
 
         let arch_list: Vec<SexOffenderArchive> = remote_file_list.into_iter().map(|r| {
@@ -264,6 +253,21 @@ impl Downloader {
        p
 
     }
+    pub fn remote_path(fileInfo: &FileInfo, config: &PathVars) -> PathBuf {
+
+        let mut pb = match fileInfo {
+            FileInfo::Record(r) => {
+                r.rpath.as_ref().unwrap()
+            },
+            FileInfo::Image(i) => {
+                i.rpath.as_ref().unwrap()
+            }
+        };
+
+        let pb = PathBuf::from(format!("{}{}", pb, &config.vars["sex_offender_path"] ));
+       pb
+    }
+
     pub fn local_archive_base(fileinfo: &FileInfo, config: &PathVars ) -> PathBuf {
         PathBuf::from(&config.vars["local_archive_path"])
     }
@@ -274,6 +278,7 @@ impl Downloader {
         p.push(fileinfo.name());
         p
     }
+
     ///downloads the remote archive file and writes to disk.
 
     pub fn save_archive(&mut self, fileinfo: &FileInfo) -> Result<SexOffenderArchive> {
@@ -285,12 +290,11 @@ impl Downloader {
 
         self.stream.transfer_type(FileType::Binary)?;
         //change ftp dir.
-        let size: usize = match self.stream.cwd(&fileinfo.remote_path().to_str().unwrap()) {
+        let rpth = Downloader::remote_path(&fileinfo, conf);//&fileinfo.remote_path();
+
+        let size: usize = match self.stream.cwd(rpth.to_str().unwrap()) {
             Ok(()) => {
                 println!("dir change success");
-
-
-              // self.stream.retr()
                 let res = self.stream.retr(&fname, |stream| {
                    let sz = Downloader::write_archive(&fileinfo, stream, conf).expect("Unable to write archive!");
                     Ok(sz)
@@ -298,7 +302,10 @@ impl Downloader {
 
                 (0)
             }
-            Err(e) => (0)
+            Err(e) => {
+                println!("could not change ftp dir {:?} {}", rpth, e);
+                (0)
+            }
 
         };
 
@@ -341,7 +348,7 @@ impl Downloader {
 
 
         Ok(SexOffenderArchive {
-            path: local_archive_file, //fileinfo.file_path().clone(),
+            path: local_archive_file,
             size: total_bytes,
         })
     }
@@ -351,7 +358,7 @@ impl Downloader {
     ///extracts an arcive into a list of ExtractedFile types.
     /// An Extracted file can be one of two variants. Csv or ImageArchive
     ///
-    pub fn extract_archive2(&mut self, sx_archive: SexOffenderArchive) -> Result<Vec<ExtractedFile>> {
+    pub fn extract_archive(&mut self, sx_archive: SexOffenderArchive) -> Result<Vec<ExtractedFile>> {
         let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
         let mut archive_path: PathBuf = sx_archive.path;
         let mut state_abbrev = &archive_path.file_name().unwrap().to_str().unwrap()[..2];
@@ -366,8 +373,6 @@ impl Downloader {
             let mut extraction_path = archive_path.parent().unwrap().to_path_buf();
           //  println!("extr: {:?}", extraction_path);
             let fname = embedded_file.sanitized_name();
-
-            //let state_abbrev = &fname.to_str().unwrap()[..2];
 
             extraction_path.push(state_abbrev);
 
@@ -384,14 +389,19 @@ impl Downloader {
             std::io::copy(&mut embedded_file, &mut outfile)?;
             println!("wrote: {}", extraction_path.display());
 
-
            match fname.extension() {
-               Some(ext) if ext == "csv" || ext == "txt" => {
-                    let ex_file = ExtractedFile::Csv { path: extraction_path.clone(), state: String::from(state_abbrev)};
-                    println!("{:?}", &ex_file);
+               Some(ext) if ext == "csv"  => {
+                    let ex_file = ExtractedFile::Csv { path: extraction_path.clone(), state: String::from(state_abbrev), delimiter: '|'};
+                    println!("csv file: {:?}", &ex_file);
 
                    extracted_files.push(ex_file);
                },
+               Some(ext) if ext == "txt" => {
+
+                   let ex_file = ExtractedFile::Csv { path: extraction_path.clone(), state: String::from(state_abbrev), delimiter: ','};
+                   println!("txt file: {:?}", &ex_file);
+                   extracted_files.push(ex_file);
+               }
                Some(ext) if ext == "zip" => {
                   let ex_file =  ExtractedFile::ImageArchive { path: extraction_path.clone(), state: String::from(state_abbrev) };
                    extracted_files.push(ex_file);
@@ -403,53 +413,8 @@ impl Downloader {
                _ => {
                    println!("Unsupported file extension found and ignored.");
                }
-
            }
-           /*
-            let ex_file = if fname.contains("csv")  || fname.{
-                ExtractedFile::Csv { path: extraction_path.clone(), state: String::from(state_abbrev) }
-            } else {
-                ExtractedFile::ImageArchive { path: extraction_path.clone(), state: String::from(state_abbrev) }
-            };
-
-            extracted_files.push(ex_file); */
         }
-        Ok(extracted_files)
-    }
-
-    pub fn extract_archive(&mut self, fileinfo: &FileInfo) -> Result<Vec<ExtractedFile>> {
-        let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
-        let mut archive_path = Downloader::local_archive_path(fileinfo, &self.config);
-        let file = BufReader::new(File::open(&archive_path)?);
-
-        let mut archive = zip::ZipArchive::new(file)?;
-
-        for i in 0..archive.len() {
-            let mut embedded_file = archive.by_index(i)?;
-
-            //let outname = embedded_file.sanitized_name();
-            //let mut fp = fileinfo.extract_path();
-            archive_path.push( match fileinfo {
-                FileInfo::Record(r) =>  "records",
-                FileInfo::Image(i)  => "images",
-
-            }) ;
-            //fs::create_dir_all(fp.as_path())?;
-            fs::create_dir_all(&archive_path)?;
-
-            archive_path.push(embedded_file.sanitized_name());
-            let mut outfile = BufWriter::new(File::create(&archive_path)?);
-            std::io::copy(&mut embedded_file, &mut outfile)?;
-            println!("wrote: {}", archive_path.display());
-            let tag = &fileinfo.name()[..2];
-
-            extracted_files.push(
-                match fileinfo {
-                    FileInfo::Record(_) => ExtractedFile::Csv { path: archive_path.clone(), state: String::from(tag) },
-                    FileInfo::Image(_) => ExtractedFile::ImageArchive { path: archive_path.clone(), state: String::from(tag) }
-                });
-        }
-
         Ok(extracted_files)
     }
 }
@@ -457,7 +422,7 @@ impl Downloader {
 #[derive(Debug, Serialize,Deserialize)]
 pub enum ExtractedFile {
     //Csv(path::PathBuf),
-    Csv { path: PathBuf, state: String },
+    Csv { path: PathBuf, state: String, delimiter: char },
     ImageArchive { path: PathBuf, state: String },
 }
 
