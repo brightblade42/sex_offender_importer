@@ -24,6 +24,7 @@ select * from sqlite_master where name like "%_sex_offenders";
 select * from al_sex_offenders;
 
 
+
 -- AL_sex_offenders -----------------------------------------------------------
 select 0 as id, name, r_Birth_Date as DateOfBirth,state,
 
@@ -125,7 +126,8 @@ select 0 as id, name, r_Birth_Date as DateOfBirth,state,
         --photos
        json_array(cast(r_Image as Text)) as photos
 
-from mt_sex_offenders order by state;
+from mt_sex_offenders
+Union
 -- TN --------------------------------------------------------------------------------
 select 0 as id, name, r_Birth_Date as DateOfBirth,state,
 
@@ -158,5 +160,226 @@ select 0 as id, name, r_Birth_Date as DateOfBirth,state,
        --photos
        json_array(cast(r_Image as Text)) as photos
 
-from tn_sex_offenders order by state;
-select * from tn_sex_offenders
+from tn_sex_offenders
+Union
+
+--------------------------------------------------------------------
+
+-- THE 13 -------------------------------------------------------------
+
+
+-- AZ --------------------------------------------------------------------
+SELECT id,
+       name,
+       '' as DateOfBirth,
+       -- aliases
+       state,
+       (SELECT json_group_array(cast(alias as Text))
+        FROM
+            (SELECT alias
+             FROM AZ_SexOffenders_aliases als
+             WHERE als.id = AZ_SexOffenders_main.id
+               AND AZ_SexOffenders_main.state = als.state
+            )
+       ) as aliases,
+       json_array(
+               json_object('address', cast(address as Text))) as addresses,
+
+       -- offenses
+       (SELECT
+            json_group_array(json_object ( 'offense', cast(offense as Text)
+                --, 'state', cast(state as Text),
+                -- 'conviction_state', cast(conviction_state as Text),
+                --'date_convicted', cast(date_convicted as Text),
+                --'release_date', cast(release_date as Text),
+                --'details', cast(details as Text)
+                ))
+        FROM (SELECT description as offense
+                     --,state,
+                     -- conviction_state,
+                     -- date_convicted,
+                     --  release_date,
+                     --  details
+              FROM AZ_SexOffenders_offenses azo
+              WHERE azo.id = AZ_SexOffenders_main.id
+                and AZ_SexOffenders_main.state = azo.state
+             )
+       ) as offenses
+
+        ,
+       -- personal details
+       (select json_group_array(
+                       json_object( 'age', cast(age as Text),
+                                    'eyes', cast(eyes as Text),
+                                    'hair', cast(hair as Text),
+                                    'height', cast(height as Text),
+                                    'weight', cast(weight as Text),
+                           --   'level', cast(level as Text),
+                                    'race', cast(race as Text),
+                                    'scarsTattoos', cast(scars_tattoos as Text),
+                                    'sex',cast(sex as Text),
+                                    'status', cast(status as Text)
+                           ))
+        from (select age, eyes, hair, height, level, race, scars_tattoos,
+                     sex, status, weight
+              from AZ_SexOffenders_main azm
+              where azm.id = AZ_SexOffenders_main.id
+                and azm.state = AZ_SexOffenders_main.state
+             )) as personalDetails,
+        --photos
+       (select json_group_array(cast(PhotoFile as Text))
+        from (select PhotoFile from AZ_SexOffenders_photos azp
+              where azp.id = AZ_SexOffenders_main.id
+                and azp.state = AZ_SexOffenders_main.state)) as photos
+
+
+from AZ_SexOffenders_main
+
+UNION
+
+
+/*create index if not exists CA_SexOffenders_alias_index
+    on CA_SexOffenders_alias (Id, Alias);
+select count(*) from CA_SexOffenders_photos;
+
+ */
+-- CA ---------------------------------------------------------
+SELECT id,
+       name,
+       --'' as age,
+       '' as DateOfBirth,
+       state,
+       -- aliases
+       (SELECT json_group_array(cast(alias as Text))
+        FROM
+            (SELECT alias
+             FROM CA_SexOffenders_alias als
+             WHERE als.id = CA_SexOffenders_main.id
+               AND CA_SexOffenders_main.state = als.state
+            )
+       ) as aliases,
+       --addresses
+       json_array(
+               json_object('address', cast(address as Text))) as addresses,
+
+       -- offenses
+       (SELECT
+            json_group_array(json_object ( 'offense', cast(offense as Text)
+                ))
+        FROM (SELECT OffenseDescription as offense
+              FROM CA_SexOffenders_offenses azo
+              WHERE azo.id = CA_SexOffenders_main.id
+                and CA_SexOffenders_main.state = azo.state
+             )
+       ) as offenses,
+       -- personal details
+       (select json_group_array(
+                       json_object(
+                               'eyes', cast(eyes as Text),
+                               'hair', cast(hair as Text),
+                               'height', cast(height as Text),
+                               'weight', cast(weight as Text),
+                               'race', cast(race as Text),
+                           --'scarsTattoos', cast(scars_tattoos as Text),
+                               'sex',cast(sex as Text)
+                           ))
+        from (select EyeColor as  eyes,
+                     HairColor hair,
+                     Height,
+                     Ethnicity as race,
+                     -- MISSING SCARS
+                     sex,
+                     weight
+              from CA_SexOffenders_main azm
+              where azm.id = CA_SexOffenders_main.id
+                and azm.state = CA_SexOffenders_main.state
+             )) as personalDetails,
+
+       --photos
+       (select json_group_array(cast(PhotoFile as Text))
+        from (select PhotoFile from CA_SexOffenders_photos azp
+              where azp.id = CA_SexOffenders_main.id
+                and azp.state = CA_SexOffenders_main.state)) as photos
+
+
+from CA_SexOffenders_main;
+/*
+CREATE TABLE GA_SexOffenders_main ( Absconder,  EyeColor,  FirstName,  HairColor,  Height,  ID,  LastKnownAddress,  LastName,
+  Leveling,  MiddleName,  Predator,  Race,  RegistrationDate,  ResidenceVerificationDate,  Sex,  Suffix,  Weight,  YearOfBirth, state )
+*/
+
+UNION
+
+
+SELECT id,
+       ifnull(LastName,'') || ', ' || ifnull(FirstName,'') || ' ' || ifnull(MiddleName,'') as name ,
+       --'' as age,
+       YearOfBirth as DateOfBirth,
+       state,
+       -- aliases TODO: MISSING TABLE
+       /*
+       (SELECT json_group_array(cast(alias as Text))
+        FROM
+            (SELECT alias
+             FROM GA_SexOffenders_alias als
+             WHERE als.id = GA_SexOffenders_main.id
+               AND GA_SexOffenders_main.state = als.state
+            )
+       ) as aliases,
+
+        */
+        json_array("Update pending") as aliases,
+       --addresses
+       json_array(
+               json_object('address', cast(LastKnownAddress as Text))) as addresses,
+
+       -- offenses TODO: MISSING TABLE
+       /*(SELECT
+            json_group_array(json_object ( 'offense', cast(offense as Text)
+                ))
+        FROM (SELECT OffenseDescription as offense
+              FROM GA_SexOffenders_offenses azo
+              WHERE azo.id = GA_SexOffenders_main.id
+                and GA_SexOffenders_main.state = azo.state
+             )
+       ) as offenses,
+
+        */
+        json_array("Update pending") as offenses,
+       -- personal details
+       (select json_group_array(
+                       json_object(
+                               'eyes', cast(eyes as Text),
+                               'hair', cast(hair as Text),
+                               'height', cast(height as Text),
+                               'weight', cast(weight as Text),
+                               'race', cast(race as Text),
+                               'sex',cast(sex as Text)
+                           ))
+        from (select EyeColor as  eyes,
+                     HairColor hair,
+                     Height,
+                     race,
+                     sex,
+                     weight
+              from GA_SexOffenders_main azm
+              where azm.id = GA_SexOffenders_main.id
+                and azm.state = GA_SexOffenders_main.state
+             )) as personalDetails,
+
+       --photos
+       (select json_group_array(cast(PhotoFile as Text))
+        from (select PhotoFile from GA_SexOffenders_photos azp
+              where azp.id = GA_SexOffenders_main.id
+                and azp.state = GA_SexOffenders_main.state)) as photos
+
+From GA_SexOffenders_main
+
+order by state;
+
+
+
+
+
+
+
