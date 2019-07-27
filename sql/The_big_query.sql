@@ -29,6 +29,12 @@ select * from al_sex_offenders;
 select 0 as id
        ,name
        ,r_Birth_Date as DateOfBirth
+        ,r_Eyes as eyes
+        ,r_Hair as hair
+        ,r_Height as height
+       ,r_Weight as weight
+         ,r_race as race
+        ,r_Sex as sex
        ,state
 
        -- aliases
@@ -42,20 +48,11 @@ select 0 as id
                        'address1',ifnull(cast(r_Home_Address_1 as Text), ''),
                        'address2', ifnull(cast(r_Home_City_State_Zip as Text), '')
                    )) as addresses
+       --offenses
        ,json_array(
                json_object(
                        'offense',ifnull(cast(r_Sex_Crime as Text),'') || '. ' || ifnull(cast(r_Description as Text), '')
                    )) as offenses
-
-       ,json_array(
-               json_object(
-                       'eyes',cast(r_eyes as Text), 'hair', cast(r_Hair as Text),
-                       'height', cast(r_Height as Text), 'weight', cast(r_Weight as Text),
-                       'race', cast(r_Race as Text),
-                       'sex',cast(r_Sex as Text)
-
-                   )) as personalDetails
-
        ,json_array(cast(r_Scars_Marks_Tattoos as Text)) as scarsTattoos
 
        ,json_array(cast(r_Image as Text)) as photos
@@ -66,6 +63,12 @@ Union
 select 0 as id
      , name
      , r_Birth_Date as DateOfBirth
+     ,r_Eye_Color as eyes
+     ,r_Hair_Color as hair
+     ,r_Height as height
+     ,r_Weight as weight
+     ,r_race as race
+     ,r_Gender as sex
      ,state
        -- aliases
        ,json_array(
@@ -86,15 +89,6 @@ select 0 as id
                                      || '' || ifnull(cast(r_Offense_3 as Text), '')
                    )) as offenses
 
-        --personal details
-       ,json_array(
-               json_object(
-                       'eyes',cast(r_Eye_Color as Text), 'hair', cast(r_Hair_Color as Text),
-                       'height', cast(r_Height as Text), 'weight', cast(r_Weight as Text),
-                       'race', cast(r_Race as Text),
-                       'sex',cast(r_Gender as Text)
-
-                   )) as personalDetails
 
         --scarsTatoos
         ,json_array('scarsTattoos',cast(r_Scars as Text) || ' ' || cast(r_Tattoos as Text)) as scarsTattoos
@@ -107,6 +101,13 @@ Union
 select 0 as id
      , name
      , r_Birth_Date as DateOfBirth
+
+     ,r_Eyes as eyes
+     ,r_Hair as hair
+     ,r_Height as height
+     ,r_Weight as weight
+     ,r_race as race
+     ,r_Sex as sex
      ,state
        -- aliases
        ,json_array(
@@ -126,17 +127,6 @@ select 0 as id
                                      || '' || ifnull(cast(r_Sentence_Statute_2 as Text), '')
                                      || '' || ifnull(cast(r_Sentence_Statute_3 as Text), '')
                    )) as offenses
-        --personal details
-       ,json_array(
-               json_object(
-                   'eyes',cast(r_eyes as Text)
-                   ,'hair', cast(r_Hair as Text)
-                   ,'height', cast(r_Height as Text)
-                   ,'weight', cast(r_Weight as Text)
-                   ,'race', cast(r_Race as Text)
-                   ,'sex',cast(r_Sex as Text)
-
-               )) as personalDetails
        ,json_array(cast(r_Scars_Marks_Tattoos as Text)) as scarsTattoos
         --photos
        ,json_array(cast(r_Image as Text)) as photos
@@ -147,6 +137,13 @@ Union
 select 0 as id
      , name
      , r_Birth_Date as DateOfBirth
+
+     ,r_Eye_Color as eyes
+     ,r_Hair_Color as hair
+     ,r_Height as height
+     ,r_Weight as weight
+     ,r_race as race
+     ,r_Sex as sex
      ,state
 
        -- aliases
@@ -165,15 +162,6 @@ select 0 as id
                json_object(
                        'offense',ifnull(cast(r_Offenses as Text),'')
                    )) as offenses
-       --personal details
-       ,json_array(
-               json_object(
-                   'eyes',cast(r_Eye_Color as Text), 'hair', cast(r_Hair_Color as Text),
-                   'height', cast(r_Height as Text), 'weight', cast(r_Weight as Text),
-                   'race', cast(r_Race as Text),
-                   'sex',cast(r_Sex as Text)
-
-                   )) as personalDetails
        ,json_array(cast(r_Scars_and_Marks as Text) || ' ' || cast(r_Tattoos as text))
        --photos
        ,json_array(cast(r_Image as Text)) as photos
@@ -189,7 +177,14 @@ Union
 -- AZ --------------------------------------------------------------------
 SELECT id
       ,name
-       ,'' as DateOfBirth
+       ,age  as DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
        ,state
          -- aliases
        ,(SELECT json_group_array(cast(alias as Text))
@@ -213,24 +208,6 @@ SELECT id
              )
        ) as offenses
 
-       -- personal details
-       ,(select json_group_array(
-                       json_object( 'age', cast(age as Text),
-                                    'eyes', cast(eyes as Text),
-                                    'hair', cast(hair as Text),
-                                    'height', cast(height as Text),
-                                    'weight', cast(weight as Text),
-                                    'race', cast(race as Text),
-                                    'sex',cast(sex as Text),
-                                    'status', cast(status as Text)
-                           ))
-        from (select age, eyes, hair, height, level, race,
-                     sex, status, weight
-              from AZ_SexOffenders_main azm
-              where azm.id = AZ_SexOffenders_main.id
-                and azm.state = AZ_SexOffenders_main.state
-             )) as personalDetails
-
        ,json_array(cast(scars_tattoos as Text)) as scarsTattoos
         --photos
        ,(select json_group_array(cast(PhotoFile as Text))
@@ -253,7 +230,15 @@ select count(*) from CA_SexOffenders_photos;
 SELECT id
        ,name
        ,'' as DateOfBirth
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,Ethnicity as race
+     ,sex
        ,state
+
        -- aliases
        ,(SELECT json_group_array(cast(alias as Text))
         FROM
@@ -277,26 +262,6 @@ SELECT id
                 and CA_SexOffenders_main.state = azo.state
              )
        ) as offenses
-       -- personal details
-       ,(select json_group_array(
-                       json_object(
-                               'eyes', cast(eyes as Text),
-                               'hair', cast(hair as Text),
-                               'height', cast(height as Text),
-                               'weight', cast(weight as Text),
-                               'race', cast(race as Text),
-                               'sex',cast(sex as Text)
-                           ))
-        from (select EyeColor as  eyes,
-                     HairColor hair,
-                     Height,
-                     Ethnicity as race,
-                     sex,
-                     weight
-              from CA_SexOffenders_main azm
-              where azm.id = CA_SexOffenders_main.id
-                and azm.state = CA_SexOffenders_main.state
-             )) as personalDetails
         --scars tattoos
         ,(select json_group_array( cast(smt as text))
           from (select ScarMarkTattoo as smt from NCSexOffenders_smts smts
@@ -323,6 +288,13 @@ SELECT id
        ,ifnull(LastName,'') || ', ' || ifnull(FirstName,'') || ' ' || ifnull(MiddleName,'') as name
        --'' as age,
        ,YearOfBirth as DateOfBirth
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,sex
        ,state
        -- aliases TODO: MISSING TABLE
        /*
@@ -354,27 +326,7 @@ SELECT id
 
         */
         ,json_array("Update pending") as offenses
-       -- personal details
-       ,(select json_group_array(
-                       json_object(
-                               'eyes', cast(eyes as Text),
-                               'hair', cast(hair as Text),
-                               'height', cast(height as Text),
-                               'weight', cast(weight as Text),
-                               'race', cast(race as Text),
-                               'sex',cast(sex as Text)
-                           ))
-        from (select EyeColor as  eyes,
-                     HairColor hair,
-                     Height,
-                     race,
-                     sex,
-                     weight
-              from GA_SexOffenders_main azm
-              where azm.id = GA_SexOffenders_main.id
-                and azm.state = GA_SexOffenders_main.state
-             )) as personalDetails
-       --scars
+       --scarsTattoos
        ,json_array("Update Pending") as scarsTattoos
 
        --photos
@@ -386,24 +338,30 @@ SELECT id
 From GA_SexOffenders_main
 UNION
 --- ID ----------------------------------------------------
-SELECT id,
-       ifnull(LastName,'') || ', ' || ifnull(FirstName,'') || ' ' || ifnull(MiddleName,'') as name ,
-       DateOfBirth,
-       state,
-    (SELECT json_group_array(cast(alias as Text))
+SELECT id
+       ,ifnull(LastName,'') || ', ' || ifnull(FirstName,'') || ' ' || ifnull(MiddleName,'') as name
+       ,DateOfBirth
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,sex
+       ,state
+    ,(SELECT json_group_array(cast(alias as Text))
      FROM
          (SELECT alias
          FROM IDSexOffenders_aliases als
           WHERE als.id = IDSexOffenders_main.id
             AND IDSexOffenders_main.state = als.state
          )
-    ) as aliases,
+    ) as aliases
 
-       json_array(
-               json_object('address', cast(Address as TEXT) || ' ' || cast(CityStateZip as TEXT))) as addresses,
+    ,json_array(
+               json_object('address', cast(Address as TEXT) || ' ' || cast(CityStateZip as TEXT))) as addresses
 
     --offenses
-    (SELECT
+    ,(SELECT
         json_group_array(json_object (
             'offense', cast(Offense as Text) || ' ' || cast(Description as TEXT) ))
      FROM (SELECT Offense, Description
@@ -411,29 +369,9 @@ SELECT id,
            WHERE azo.id = IDSexOffenders_main.id
              and IDSexOffenders_main.state = azo.state
           )
-    ) as offenses,
+    ) as offenses
 
-       -- personal details
-       (select json_group_array(
-                       json_object(
-                               'eyes', cast(eyes as Text),
-                               'hair', cast(hair as Text),
-                               'height', cast(height as Text),
-                               'weight', cast(weight as Text),
-                               'race', cast(race as Text),
-                               'sex',cast(sex as Text)
-                           ))
-        from (select EyeColor as  eyes,
-                     HairColor hair,
-                     Height,
-                     race,
-                     sex,
-                     weight
-              from IDSexOffenders_main azm
-              where azm.id = IDSexOffenders_main.id
-                and azm.state = IDSexOffenders_main.state
-             )) as personalDetails
-
+       --scarsTattoos
        ,json_array("Update Pending") as scarsTattoos
 
        --photos
@@ -448,6 +386,13 @@ UNION
 SELECT id
        ,ifnull(Name,'') as Name
        ,DateOfBirth
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,RaceEthnicity as race
+     ,'' as sex
        ,state
        ,(SELECT json_group_array(cast(alias as Text))
         FROM
@@ -465,26 +410,6 @@ SELECT id
        ,json_array(
             json_object('offense', cast(OffenseInformation as TEXT))
            ) as offenses
-       -- personal details
-       ,(select json_group_array(
-                       json_object(
-                               'eyes', cast(eyes as Text)
-                               ,'hair', cast(hair as Text)
-                               ,'height', cast(height as Text)
-                               ,'weight', cast(weight as Text)
-                               ,'race', cast(race as Text)
-                              -- ,'sex',cast(sex as Text)
-                           ))
-        from (select EyeColor as  eyes,
-                     HairColor as hair,
-                     Height,
-                     weight,
-                     RaceEthnicity as race
-
-              from MN_SexOffenders_main azm
-              where azm.id = MN_SexOffenders_main.id
-                and azm.state = MN_SexOffenders_main.state
-             )) as personalDetails
 
        ,json_array("Update Pending") as scarsTattoos
 
@@ -500,6 +425,13 @@ union
 SELECT id
      ,ifnull(Name,'') as Name
      ,DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      ,(SELECT json_group_array(cast(alias as Text))
        FROM
@@ -515,27 +447,7 @@ SELECT id
 
      --offenses TODO: MISSING TABLE
      ,json_array( json_object('offense', 'UPDATE PENDING')) as offenses
-     -- personal details
-     ,(select json_group_array(
-                      json_object(
-                              'eyes', cast(eyes as Text)
-                          ,'hair', cast(hair as Text)
-                          ,'height', cast(height as Text)
-                          ,'weight', cast(weight as Text)
-                          ,'race', cast(race as Text)
-                          ,'sex',cast(sex as Text)
-                          ))
-       from (select Eyes
-                    ,Hair
-                    ,Height
-                    ,weight
-                    ,Race
-                    ,Sex
-             from NCSexOffenders_main azm
-             where azm.id = NCSexOffenders_main.id
-               and azm.state = NCSexOffenders_main.state
-            )) as personalDetails
-
+     --scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select ScarMarkTattoo as smt from NCSexOffenders_smts smts
              where smts.id = NCSexOffenders_main.id
@@ -554,6 +466,12 @@ Union
 SELECT id
      ,ifnull(Name,'') as Name
      ,DateOfBirth
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      ,(SELECT json_group_array(cast(alias as Text))
        FROM
@@ -580,27 +498,6 @@ SELECT id
 		    FROM NDSexOffenders_convictions aro where NDSexOffenders_main.ID = aro.ID
 		    and NDSexOffenders_main.state = aro.state
 		)) as offenses
-        -- personal details
-     ,(select json_group_array(
-                      json_object(
-                              'eyes', cast(eyes as Text)
-                          ,'hair', cast(hair as Text)
-                          ,'height', cast(height as Text)
-                          ,'weight', cast(weight as Text)
-                          ,'race', cast(race as Text)
-                           ,'sex',cast(sex as Text)
-                          ))
-       from (select Eyes
-                  ,Hair
-                  ,Height
-                  ,weight
-                  ,Race
-                 ,Sex
-             from NDSexOffenders_main azm
-             where azm.id = NDSexOffenders_main.id
-               and azm.state = NDSexOffenders_main.state
-            )) as personalDetails
-
     ,json_array("None Reported") as scarsTattoos
      --photos
      ,(select json_group_array(cast(PhotoFile as Text))
@@ -617,6 +514,13 @@ union
 SELECT id
      ,ifnull(Name,'') as Name
      ,DOB as DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,'' as race --no race listed
+     ,sex
      ,state
      --alias
      ,json_array("None Reported") as aliases
@@ -636,24 +540,6 @@ SELECT id
 		    and ORSexOffenders_main.state = aro.state
 		)
     ) as offenses
-     -- personal details
-     ,(select json_group_array(
-                      json_object(
-                              'eyes', cast(eyes as Text)
-                          ,'hair', cast(hair as Text)
-                          ,'height', cast(height as Text)
-                          ,'weight', cast(weight as Text)
-                          ,'sex',cast(sex as Text)
-                          ))
-       from (select Eyes
-                  ,Hair
-                  ,Height
-                  ,weight
-                  ,Sex
-             from ORSexOffenders_main azm
-             where azm.id = ORSexOffenders_main.id
-               and azm.state = ORSexOffenders_main.state
-            )) as personalDetails
 
      ,(select json_group_array( cast(smt as text))
        from (select smt from ORSexOffenders_smts smts
@@ -672,6 +558,13 @@ Union
 --- SD  -------------------------------------
 SELECT id
      ,ifnull(Name,'') as Name
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,Gender as sex
      ,DateOfBirth
      ,state
      ,(SELECT json_group_array(cast(alias as Text))
@@ -682,7 +575,7 @@ SELECT id
               AND SDSexOffenders_main.state = als.state
            )
 ) as aliases
-
+    --addresses
      ,json_array(
         json_object('address', cast(Address as Text) || ' ' || cast(CityStateZip as TEXT))) as addresses
 
@@ -700,27 +593,7 @@ SELECT id
             FROM SDSexOffenders_convictions aro where SDSexOffenders_main.ID = aro.ID
                                                   and SDSexOffenders_main.state = aro.state
            )) as offenses
-     -- personal details
-     ,(select json_group_array(
-                      json_object(
-                              'eyes', cast(eyes as Text)
-                          ,'hair', cast(hair as Text)
-                          ,'height', cast(height as Text)
-                          ,'weight', cast(weight as Text)
-                          ,'race', cast(race as Text)
-                          ,'sex',cast(sex as Text)
-                          ))
-       from (select EyeColor as eyes
-                  ,HairColor as hair
-                  ,Height
-                  ,weight
-                  ,Race
-                  ,Gender as sex
-             from SDSexOffenders_main azm
-             where azm.id = SDSexOffenders_main.id
-               and azm.state = SDSexOffenders_main.state
-            )) as personalDetails
-
+     --scarsTattoos
      ,json_array("None Reported") as scarsTattoos
      --photos
      ,(select json_group_array(cast(PhotoFile as Text))
@@ -736,6 +609,13 @@ UNION
 SELECT id
      ,Name
      ,DOB as DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      --aliases
      ,(SELECT json_group_array(cast(alias as Text))
@@ -762,27 +642,7 @@ SELECT id
             FROM UT_SexOffenders_offenses aro where UT_SexOffenders_main.ID = aro.ID
                                                   and UT_SexOffenders_main.state = aro.state
            )) as offenses
-     -- personal details
-     ,(select json_group_array(
-                      json_object(
-                              'eyes', cast(eyes as Text)
-                          ,'hair', cast(hair as Text)
-                          ,'height', cast(height as Text)
-                          ,'weight', cast(weight as Text)
-                          ,'race', cast(race as Text)
-                          ,'sex',cast(sex as Text)
-                          ))
-       from (select Eyes
-                  ,Hair
-                  ,Height
-                  ,weight
-                  ,Race
-                  ,Sex
-             from UT_SexOffenders_main azm
-             where azm.id = UT_SexOffenders_main.id
-               and azm.state = UT_SexOffenders_main.state
-            )) as personalDetails
-
+     --scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select ScarsMarksTattoos as smt from UT_SexOffenders_smts smts
              where smts.id = UT_SexOffenders_main.id
@@ -801,6 +661,13 @@ Union
 SELECT id
      ,Name
      ,DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      --aliases
      ,(SELECT json_group_array(cast(alias as Text))
@@ -829,27 +696,7 @@ SELECT id
             FROM VTSexOffenders_offenses aro where VTSexOffenders_main.ID = aro.ID
                                                 and VTSexOffenders_main.state = aro.state
            )) as offenses*/
-     -- personal details
-     ,(select json_group_array(
-                      json_object(
-                              'eyes', cast(eyes as Text)
-                          ,'hair', cast(hair as Text)
-                          ,'height', cast(height as Text)
-                          ,'weight', cast(weight as Text)
-                          ,'race', cast(race as Text)
-                          ,'sex',cast(sex as Text)
-                          ))
-       from (select Eyes
-                  ,Hair
-                  ,Height
-                  ,weight
-                  ,Race
-                  ,Sex
-             from VTSexOffenders_main azm
-             where azm.id = VTSexOffenders_main.id
-               and azm.state = VTSexOffenders_main.state
-            )) as personalDetails
-
+    --scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select ScarsMarksTattoos as smt from VTSexOffenders_smts smts
              where smts.id = VTSexOffenders_main.id
@@ -867,6 +714,13 @@ UNION
 SELECT id
      ,Name
      ,age as DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      --aliases
      ,(SELECT json_group_array(cast(alias as Text))
@@ -893,27 +747,7 @@ SELECT id
             FROM WA_SexOffenders_offenses aro where WA_SexOffenders_main.ID = aro.ID
                                                 and WA_SexOffenders_main.state = aro.state
            )) as offenses
-     -- personal details
-     ,(select json_group_array(
-                      json_object(
-                              'eyes', cast(eyes as Text)
-                          ,'hair', cast(hair as Text)
-                          ,'height', cast(height as Text)
-                          ,'weight', cast(weight as Text)
-                          ,'race', cast(race as Text)
-                          ,'sex',cast(sex as Text)
-                          ))
-       from (select Eyes
-                  ,Hair
-                  ,Height
-                  ,weight
-                  ,Race
-                  ,Sex
-             from WA_SexOffenders_main azm
-             where azm.id = WA_SexOffenders_main.id
-               and azm.state = WA_SexOffenders_main.state
-            )) as personalDetails
-
+     --scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select ScarsMarksTattoos as smt from WA_SexOffenders_smts smts
              where smts.id = WA_SexOffenders_main.id
@@ -934,6 +768,13 @@ UNION
 select id
        ,name
        ,DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,Gender as sex
        ,state
        -- aliases
        ,( SELECT json_group_array (cast(alias as TEXT))
@@ -943,6 +784,23 @@ select id
               WHERE als.id = CO_SexOffenders_main.id
                 AND CO_SexOffenders_main.state = als.state)
        ) as "aliases"
+
+     -- addresses
+     ,(SELECT
+           json_group_array(
+                   json_object ('address', cast(address as TEXT)
+                       || ' ' || cast(AddressExt as TEXT)
+                       || ' ' || cast(CityZip as TEXT)
+                       ))
+       FROM
+           (SELECT address,
+                   AddressExt,
+                   CityZip
+            FROM CO_SexOffenders_addresses arad
+            where arad.ID = CO_SexOffenders_main.ID
+              and arad.state = CO_SexOffenders_main.state
+
+           )) as addresses
 
         --offenses
        ,(SELECT
@@ -958,46 +816,7 @@ select id
             and CO_SexOffenders_main.state = aro.state
             )
        ) as offenses
-      -- addresses
-      ,(SELECT
-            json_group_array(
-                json_object ('address', cast(address as TEXT)
-                                    || ' ' || cast(AddressExt as TEXT)
-                                    || ' ' || cast(CityZip as TEXT)
-        ))
-        FROM
-            (SELECT address,
-                    AddressExt,
-                    CityZip
-            FROM CO_SexOffenders_addresses arad
-            where arad.ID = CO_SexOffenders_main.ID
-            and arad.state = CO_SexOffenders_main.state
-
-            )) as addresses
-
-        --personalDetails
-       ,(SELECT
-            json_group_array (
-                json_object(
-                'eyes',cast(Eyes as TEXT),
-                'hair', cast(Hair as TEXT),
-                'race',cast(Race as TEXT),
-                'sex',cast (Sex as TEXT)
-            ))
-
-        FROM
-            (SELECT
-                 Eyes,
-                 Hair,
-                 Race,
-                 Gender as Sex
-             FROM
-
-                 CO_SexOffenders_main arm where arm.ID = CO_SexOffenders_main.id
-                                            and arm.state = CO_SexOffenders_main.state
-            )
-       ) as personalDetails
-
+    -- scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select ScarMarkTattoo as smt from CO_SexOffenders_smts smts
              where smts.id = CO_SexOffenders_main.id
@@ -1016,6 +835,12 @@ Union
 select id
      ,name
      ,DateOfBirth
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1024,22 +849,8 @@ select id
              FROM CTSexOffenders_aliases als
              WHERE als.id = CTSexOffenders_main.id
                AND CTSexOffenders_main.state = als.state)
-) as "aliases"
+) as aliases
 
-     --offenses
-     ,(SELECT
-           json_group_array (
-                   json_object ('offense', offense)
-               )
-       FROM
-
-           (SELECT
-                cast(OffenseDescription as TEXT) || ' ' || cast(OffenseDetails as TEXT) as offense
-            FROM CTSexOffenders_offenses aro
-            where CTSexOffenders_main.ID = aro.ID
-              and CTSexOffenders_main.state = aro.state
-           )
-) as offenses
      -- addresses
      ,(SELECT
            json_group_array(
@@ -1057,29 +868,21 @@ select id
 
            )) as addresses
 
-     --personalDetails
+     --offenses
      ,(SELECT
            json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
+                   json_object ('offense', offense)
+               )
        FROM
+
            (SELECT
-                Eyes,
-                Hair,
-                Race,
-                Sex
-            FROM
-
-                CTSexOffenders_main arm where arm.ID = CTSexOffenders_main.id
-                                           and arm.state = CTSexOffenders_main.state
+                cast(OffenseDescription as TEXT) || ' ' || cast(OffenseDetails as TEXT) as offense
+            FROM CTSexOffenders_offenses aro
+            where CTSexOffenders_main.ID = aro.ID
+              and CTSexOffenders_main.state = aro.state
            )
-) as personalDetails
-
+) as offenses
+    --scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select ScarsMarksTattoos as smt from CTSexOffenders_smts smts
              where smts.id = CTSexOffenders_main.id
@@ -1097,6 +900,13 @@ union
 select id
      ,name
      ,BirthDate as DateOfBirth
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,Gender as sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1105,7 +915,23 @@ select id
              FROM DE_SexOffenders_aliases als
              WHERE als.id = DE_SexOffenders_main.id
                AND DE_SexOffenders_main.state = als.state)
-) as "aliases"
+) as aliases
+
+     -- addresses
+     ,(SELECT
+           json_group_array(
+                   json_object ('address', cast(Street as TEXT)
+                       || ' ' || cast(CityStateZip as TEXT)
+                       ,'type',cast(Type as TEXT)))
+       FROM
+           (SELECT street,
+                   CityStateZip,
+                   Type
+            FROM DE_SexOffenders_addresses arad
+            where arad.ID = DE_SexOffenders_main.ID
+              and arad.state = DE_SexOffenders_main.state
+
+           )) as addresses
 
      --offenses
      ,json_array("Pending Update") as offenses
@@ -1125,45 +951,7 @@ select id
 ) as offenses
 
       */
-     -- addresses
-     ,(SELECT
-           json_group_array(
-                   json_object ('address', cast(Street as TEXT)
-                       || ' ' || cast(CityStateZip as TEXT)
-                       ,'type',cast(Type as TEXT)))
-       FROM
-           (SELECT street,
-                   CityStateZip,
-                   Type
-            FROM DE_SexOffenders_addresses arad
-            where arad.ID = DE_SexOffenders_main.ID
-              and arad.state = DE_SexOffenders_main.state
-
-           )) as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
-       FROM
-           (SELECT
-               EyeColor as  Eyes,
-               HairColor as  Hair,
-               Race,
-               Gender as sex
-            FROM
-
-                DE_SexOffenders_main arm where arm.ID = DE_SexOffenders_main.id
-                                           and arm.state = DE_SexOffenders_main.state
-           )
-) as personalDetails
-
+    --scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select ScarsMarksTattoos as smt from DE_SexOffenders_smts smts
              where smts.id = DE_SexOffenders_main.id
@@ -1182,6 +970,13 @@ union
 select id
      ,name
      ,DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1192,20 +987,6 @@ select id
                AND FL_SexOffenders_main.state = als.state)
 ) as "aliases"
 
-     --offenses
-     ,(SELECT
-           json_group_array (
-                   json_object ('offense', offense)
-               )
-       FROM
-
-           (SELECT
-                    cast(CrimeDescription as TEXT) as offense
-            FROM FL_SexOffenders_offenses aro
-            where FL_SexOffenders_main.ID = aro.ID
-              and FL_SexOffenders_main.state = aro.state
-           )
-) as offenses
      -- addresses
      ,(SELECT
            json_group_array(
@@ -1221,29 +1002,21 @@ select id
 
            )) as addresses
 
-     --personalDetails
+     --offenses
      ,(SELECT
            json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
+                   json_object ('offense', offense)
+               )
        FROM
+
            (SELECT
-                Eyes,
-                Hair,
-                Race,
-                Sex
-            FROM
-
-                FL_SexOffenders_main arm where arm.ID = FL_SexOffenders_main.id
-                                          and arm.state = FL_SexOffenders_main.state
+                    cast(CrimeDescription as TEXT) as offense
+            FROM FL_SexOffenders_offenses aro
+            where FL_SexOffenders_main.ID = aro.ID
+              and FL_SexOffenders_main.state = aro.state
            )
-) as personalDetails
-
+) as offenses
+    --scarsTattoos
      ,(select json_group_array( cast(type as text) || ' ' || cast(number as Text) || ' ' || cast(location as Text))
        from (select type, location, number  from FL_SexOffenders_smts smts
              where smts.id = FL_SexOffenders_main.id
@@ -1261,6 +1034,13 @@ Union
 select id
      ,name
      ,DateOfBirth
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1270,6 +1050,12 @@ select id
              WHERE als.id = IDSexOffenders_main.id
                AND IDSexOffenders_main.state = als.state)
 ) as "aliases"
+
+     --addresses
+     ,json_array(
+        json_object(
+                'address',cast(Address as Text) || ' ' || cast(CityStateZip as Text))
+    ) as addresses
 
      --offenses
      ,(SELECT
@@ -1285,35 +1071,7 @@ select id
               and IDSexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
-     ,json_array(
-        json_object(
-                'address',cast(Address as Text) || ' ' || cast(CityStateZip as Text))
-            ) as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
-       FROM
-           (SELECT
-               EyeColor as Eyes,
-               HairColor as Hair,
-                Race,
-                Sex
-            FROM
-
-                IDSexOffenders_main arm where arm.ID = IDSexOffenders_main.id
-                                           and arm.state = IDSexOffenders_main.state
-           )
-) as personalDetails
-
+    --scarsTattoos
      ,json_array("None Reported") as scarsTattoos
 
      ,(select json_group_array(cast(PhotoFile as TEXT))
@@ -1328,6 +1086,13 @@ Union
 select id
      ,name
      ,YearOfBirth as DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1338,6 +1103,21 @@ select id
                AND INSexOffenders_main.state = als.state)
 ) as "aliases"
 
+     --addresses
+
+     ,(SELECT
+           json_group_array(
+                   json_object ('address', cast(Address as TEXT) || ' ' || cast(AddressExtension as TEXT), 'type', cast(AddressType as Text)
+                       ))
+
+       FROM
+           (SELECT Address,
+                   AddressExtension,
+                   AddressType
+            FROM INSexOffenders_addresses arad where arad.ID = INSexOffenders_main.ID
+                                                 and arad.state = INSexOffenders_main.state)
+
+) as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -1352,50 +1132,13 @@ select id
               and INSexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
 
-    ,(SELECT
-          json_group_array(
-              json_object ('address', cast(Address as TEXT) || ' ' || cast(AddressExtension as TEXT), 'type', cast(AddressType as Text)
-        ))
-
-          FROM
-          (SELECT Address,
-                  AddressExtension,
-                  AddressType
-                  FROM INSexOffenders_addresses arad where arad.ID = INSexOffenders_main.ID
-                  and arad.state = INSexOffenders_main.state)
-
-  ) as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
-       FROM
-           (SELECT
-                Eyes,
-                Hair,
-                Race,
-                Sex
-            FROM
-
-                INSexOffenders_main arm where arm.ID = INSexOffenders_main.id
-                                          and arm.state = INSexOffenders_main.state
-           )
-) as personalDetails
-
+    --scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select ScarsMarksTattoos as smt from INSexOffenders_smts smts
              where smts.id = INSexOffenders_main.id
                and smts.state = INSexOffenders_main.state)) as scarsTattoos
-
+    --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
        from (select PhotoFile from INSexOffenders_photos azp
              where azp.id = INSexOffenders_main.id
@@ -1408,6 +1151,13 @@ Union
 select id
      ,name
      ,DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1418,6 +1168,20 @@ select id
                AND LA_SexOffenders_main.state = als.state)
 ) as "aliases"
 
+     --addresses
+
+     ,(SELECT
+           json_group_array(
+                   json_object ('address', cast(Address as TEXT), 'type', cast(AddressType as Text)
+                       ))
+
+       FROM
+           (SELECT Address,
+                   AddressType
+            FROM LA_SexOffenders_addresses arad where arad.ID = LA_SexOffenders_main.ID
+                                                  and arad.state = LA_SexOffenders_main.state)
+
+) as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -1432,49 +1196,13 @@ select id
               and LA_SexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
 
-     ,(SELECT
-           json_group_array(
-                   json_object ('address', cast(Address as TEXT), 'type', cast(AddressType as Text)
-                       ))
-
-       FROM
-           (SELECT Address,
-                   AddressType
-            FROM LA_SexOffenders_addresses arad where arad.ID = LA_SexOffenders_main.ID
-                                                 and arad.state = LA_SexOffenders_main.state)
-
-) as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
-       FROM
-           (SELECT
-                Eyes,
-                Hair,
-                Race,
-                Sex
-            FROM
-
-                LA_SexOffenders_main arm where arm.ID = LA_SexOffenders_main.id
-                                          and arm.state = LA_SexOffenders_main.state
-           )
-) as personalDetails
-
+    --scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select ScarsMarksTattoos as smt from LA_SexOffenders_smts smts
              where smts.id = LA_SexOffenders_main.id
                and smts.state = LA_SexOffenders_main.state)) as scarsTattoos
-
+    --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
        from (select PhotoFile from LA_SexOffenders_photos azp
              where azp.id = LA_SexOffenders_main.id
@@ -1487,6 +1215,13 @@ UNION
 select id
      ,name
      ,Year_Of_Birth as DateOfBirth
+
+     ,Eye_Color as eyes
+     ,Hair_Color as hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1497,18 +1232,6 @@ select id
                AND MA_SexOffenders_main.state = als.state)
 ) as "aliases"
 
-     --offenses
-     ,(SELECT
-           json_group_array (
-                   json_object ('offense', cast(offense as Text) ))
-       FROM
-
-           (SELECT Jurisdiction as offense
-            FROM MA_SexOffenders_offenses aro
-            where MA_SexOffenders_main.ID = aro.ID
-              and MA_SexOffenders_main.state = aro.state
-           )
-) as offenses
      --addresses
 
      ,(SELECT
@@ -1523,36 +1246,27 @@ select id
                                                   and arad.state = MA_SexOffenders_main.state)
 
 ) as addresses
-
-     --personalDetails
+     --offenses
      ,(SELECT
            json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
+                   json_object ('offense', cast(offense as Text) ))
        FROM
-           (SELECT
-                Eye_Color as  Eyes,
-                Hair_Color as Hair,
-                Race,
-                Sex
-            FROM
 
-                MA_SexOffenders_main arm where arm.ID = MA_SexOffenders_main.id
-                                           and arm.state = MA_SexOffenders_main.state
+           (SELECT Jurisdiction as offense
+            FROM MA_SexOffenders_offenses aro
+            where MA_SexOffenders_main.ID = aro.ID
+              and MA_SexOffenders_main.state = aro.state
            )
-) as personalDetails
+) as offenses
 
+    --scarsTattoos
     ,json_array("None Reported") as scarsTattoos
      /*,(select json_group_array( cast(smt as text))
        from (select ScarsMarksTattoos as smt from MA_SexOffenders_smts smts
              where smts.id = MA_SexOffenders_main.id
                and smts.state = MA_SexOffenders_main.state)) as scarsTattoos
 */
+     --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
        from (select PhotoFile from MA_SexOffenders_photos azp
              where azp.id = MA_SexOffenders_main.id
@@ -1566,6 +1280,13 @@ UNION
 select id
      ,name
      ,DateOfBirth
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1576,6 +1297,21 @@ select id
                AND MDSexOffenders_main.state = als.state)
 ) as "aliases"
 
+     --addresses
+
+     ,(SELECT
+           json_group_array(
+                   json_object ('address', cast(Address as TEXT) || ' ' || cast(city_state_zip as TEXT), 'type', cast(AddressType as Text)
+                       ))
+
+       FROM
+           (SELECT Address,
+                   city_state_zip,
+                   AddressType
+            FROM MDSexOffenders_addresses arad where arad.ID = MDSexOffenders_main.ID
+                                                 and arad.state = MDSexOffenders_main.state)
+
+) as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -1589,46 +1325,9 @@ select id
               and MDSexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
-
-     ,(SELECT
-           json_group_array(
-                   json_object ('address', cast(Address as TEXT) || ' ' || cast(city_state_zip as TEXT), 'type', cast(AddressType as Text)
-                       ))
-
-       FROM
-           (SELECT Address,
-                   city_state_zip,
-                   AddressType
-            FROM MDSexOffenders_addresses arad where arad.ID = MDSexOffenders_main.ID
-                                                  and arad.state = MDSexOffenders_main.state)
-
-) as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
-       FROM
-           (SELECT
-                EyeColor as  Eyes,
-                HairColor as Hair,
-                Race,
-                Sex
-            FROM
-
-                MDSexOffenders_main arm where arm.ID = MDSexOffenders_main.id
-                                           and arm.state = MDSexOffenders_main.state
-           )
-) as personalDetails
-
+    --scarsTattoos
      ,json_array("None Reported") as scarsTattoos
+     --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
        from (select PhotoFile from MDSexOffenders_photos azp
              where azp.id = MDSexOffenders_main.id
@@ -1641,6 +1340,13 @@ UNION
 select id
      ,name
      ,DateOfBirth
+
+     ,'' as eyes
+     ,'' as hair
+     ,'' as height
+     ,'' as weight
+     ,'' as race
+     ,'' as sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1649,8 +1355,21 @@ select id
              FROM ME_SexOffenders_aliases als
              WHERE als.id = ME_SexOffenders_main.id
                AND ME_SexOffenders_main.state = als.state)
-) as "aliases"
+) as aliases
 
+     --addresses
+
+     ,(SELECT
+           json_group_array(
+                   json_object ('address', cast(Address as TEXT)
+                       ))
+
+       FROM
+           (SELECT TownOfDomicile as address
+            FROM ME_SexOffenders_addresses arad where arad.ID = ME_SexOffenders_main.ID
+                                                  and arad.state = ME_SexOffenders_main.state)
+
+) as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -1664,22 +1383,7 @@ select id
               and ME_SexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
 
-     ,(SELECT
-           json_group_array(
-                   json_object ('address', cast(Address as TEXT)
-                       ))
-
-       FROM
-           (SELECT TownOfDomicile as address
-            FROM ME_SexOffenders_addresses arad where arad.ID = ME_SexOffenders_main.ID
-                                                 and arad.state = ME_SexOffenders_main.state)
-
-) as addresses
-
-     --personalDetails
-     ,json_array("None Reported") as personalDetails
      /*,(select json_group_array( cast(smt as text))
        from (select ScarsMarksTattoos as smt from ME_SexOffenders_smts smts
              where smts.id = ME_SexOffenders_main.id
@@ -1699,6 +1403,12 @@ Union
 select id
      ,name
      ,DateOfBirth
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1707,22 +1417,9 @@ select id
              FROM MISexOffenders_aliases als
              WHERE als.id = MISexOffenders_main.id
                AND MISexOffenders_main.state = als.state)
-) as "aliases"
+) as aliases
 
-     --offenses
-     ,(SELECT
-           json_group_array (
-                   json_object ('offense', cast(offense as Text), 'descr',cast(Description as Text) ))
-       FROM
-
-           (SELECT OffenseDescription  as offense,
-                   OffenseDetails as Description
-            FROM MISexOffenders_covictions aro
-            where MISexOffenders_main.ID = aro.ID
-              and MISexOffenders_main.state = aro.state
-           )
-) as offenses
-,json_array("Update Pending") as addresses
+     ,json_array("Update Pending") as addresses
      --addresses
 /*
      ,(SELECT
@@ -1739,30 +1436,25 @@ select id
 
 
  */
-     --personalDetails
+     --offenses
      ,(SELECT
            json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
+                   json_object ('offense', cast(offense as Text), 'descr',cast(Description as Text) ))
+       FROM
 
-       FROM (SELECT Eyes,
-                    Hair,
-                    Race,
-                    Sex
-             FROM MISexOffenders_main arm
-             where arm.ID = MISexOffenders_main.id
-               and arm.state = MISexOffenders_main.state
-            ))
-
+           (SELECT OffenseDescription  as offense,
+                   OffenseDetails as Description
+            FROM MISexOffenders_covictions aro
+            where MISexOffenders_main.ID = aro.ID
+              and MISexOffenders_main.state = aro.state
+           )
+) as offenses
+    --scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select ScarsMarksTattoos as smt from MISexOffenders_smts smts
              where smts.id = MISexOffenders_main.id
                and smts.state = MISexOffenders_main.state)) as scarsTattoos
-
+    --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
        from (select PhotoFile from MISexOffenders_photos azp
              where azp.id = MISexOffenders_main.id
@@ -1775,6 +1467,12 @@ UNION
 select id
      ,name
      ,DateOfBirth
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,Gender as sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1784,6 +1482,23 @@ select id
              WHERE als.id = MOSexOffenders_main.id
                AND MOSexOffenders_main.state = als.state)
 ) as aliases
+
+     --addresses
+
+     ,(SELECT
+           json_group_array(
+                   json_object ('address', cast(Street as TEXT) || ' ' || cast(CityState as TEXT)
+                       || ' ' || cast(Zip as TEXT)
+                       ))
+
+       FROM
+           (SELECT Street,
+                   CityState,
+                   Zip
+            FROM MOSexOffenders_addresses arad where arad.ID = MOSexOffenders_main.ID
+                                                 and arad.state = MOSexOffenders_main.state)
+
+) as addresses
 
      --offenses
      ,(SELECT
@@ -1797,48 +1512,12 @@ select id
               and MOSexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
-
-     ,(SELECT
-           json_group_array(
-                   json_object ('address', cast(Street as TEXT) || ' ' || cast(CityState as TEXT)
-                       || ' ' || cast(Zip as TEXT)
-           ))
-
-       FROM
-           (SELECT Street,
-                   CityState,
-                   Zip
-            FROM MOSexOffenders_addresses arad where arad.ID = MOSexOffenders_main.ID
-                                                  and arad.state = MOSexOffenders_main.state)
-
-) as addresses
-
-     --personalDetails
-     --,json_array("None Reported") as personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
-       FROM (SELECT EyeColor as Eyes,
-                    HairColor as Hair,
-                    Race,
-                   Gender as Sex
-             FROM MOSexOffenders_main arm
-             where arm.ID = MOSexOffenders_main.id
-               and arm.state = MOSexOffenders_main.state
-            )) as personalDetails
-
+    --scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select ScarsMarksTattoos as smt from MOSexOffenders_smts smts
              where smts.id = MOSexOffenders_main.id
                and smts.state = MOSexOffenders_main.state)) as scarsTattoos
-
+    --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
        from (select PhotoFile from MOSexOffenders_photos azp
              where azp.id = MOSexOffenders_main.id
@@ -1851,6 +1530,13 @@ UNION
 select id
      ,name
      ,DOB as DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1861,6 +1547,22 @@ select id
                AND NE_SexOffenders_main.state = als.state)
 ) as aliases
 
+     --addresses
+
+     ,(SELECT
+           json_group_array(
+                   json_object ('address', cast(Address as TEXT) || ' ' || cast(CityStateZip as TEXT)
+                       ,'type',cast(AddressType as TEXT)
+                       ))
+
+       FROM
+           (SELECT Address,
+                   CityStateZip,
+                   AddressType
+            FROM NE_SexOffenders_addresses arad where arad.ID = NE_SexOffenders_main.ID
+                                                  and arad.state = NE_SexOffenders_main.state)
+
+) as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -1873,41 +1575,7 @@ select id
               and NE_SexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
 
-     ,(SELECT
-           json_group_array(
-                   json_object ('address', cast(Address as TEXT) || ' ' || cast(CityStateZip as TEXT)
-                      ,'type',cast(AddressType as TEXT)
-                       ))
-
-       FROM
-           (SELECT Address,
-                   CityStateZip,
-                   AddressType
-            FROM NE_SexOffenders_addresses arad where arad.ID = NE_SexOffenders_main.ID
-                                                 and arad.state = NE_SexOffenders_main.state)
-
-) as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
-       FROM (SELECT Eyes,
-                    Hair,
-                    Race,
-                    Sex
-             FROM NE_SexOffenders_main arm
-             where arm.ID = NE_SexOffenders_main.id
-               and arm.state = NE_SexOffenders_main.state
-            )) as personalDetails
     --scarsTattoos
     ,json_array("None Reported") as scarsTattoos
 
@@ -1923,6 +1591,13 @@ UNION
 select id
      ,name
      ,DOB as DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -1933,18 +1608,6 @@ select id
                AND NHSexOffenders_main.state = als.state)
 ) as aliases
 
-     --offenses
-     ,(SELECT
-           json_group_array (
-                   json_object ('offense', cast(offense as Text) ))
-       FROM
-
-           (SELECT Offense as offense
-            FROM NHSexOffenders_offenses aro
-            where NHSexOffenders_main.ID = aro.ID
-              and NHSexOffenders_main.state = aro.state
-           )
-) as offenses
      --addresses
 
      ,(SELECT
@@ -1958,33 +1621,28 @@ select id
                    CityStateZip,
                    AddressType
             FROM NHSexOffenders_addresses arad where arad.ID = NHSexOffenders_main.ID
-                                                  and arad.state = NHSexOffenders_main.state)
+                                                 and arad.state = NHSexOffenders_main.state)
 
 ) as addresses
-
-     --personalDetails
+     --offenses
      ,(SELECT
            json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
+                   json_object ('offense', cast(offense as Text) ))
+       FROM
 
-       FROM (SELECT Eyes,
-                    Hair,
-                    Race,
-                    Sex
-             FROM NHSexOffenders_main arm
-             where arm.ID = NHSexOffenders_main.id
-               and arm.state = NHSexOffenders_main.state
-            )) as personalDetails
+           (SELECT Offense as offense
+            FROM NHSexOffenders_offenses aro
+            where NHSexOffenders_main.ID = aro.ID
+              and NHSexOffenders_main.state = aro.state
+           )
+) as offenses
 
+    --scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select Description as smt from NHSexOffenders_smts smts
              where smts.id = NHSexOffenders_main.id
                and smts.state = NHSexOffenders_main.state)) as scarsTattoos
+     --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
        from (select PhotoFile from NHSexOffenders_photos azp
              where azp.id = NHSexOffenders_main.id
@@ -1997,6 +1655,13 @@ UNION
 select id
      ,name
      ,cast(age as TEXT) as DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -2007,6 +1672,17 @@ select id
                AND NJSexOffenders_main.state = als.state)
 ) as aliases
 
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT))
+                  )
+
+       FROM (SELECT Address
+             FROM NJSexOffenders_addresses arad
+             where arad.ID = NJSexOffenders_main.ID
+               and arad.state = NJSexOffenders_main.state)
+)as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -2020,36 +1696,7 @@ select id
               and NJSexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
 
-     ,(SELECT json_group_array(
-                       json_object('address', cast(Address as TEXT))
-                   )
-
-        FROM (SELECT Address
-              FROM NJSexOffenders_addresses arad
-              where arad.ID = NJSexOffenders_main.ID
-                and arad.state = NJSexOffenders_main.state)
-    )as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
-       FROM (SELECT Eyes,
-                    Hair,
-                    Race,
-                    Sex
-             FROM NJSexOffenders_main arm
-             where arm.ID = NJSexOffenders_main.id
-               and arm.state = NJSexOffenders_main.state
-            )) as personalDetails
 
      ,(select json_group_array( cast(smt as text))
 
@@ -2068,6 +1715,13 @@ Union
 select id
      ,name
      ,YearOfBirth as DateOfBirth
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -2078,6 +1732,17 @@ select id
                AND NMSexOffenders_main.state = als.state)
     ) as aliases
 
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(street as TEXT) || ' ' || cast(citystatezip as TEXT))
+                  )
+
+       FROM (SELECT street, citystatezip
+             FROM NMSexOffenders_addresses arad
+             where arad.ID = NMSexOffenders_main.ID
+               and arad.state = NMSexOffenders_main.state)
+)as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -2091,42 +1756,14 @@ select id
               and NMSexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
 
-     ,(SELECT json_group_array(
-                      json_object('address', cast(street as TEXT) || ' ' || cast(citystatezip as TEXT))
-                  )
-
-       FROM (SELECT street, citystatezip
-             FROM NMSexOffenders_addresses arad
-             where arad.ID = NMSexOffenders_main.ID
-               and arad.state = NMSexOffenders_main.state)
-)as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
-       FROM (SELECT EyeColor as Eyes,
-                    HairColor as Hair,
-                    Race,
-                    Sex
-             FROM NMSexOffenders_main arm
-             where arm.ID = NMSexOffenders_main.id
-               and arm.state = NMSexOffenders_main.state
-            )) as personalDetails
-
+     --scarsTattoos
      ,(select json_group_array( cast(smt as text))
 
        from (select ScarsMarksTattoos as smt from NMSexOffenders_smts smts
              where smts.id = NMSexOffenders_main.id
                and smts.state = NMSexOffenders_main.state)) as scarsTattoos
+     --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
        from (select PhotoFile from NMSexOffenders_photos azp
              where azp.id = NMSexOffenders_main.id
@@ -2135,11 +1772,17 @@ select id
 from NMSexOffenders_main
 Union
 
-
 ----------------KY
 select id
      ,name
      ,birth_date as DateOfBirth
+
+     ,eye_color as eyes
+     ,hair_color as hair
+     ,height
+     ,weight
+     ,race
+     ,gender as sex
      ,state
      -- aliases
      , (SELECT json_group_array(cast(alias as TEXT))
@@ -2152,6 +1795,17 @@ select id
 
     ) as aliases
 
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT))
+                  )
+
+       FROM (SELECT Address
+             FROM ky_Sex_Offenders_addresses arad
+             where arad.ID = ky_Sex_Offenders_main.ID
+               and arad.state = ky_Sex_Offenders_main.state)
+)as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -2164,36 +1818,6 @@ select id
               and ky_Sex_Offenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
-
-     ,(SELECT json_group_array(
-                      json_object('address', cast(Address as TEXT))
-                  )
-
-       FROM (SELECT Address
-             FROM ky_Sex_Offenders_addresses arad
-             where arad.ID = ky_Sex_Offenders_main.ID
-               and arad.state = ky_Sex_Offenders_main.state)
-)as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
-       FROM (SELECT eye_color as Eyes,
-                    hair_color as Hair,
-                    Race,
-                    gender as Sex
-             FROM ky_Sex_Offenders_main arm
-             where arm.ID = ky_Sex_Offenders_main.id
-               and arm.state = ky_Sex_Offenders_main.state
-            )) as personalDetails
 
      --scarsTattoos
      ,json_array("NoneReported") as scarsTattoos
@@ -2204,6 +1828,7 @@ select id
                and smts.state = CTSexOffenders_main.state)) as scarsTattoos
 
       */
+     --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
        from (select PhotoFile from ky_Sex_Offenders_photos azp
              where azp.id = ky_Sex_Offenders_main.id
@@ -2215,6 +1840,13 @@ UNION
 select id
      ,name
      ,YearOfBirth as DateOfBirth
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -2225,6 +1857,17 @@ select id
                AND NV_SexOffenders_main.state = als.state)
 ) as aliases
 
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT) || ' ' || cast(citystatezip as TEXT))
+                  )
+
+       FROM (SELECT Address, citystatezip
+             FROM NV_SexOffenders_addresses arad
+             where arad.ID = NV_SexOffenders_main.ID
+               and arad.state = NV_SexOffenders_main.state)
+)as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -2237,42 +1880,14 @@ select id
               and NV_SexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
 
-     ,(SELECT json_group_array(
-                      json_object('address', cast(Address as TEXT) || ' ' || cast(citystatezip as TEXT))
-                  )
-
-       FROM (SELECT Address, citystatezip
-             FROM NV_SexOffenders_addresses arad
-             where arad.ID = NV_SexOffenders_main.ID
-               and arad.state = NV_SexOffenders_main.state)
-)as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
-       FROM (SELECT EyeColor as Eyes,
-                    HairColor as Hair,
-                    Race,
-                    Sex
-             FROM NV_SexOffenders_main arm
-             where arm.ID = NV_SexOffenders_main.id
-               and arm.state = NV_SexOffenders_main.state
-            )) as personalDetails
-
+    --scarsTattoos
      ,(select json_group_array( cast(ScarTattoo as text) || ' ' || cast(Location as TEXT) || ' ' || cast(Description as TEXT))
 
        from (select ScarTattoo, Location, Description from NV_SexOffenders_smts smts
              where smts.id = NV_SexOffenders_main.id
                and smts.state = NV_SexOffenders_main.state)) as scarsTattoos
+     --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
        from (select PhotoFile from NV_SexOffenders_photos azp
              where azp.id = NV_SexOffenders_main.id
@@ -2284,6 +1899,13 @@ UNION
 select id
      ,name
      ,DOB as DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -2293,6 +1915,17 @@ select id
              WHERE als.id = NYSexOffenders_main.id
                AND NYSexOffenders_main.state = als.state)
 ) as aliases
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Street as TEXT) || ' ' || cast(CityStateZip as TEXT))
+                  )
+
+       FROM (SELECT Street, CityStateZip
+             FROM NYSexOffenders_addresses arad
+             where arad.ID = NYSexOffenders_main.ID
+               and arad.state = NYSexOffenders_main.state)
+)as addresses
 
      --offenses
      ,(SELECT
@@ -2307,42 +1940,14 @@ select id
               and NYSexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
 
-     ,(SELECT json_group_array(
-                      json_object('address', cast(Street as TEXT) || ' ' || cast(CityStateZip as TEXT))
-                  )
-
-       FROM (SELECT Street, CityStateZip
-             FROM NYSexOffenders_addresses arad
-             where arad.ID = NYSexOffenders_main.ID
-               and arad.state = NYSexOffenders_main.state)
-)as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT)
-                       ))
-
-       FROM (SELECT Eyes,
-                    Hair,
-                    Race,
-                    Sex
-             FROM NYSexOffenders_main arm
-             where arm.ID = NYSexOffenders_main.id
-               and arm.state = NYSexOffenders_main.state
-            )) as personalDetails
-
+     --scarsTattoos
      ,(select json_group_array( cast(smt as text))
 
        from (select ScarMarkTattoo as smt from NYSexOffenders_smts smts
              where smts.id = NYSexOffenders_main.id
                and smts.state = NYSexOffenders_main.state)) as scarsTattoos
+     --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
        from (select PhotoFile from NYSexOffenders_photos azp
              where azp.id = NYSexOffenders_main.id
@@ -2355,6 +1960,12 @@ Union
 select id
      ,name
      ,DateOfBirth
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -2365,6 +1976,18 @@ select id
                AND OHSexOffenders_main.state = als.state)
 ) as aliases
 
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT) || ' ' || cast(citystatezip as TEXT),
+                                  'type', cast(AddressType as TEXT))
+                  )
+
+       FROM (SELECT Address, citystatezip, AddressType
+             FROM OHSexOffenders_addresses arad
+             where arad.ID = OHSexOffenders_main.ID
+               and arad.state = OHSexOffenders_main.state)
+)as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -2377,41 +2000,7 @@ select id
               and OHSexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
 
-     ,(SELECT json_group_array(
-                      json_object('address', cast(Address as TEXT) || ' ' || cast(citystatezip as TEXT),
-                          'type', cast(AddressType as TEXT))
-                  )
-
-       FROM (SELECT Address, citystatezip, AddressType
-             FROM OHSexOffenders_addresses arad
-             where arad.ID = OHSexOffenders_main.ID
-               and arad.state = OHSexOffenders_main.state)
-)as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT),
-                           'height',cast (Height as TEXT),
-                           'weight',cast (Weight as TEXT)
-                       ))
-
-       FROM (SELECT Eyes,
-                    Hair,
-                    Race,
-                    Sex,
-                    Height,
-                    Weight
-             FROM OHSexOffenders_main arm
-             where arm.ID = OHSexOffenders_main.id
-               and arm.state = OHSexOffenders_main.state
-            )) as personalDetails
 
      --scarsTattoos
      ,(select json_group_array( cast(ScarsMarksTattoos as text))
@@ -2433,6 +2022,13 @@ UNION
 select id
      ,name
      ,BirthYear as DateOfBirth
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,Gender as sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -2443,6 +2039,17 @@ select id
                AND PA_SexOffenders_main.state = als.state)
 ) as aliases
 
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT)
+                          ))
+
+       FROM (SELECT Address
+             FROM PA_SexOffenders_addresses arad
+             where arad.ID = PA_SexOffenders_main.ID
+               and arad.state = PA_SexOffenders_main.state)
+)as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -2455,40 +2062,6 @@ select id
               and PA_SexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
-
-     ,(SELECT json_group_array(
-                      json_object('address', cast(Address as TEXT)
-          ))
-
-       FROM (SELECT Address
-             FROM PA_SexOffenders_addresses arad
-             where arad.ID = PA_SexOffenders_main.ID
-               and arad.state = PA_SexOffenders_main.state)
-)as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT),
-                           'height',cast (Height as TEXT),
-                           'weight',cast (Weight as TEXT)
-                       ))
-
-       FROM (SELECT EyeColor as Eyes,
-                    HairColor as Hair,
-                    Race,
-                    Gender as Sex,
-                    Height,
-                    Weight
-             FROM PA_SexOffenders_main arm
-             where arm.ID = PA_SexOffenders_main.id
-               and arm.state = PA_SexOffenders_main.state
-            )) as personalDetails
 
      --scarsTattoos
      ,(select json_group_array( cast(Type as text) || ' ' || cast(Location as TEXT) || ' ' || cast(Description as TEXT))
@@ -2509,6 +2082,13 @@ UNION
 select id
      ,FirstName || ' ' || MiddleName || ' ' || LastName as name
      ,DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,Gender as sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -2519,6 +2099,17 @@ select id
                AND SCSexOffenders_main.state = als.state)
 ) as aliases
 
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(AddressLine1 as TEXT) || ' ' || cast(AddressLine2 as TEXT)
+                          ))
+
+       FROM (SELECT AddressLine1, AddressLine2
+             FROM SCSexOffenders_addresses arad
+             where arad.ID = SCSexOffenders_main.ID
+               and arad.state = SCSexOffenders_main.state)
+)as addresses
      --offenses
      ,json_array("Update Pending") as offenses
     -- TODO: Missing Offenses table
@@ -2536,40 +2127,6 @@ select id
 ) as offenses
 
       */
-     --addresses
-
-     ,(SELECT json_group_array(
-                      json_object('address', cast(AddressLine1 as TEXT) || ' ' || cast(AddressLine2 as TEXT)
-                          ))
-
-       FROM (SELECT AddressLine1, AddressLine2
-             FROM SCSexOffenders_addresses arad
-             where arad.ID = SCSexOffenders_main.ID
-               and arad.state = SCSexOffenders_main.state)
-)as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT),
-                           'height',cast (Height as TEXT),
-                           'weight',cast (Weight as TEXT)
-                       ))
-
-       FROM (SELECT Eyes,
-                    Hair,
-                    Race,
-                    Gender as Sex,
-                    Height,
-                    Weight
-             FROM SCSexOffenders_main arm
-             where arm.ID = SCSexOffenders_main.id
-               and arm.state = SCSexOffenders_main.state
-            )) as personalDetails
 
      --scarsTattoos
      ,(select json_group_array( cast(Type as text) || ' ' || cast(Location as TEXT) || ' ' || cast(Description as TEXT))
@@ -2590,6 +2147,13 @@ UNION
 select id
      ,name
      ,DOB as DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -2599,6 +2163,18 @@ select id
              WHERE als.id = UT_SexOffenders_main.id
                AND UT_SexOffenders_main.state = als.state)
 ) as aliases
+
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT)
+                          ))
+
+       FROM (SELECT Address
+             FROM UT_SexOffenders_addresses arad
+             where arad.ID = UT_SexOffenders_main.ID
+               and arad.state = UT_SexOffenders_main.state)
+)as addresses
 
      --offenses
      ,(SELECT
@@ -2613,41 +2189,6 @@ select id
               and UT_SexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
-
-     ,(SELECT json_group_array(
-                      json_object('address', cast(Address as TEXT)
-                          ))
-
-       FROM (SELECT Address
-             FROM UT_SexOffenders_addresses arad
-             where arad.ID = UT_SexOffenders_main.ID
-               and arad.state = UT_SexOffenders_main.state)
-    )as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT),
-                           'height',cast (Height as TEXT),
-                           'weight',cast (Weight as TEXT)
-                       ))
-
-       FROM (SELECT Eyes,
-                    Hair,
-                    Race,
-                    Sex,
-                    Height,
-                    Weight
-             FROM UT_SexOffenders_main arm
-             where arm.ID = UT_SexOffenders_main.id
-               and arm.state = UT_SexOffenders_main.state
-            )) as personalDetails
-
      --scarsTattoos
      ,(select json_group_array( cast(ScarsMarksTattoos as text))
 
@@ -2667,6 +2208,13 @@ Union
 select id
      ,name
      ,age as DateOfBirth
+
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -2676,6 +2224,18 @@ select id
              WHERE als.id = VASexOffenders_main.id
                AND VASexOffenders_main.state = als.state)
 ) as aliases
+
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT)
+                          ))
+
+       FROM (SELECT Address
+             FROM VASexOffenders_addresses arad
+             where arad.ID = VASexOffenders_main.ID
+               and arad.state = VASexOffenders_main.state)
+)as addresses
 
      --offenses
      ,json_array("Update Pending") as offenses
@@ -2695,41 +2255,6 @@ select id
 ) as offenses
 
       */
-     --addresses
-
-     ,(SELECT json_group_array(
-                      json_object('address', cast(Address as TEXT)
-                          ))
-
-       FROM (SELECT Address
-             FROM VASexOffenders_addresses arad
-             where arad.ID = VASexOffenders_main.ID
-               and arad.state = VASexOffenders_main.state)
-)as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT),
-                           'height',cast (Height as TEXT),
-                           'weight',cast (Weight as TEXT)
-                       ))
-
-       FROM (SELECT Eyes,
-                    Hair,
-                    Race,
-                    Sex,
-                    Height,
-                    Weight
-             FROM VASexOffenders_main arm
-             where arm.ID = VASexOffenders_main.id
-               and arm.state = VASexOffenders_main.state
-            )) as personalDetails
-
      --scarsTattoos
      ,json_array("None Reported") as scarsTattoos
 /*     ,(select json_group_array( cast(ScarsMarksTattoos as text))
@@ -2754,6 +2279,13 @@ UNION
 select id
      ,name
      ,age as DateOfBirth
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,Gender as sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -2764,6 +2296,17 @@ select id
                AND WI_SexOffenders_main.state = als.state)
 ) as aliases
 
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(street as TEXT) || ' ' || cast(CityStateZip as TEXT)
+                          ))
+
+       FROM (SELECT street, CityStateZip
+             FROM WI_SexOffenders_addresses arad
+             where arad.ID = WI_SexOffenders_main.ID
+               and arad.state = WI_SexOffenders_main.state)
+)as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -2777,40 +2320,6 @@ select id
               and WI_SexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
-
-     ,(SELECT json_group_array(
-                      json_object('address', cast(street as TEXT) || ' ' || cast(CityStateZip as TEXT)
-                          ))
-
-       FROM (SELECT street, CityStateZip
-             FROM WI_SexOffenders_addresses arad
-             where arad.ID = WI_SexOffenders_main.ID
-               and arad.state = WI_SexOffenders_main.state)
-)as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT),
-                           'height',cast (Height as TEXT),
-                           'weight',cast (Weight as TEXT)
-                       ))
-
-       FROM (SELECT EyeColor as Eyes,
-                    HairColor as Hair,
-                    Race,
-                    Gender as Sex,
-                    Height,
-                    Weight
-             FROM WI_SexOffenders_main arm
-             where arm.ID = WI_SexOffenders_main.id
-               and arm.state = WI_SexOffenders_main.state
-            )) as personalDetails
 
      --scarsTattoos
      ,json_array("None Reported") as scarsTattoos
@@ -2833,6 +2342,13 @@ Union
 select id
      ,name
      ,DateOfBirth
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,state
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
@@ -2842,6 +2358,18 @@ select id
              WHERE als.id = WYSexOffenders_main.id
                AND WYSexOffenders_main.state = als.state)
 ) as aliases
+
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT),'type', cast(AddressType as TEXT)
+                          ))
+
+       FROM (SELECT Address, AddressType
+             FROM WYSexOffenders_addresses arad
+             where arad.ID = WYSexOffenders_main.ID
+               and arad.state = WYSexOffenders_main.state)
+)as addresses
 
      --offenses
      ,(SELECT
@@ -2856,41 +2384,6 @@ select id
               and WYSexOffenders_main.state = aro.state
            )
 ) as offenses
-     --addresses
-
-     ,(SELECT json_group_array(
-                      json_object('address', cast(Address as TEXT),'type', cast(AddressType as TEXT)
-                          ))
-
-       FROM (SELECT Address, AddressType
-             FROM WYSexOffenders_addresses arad
-             where arad.ID = WYSexOffenders_main.ID
-               and arad.state = WYSexOffenders_main.state)
-)as addresses
-
-     --personalDetails
-     ,(SELECT
-           json_group_array (
-                   json_object(
-                           'eyes',cast(Eyes as TEXT),
-                           'hair', cast(Hair as TEXT),
-                           'race',cast(Race as TEXT),
-                           'sex',cast (Sex as TEXT),
-                           'height',cast (Height as TEXT),
-                           'weight',cast (Weight as TEXT)
-                       ))
-
-       FROM (SELECT EyeColor as Eyes,
-                    HairColor as Hair,
-                    Race,
-                    Sex,
-                    Height,
-                    Weight
-             FROM WYSexOffenders_main arm
-             where arm.ID = WYSexOffenders_main.id
-               and arm.state = WYSexOffenders_main.state
-            )) as personalDetails
-
      --scarsTattoos
     ,(select json_group_array( cast(smt as text))
 
