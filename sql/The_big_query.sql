@@ -24,7 +24,7 @@ select * from sqlite_master where name like "%_sex_offenders";
 select * from al_sex_offenders;
 
 
---Insert into Sex_Offender_T1
+Insert into Sex_Offender_T1 (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 -- AL_sex_offenders -----------------------------------------------------------
 select 0 as id
        ,name
@@ -35,7 +35,7 @@ select 0 as id
        ,r_Weight as weight
          ,r_race as race
         ,r_Sex as sex
-       ,state
+       ,trim(state) as state
 
        -- aliases
        ,json_array(
@@ -69,7 +69,7 @@ select 0 as id
      ,r_Weight as weight
      ,r_race as race
      ,r_Gender as sex
-     ,state
+     ,trim(state) as state
        -- aliases
        ,json_array(
                json_object(
@@ -108,7 +108,8 @@ select 0 as id
      ,r_Weight as weight
      ,r_race as race
      ,r_Sex as sex
-     ,state
+     ,trim(state) as state
+     -- aliases
        -- aliases
        ,json_array(
                json_object(
@@ -144,7 +145,8 @@ select 0 as id
      ,r_Weight as weight
      ,r_race as race
      ,r_Sex as sex
-     ,state
+     ,trim(state) as state
+     -- aliases
 
        -- aliases
        ,json_array(
@@ -185,7 +187,8 @@ SELECT id
      ,weight
      ,race
      ,sex
-       ,state
+     ,trim(state) as state
+     -- aliases
          -- aliases
        ,(SELECT json_group_array(cast(alias as Text))
         FROM
@@ -237,7 +240,8 @@ SELECT id
      ,weight
      ,Ethnicity as race
      ,sex
-       ,state
+     ,trim(state) as state
+     -- aliases
 
        -- aliases
        ,(SELECT json_group_array(cast(alias as Text))
@@ -295,7 +299,8 @@ SELECT id
      ,weight
      ,race
      ,sex
-       ,state
+     ,trim(state) as state
+     -- aliases
        -- aliases TODO: MISSING TABLE
        /*
        (SELECT json_group_array(cast(alias as Text))
@@ -347,7 +352,8 @@ SELECT id
      ,weight
      ,race
      ,sex
-       ,state
+     ,trim(state) as state
+     -- aliases
     ,(SELECT json_group_array(cast(alias as Text))
      FROM
          (SELECT alias
@@ -393,7 +399,8 @@ SELECT id
      ,weight
      ,RaceEthnicity as race
      ,'' as sex
-       ,state
+     ,trim(state) as state
+     -- aliases
        ,(SELECT json_group_array(cast(alias as Text))
         FROM
             (SELECT alias
@@ -432,7 +439,8 @@ SELECT id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      ,(SELECT json_group_array(cast(alias as Text))
        FROM
            (SELECT alias
@@ -472,7 +480,8 @@ SELECT id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      ,(SELECT json_group_array(cast(alias as Text))
        FROM
            (SELECT alias
@@ -521,7 +530,8 @@ SELECT id
      ,weight
      ,'' as race --no race listed
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      --alias
      ,json_array("None Reported") as aliases
     --address
@@ -566,7 +576,8 @@ SELECT id
      ,race
      ,Gender as sex
      ,DateOfBirth
-     ,state
+     ,trim(state) as state
+     -- aliases
      ,(SELECT json_group_array(cast(alias as Text))
        FROM
            (SELECT alias
@@ -616,7 +627,8 @@ SELECT id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      --aliases
      ,(SELECT json_group_array(cast(alias as Text))
        FROM
@@ -668,7 +680,8 @@ SELECT id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      --aliases
      ,(SELECT json_group_array(cast(alias as Text))
        FROM
@@ -721,7 +734,8 @@ SELECT id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      --aliases
      ,(SELECT json_group_array(cast(alias as Text))
        FROM
@@ -775,7 +789,8 @@ select id
      ,weight
      ,race
      ,Gender as sex
-       ,state
+     ,trim(state) as state
+     -- aliases
        -- aliases
        ,( SELECT json_group_array (cast(alias as TEXT))
          FROM
@@ -841,7 +856,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -907,7 +923,8 @@ select id
      ,weight
      ,race
      ,Gender as sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -977,7 +994,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1041,7 +1059,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1093,7 +1112,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1158,7 +1178,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1222,7 +1243,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1287,7 +1309,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1347,7 +1370,8 @@ select id
      ,'' as weight
      ,'' as race
      ,'' as sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1409,7 +1433,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1473,7 +1498,8 @@ select id
      ,weight
      ,race
      ,Gender as sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1537,7 +1563,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1598,7 +1625,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1662,7 +1690,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1722,7 +1751,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1783,7 +1813,8 @@ select id
      ,weight
      ,race
      ,gender as sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      , (SELECT json_group_array(cast(alias as TEXT))
 
@@ -1847,7 +1878,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1906,7 +1938,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -1966,7 +1999,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -2029,7 +2063,8 @@ select id
      ,weight
      ,race
      ,Gender as sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -2089,7 +2124,8 @@ select id
      ,weight
      ,race
      ,Gender as sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -2154,7 +2190,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -2215,7 +2252,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -2286,7 +2324,8 @@ select id
      ,weight
      ,race
      ,Gender as sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
@@ -2349,7 +2388,8 @@ select id
      ,weight
      ,race
      ,sex
-     ,state
+     ,trim(state) as state
+     -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))
         FROM
