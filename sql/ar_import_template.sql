@@ -36,7 +36,7 @@ select id,name,DateOfBirth, state,
        (SELECT
             json_group_array (json_object('driversLicense',DriversLicenseStateNumber, 'eyes',Eyes, 'hair', Hair,
                 'race',Race, 'riskLevel',RiskLevel,'scarsTattoos',ScarsTattoos, 'sex',Sex))
-
+https://www.youtube.com/watch?v=tal7_ikFM5Y
        FROM
         (SELECT
                 DriversLicenseStateNumber,
