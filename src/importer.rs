@@ -9,7 +9,7 @@ use std::path;
 use rusqlite::{params, Connection, ToSql, NO_PARAMS};
 use std::path::Path;
 use std::string::ToString;
-
+use super::types::ExtractedFile;
 use zip;
 use zip::ZipArchive;
 static SQL_PATH: &'static str = "/home/d-rezzer/dev/sex_offender/archives/sexoffenders.sqlite";
@@ -152,7 +152,6 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
     Ok(insert_query)
 }
 
-use super::downloader::ExtractedFile;
 use core::borrow::{Borrow, BorrowMut};
 
 pub fn prepare_import() -> Result<(), Box<Error>> {

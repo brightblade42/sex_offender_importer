@@ -21,16 +21,17 @@ use serde_rusqlite::{from_row, to_params_named};
 use std::collections::HashSet;
 use std::clone::Clone;
 use crate::config::{self, Config, PathVars};
+use std::ffi::OsStr;
+use super::types::{SexOffenderArchive, RecordInfo, RecordStatus, FileInfo};
 
-static SEX_OFFENDER_PATH: &'static str = "";
 static IMPORT_LOG: &'static str = "/home/d-rezzer/dev/eyemetric/ftp/importlog.sqlite";
 const CHUNK_SIZE: usize = 2048;
 
 
-type GenError = Box<std::error::Error>;
+type GenError = Box<dyn std::error::Error>;
 //type GenResult<T> = Result<T, GenError>;
 
-pub type Result<T> = ::std::result::Result<T, Box<std::error::Error>>;
+pub type Result<T> = ::std::result::Result<T, Box<dyn std::error::Error>>;
 
 
 
@@ -355,89 +356,7 @@ impl Downloader {
     //return the list of files that are newer than what we have
     fn filter_mod_time() {}
 
-    ///extracts an arcive into a list of ExtractedFile types.
-    /// An Extracted file can be one of two variants. Csv or ImageArchive
-    ///
-    pub fn extract_archive(&mut self, sx_archive: SexOffenderArchive) -> Result<Vec<ExtractedFile>> {
-        let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
-        let mut archive_path: PathBuf = sx_archive.path;
-        let mut state_abbrev = &archive_path.file_name().unwrap().to_str().unwrap()[..2];
-        let file = BufReader::new(File::open(&archive_path)?);
-        let mut archive = zip::ZipArchive::new(file)?;
-        for i in 0..archive.len() {
-            let mut embedded_file = archive.by_index(i)?;
 
-            if state_abbrev == "TX" { //Texas is a problem. Lots of files, all fucked.
-                continue;
-            }
-            let mut extraction_path = archive_path.parent().unwrap().to_path_buf();
-          //  println!("extr: {:?}", extraction_path);
-            let fname = embedded_file.sanitized_name();
-
-            extraction_path.push(state_abbrev);
-
-            if archive_path.to_string_lossy().contains("records") {
-                extraction_path.push("records");
-            } else {
-                extraction_path.push("images");
-            }
-             println!("{:?}", extraction_path);
-             fs::create_dir_all(&extraction_path).expect("Unable to create extraction path");
-
-            extraction_path.push(&fname);
-            let mut outfile = BufWriter::new(File::create(&extraction_path)?);
-            std::io::copy(&mut embedded_file, &mut outfile)?;
-            println!("wrote: {}", extraction_path.display());
-
-           match fname.extension() {
-               Some(ext) if ext == "csv"  => {
-                    let ex_file = ExtractedFile::Csv { path: extraction_path.clone(), state: String::from(state_abbrev), delimiter: '|'};
-                    println!("csv file: {:?}", &ex_file);
-
-                   extracted_files.push(ex_file);
-               },
-               Some(ext) if ext == "txt" => {
-
-                   let ex_file = ExtractedFile::Csv { path: extraction_path.clone(), state: String::from(state_abbrev), delimiter: ','};
-                   println!("txt file: {:?}", &ex_file);
-                   extracted_files.push(ex_file);
-               }
-               Some(ext) if ext == "zip" => {
-                  let ex_file =  ExtractedFile::ImageArchive { path: extraction_path.clone(), state: String::from(state_abbrev) };
-                   extracted_files.push(ex_file);
-               }
-               None => {
-                   println!("No file extension found in extracted file!");
-
-               },
-               _ => {
-                   println!("Unsupported file extension found and ignored.");
-               }
-           }
-        }
-        Ok(extracted_files)
-    }
-}
-
-#[derive(Debug, Serialize,Deserialize)]
-pub enum ExtractedFile {
-    //Csv(path::PathBuf),
-    Csv { path: PathBuf, state: String, delimiter: char },
-    ImageArchive { path: PathBuf, state: String },
-}
-
-
-#[derive(Debug, Serialize,Deserialize)]
-pub struct SexOffenderArchive {
-    path: PathBuf,
-    size: usize,
-}
-
-
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone)]
-pub struct ImageInfo {
-    pub rpath: Option<String>,
-    pub name: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone)]
@@ -446,44 +365,7 @@ pub struct DownloadInfo {
     pub bytes_received: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone)]
-pub enum RecordStatus {
-    None,
-    InFlight,
-    Failed,
-    Downloaded,
-}
 
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone)]
-pub struct RecordInfo {
-    pub rpath: Option<String>,
-    pub name: Option<String>,
-    pub last_modified: Option<String>,
-    pub size: Option<i64>, //convert this to i64
-    pub status: RecordStatus,
-}
-
-
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone)]
-#[serde(tag = "type")]
-pub enum FileInfo {
-    Record(RecordInfo),
-    Image(ImageInfo),
-}
-
-impl FileInfo {
-    pub fn name(&self) -> String {
-        use FileInfo::*;
-        match *self {
-            Record(ref r) => r.name.as_ref().unwrap().to_string(),
-            Image(ref i) => i.name.as_ref().unwrap().to_string(), //as_ref().unwrap()
-        }
-    }
-
-   pub fn base_path(info: &FileInfo) -> path::PathBuf {
-      PathBuf::from("/some/cool/path")
-
-   }
 /*
     pub fn base_path(&self) -> path::PathBuf {
         use FileInfo::*;
@@ -508,16 +390,6 @@ impl FileInfo {
         fp
     }
 */
-    pub fn remote_path(&self) -> path::PathBuf {
-        use FileInfo::*;
-
-        path::PathBuf::from(
-            match *self {
-                Record(ref r) => format!("/{}{}", r.rpath.as_ref().unwrap(), SEX_OFFENDER_PATH),
-                Image(ref i) => format!("/{}{}", i.rpath.as_ref().unwrap(), SEX_OFFENDER_PATH),
-            }
-        )
-    }
 
     /*
     pub fn extract_path(&self) -> path::PathBuf {
@@ -532,9 +404,9 @@ impl FileInfo {
 
         fp
     } */
-}
 
 
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -556,3 +428,4 @@ mod tests {
         assert_eq!(true, true);
     }
 }
+*/

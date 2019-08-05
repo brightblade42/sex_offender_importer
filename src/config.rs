@@ -52,6 +52,7 @@ impl FtpConfig {
 }
 
 pub type ConfigResult = Result<HashMap<String,String>, Box<std::error::Error>>;
+
 pub trait Config {
     fn load(env: &Env) -> ConfigResult;//Result<HashMap<String,String>, Box<std::error::Error>>;
 }
@@ -62,7 +63,6 @@ pub struct PathVars {
 
 impl PathVars {
     pub fn new(env: Env) -> Self {
-
         let vars = PathVars::load(&env).expect("Unable to create PathVars hash map");
 
         PathVars {

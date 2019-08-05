@@ -1,9 +1,12 @@
 extern crate sex_offender;
+extern crate log;
 use std::error;
 extern crate ftp;
 use serde;
 
-use sex_offender::downloader::{DownloadOption, Downloader, ExtractedFile, FileInfo, RecordInfo};
+use sex_offender::types::{SexOffenderArchive, ExtractedFile, RecordInfo, FileInfo };
+use sex_offender::downloader::{DownloadOption, Downloader,   };
+use sex_offender::extractor::{Extractor};
 use sex_offender::importer::{import_data, prepare_import};
 
 use core::borrow::Borrow;
@@ -13,8 +16,94 @@ use std::collections::HashMap;
 use std::path;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
+use std::fs;
+use quicli::prelude::*;
+use structopt::StructOpt;
+use std::ffi::{OsStr, OsString};
 
-fn main() {
+#[derive(Debug, StructOpt)]
+struct SexOffenderCli {
+    #[structopt(long = "count", short = "n", default_value = "3")]
+    count: usize,
+
+    #[structopt(long = "extract", short = "x", default_value = "none")]
+    extract: String,
+    #[structopt(long = "import", short = "i", default_value = "new")]
+    import: String,
+    #[structopt(long = "download", short = "d", default_value = "new")]
+    download: String,
+
+    #[structopt(long = "list", short = "l", default_value = "new")]
+    list:String,
+    #[structopt(flatten)]
+    verbosity: Verbosity,
+}
+fn main() -> CliResult {
+
+    //let path_config = config::PathVars::new(config::Env::Dev);
+    //let ftp_conf = FtpConfig::init(config::Env::Test);
+    //let addr = format!("{}:{}", &ftp_conf.address, &ftp_conf.port);
+    //let args = Cli::from_args();
+    let args = SexOffenderCli::from_args();
+    args.verbosity.setup_env_logger("sexoffenderimporter")?;
+
+    let mut root_path = PathBuf::from("/home/d-rezzer/dev/eyemetric/ftp/us");
+
+    if args.extract == "alabama" {
+       root_path.push("alabama");
+       let sx = SexOffenderArchive::new(root_path.clone(), 0);
+
+
+        println!("{:?}", sx);
+
+       // Downloader::extract_archive(sx);
+    }
+    println!("{}", args.extract);
+
+
+//    test_root_dirs();
+   // log::info!("Reading first {} lines of {:?}", args.count, args.file);
+    Ok(())
+
+
+}
+
+#[test]
+fn connect_test() {
+
+    let path_config = config::PathVars::new(config::Env::Production);
+    let ftp_config = FtpConfig::init(config::Env::Production);
+
+   assert_eq!(1,0)
+}
+
+#[test]
+fn disconnect_test() {
+   assert_eq!(1,0)
+}
+
+//#[test]
+fn test_root_dirs() {
+    let root_path = PathBuf::from("/home/d-rezzer/dev/eyemetric/ftp/us");
+    //let iter = fs::read_dir(root_path);
+    let mut flist = fs::read_dir(root_path).unwrap();//.collect();
+
+    for f in flist {
+        let de = f.unwrap();
+        println!("{:?}", de);
+        for arch in fs::read_dir(de.path()).unwrap() {
+            println!("==> {:?}", arch.unwrap());
+        }
+
+    }
+}
+
+fn extract_state_archive() {
+
+    let path_vars = config::PathVars::new(config::Env::Dev);
+
+}
+fn main_old() {
     let path_config = config::PathVars::new(config::Env::Dev);
     let ftp_conf = FtpConfig::init(config::Env::Test);
 
@@ -90,7 +179,6 @@ fn main() {
 
     downloader.disconnect();
 }
-
 
 fn get_remote_file_list(downloader: &mut Downloader) -> Vec<Result<FileInfo, Box<error::Error>>> {
     //set up some filters
