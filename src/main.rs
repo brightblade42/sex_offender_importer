@@ -20,6 +20,7 @@ use std::fs;
 use quicli::prelude::*;
 use structopt::StructOpt;
 use std::ffi::{OsStr, OsString};
+use std::fs::read_dir;
 
 #[derive(Debug, StructOpt)]
 struct SexOffenderCli {
@@ -47,19 +48,48 @@ fn main() -> CliResult {
     let args = SexOffenderCli::from_args();
     args.verbosity.setup_env_logger("sexoffenderimporter")?;
 
-    let mut root_path = PathBuf::from("/home/d-rezzer/dev/eyemetric/ftp/us");
+    let path_vars = PathVars::new(config::Env::Dev);
+    let mut root_path = PathBuf::from(&path_vars.vars["local_archive_path"]);
 
-    if args.extract == "alabama" {
+    //if args.extract == "alabama" {
        root_path.push("alabama");
-       let sx = SexOffenderArchive::new(root_path.clone(), 0);
+
+        let st_files = read_dir(root_path).unwrap();
+        prepare_import();
+        for stf in st_files {
+            let fnn = stf.unwrap();
+            println!("{:?}", fnn.path());
+            //let conf = path_vars
+            let sx = SexOffenderArchive::new(fnn.path(), 0);
+            let mut ext = Extractor::new(&path_vars);
+
+            //if sx.path.ends_with("ALSX_2019_06_10_1023_records.zip") {
+
+                let ef = ext.extract_archive(&sx).unwrap();
+                for exfile in ef {
+                    match import_data(&exfile) {
+                        Ok(()) => {
+                            println!("imported file {:?}", &exfile);
+                        }
+                        Err(e) => {
+                            println!("Error importing file {:?}", e);
+                            println!("ex: {:?}", &exfile);
+                        }
+                    }
+                }
+           // }
 
 
-        println!("{:?}", sx);
+//            let extracted_files = ext.extract_archive(&sx);
+//
+//            for ef in extracted_files {
+//                println!("{:?}", ef);
+//            }
 
-       // Downloader::extract_archive(sx);
-    }
+        }
+   // }
+
     println!("{}", args.extract);
-
 
 //    test_root_dirs();
    // log::info!("Reading first {} lines of {:?}", args.count, args.file);

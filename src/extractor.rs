@@ -1,21 +1,29 @@
 use crate::types::{SexOffenderArchive, ExtractedFile};
+use crate::config::{PathVars};
 use std::path::{Path, PathBuf};
 use std::io::{BufWriter, BufReader};
 use std::fs::{self, File};
 use std::ffi::OsStr;
+use ftp::status::PATH_CREATED;
 
 
 type GenError = Box<dyn std::error::Error>;
 pub type Result<T> = ::std::result::Result<T, Box<dyn std::error::Error>>;
 
-pub struct Extractor {
-
+pub struct Extractor<'a> {
+   config: &'a PathVars,
 }
 
-impl Extractor {
+impl Extractor<'_> {
+   pub fn new(config: &PathVars) -> Extractor {
 
-    fn generate_extract_path(&self, state: &str, archive_path: &PathBuf, file_name: &OsStr) -> PathBuf {
-        let mut extraction_path = archive_path.parent().unwrap().to_path_buf().clone();
+      Extractor {
+           config,
+      }
+   }
+   fn generate_extract_path(&self, state: &str, archive_path: &PathBuf, file_name: &OsStr) -> PathBuf {
+//        let mut extraction_path = archive_path.parent().unwrap().to_path_buf().clone();
+        let mut extraction_path = PathBuf::from(&self.config.vars["extraction_path"]);
         extraction_path.push(state);
 
         if archive_path.to_string_lossy().contains("records") {
@@ -38,9 +46,9 @@ impl Extractor {
     ///
     ///
     ///
-    pub fn extract_archive(&mut self, sx_archive: SexOffenderArchive) -> Result<Vec<ExtractedFile>> {
+    pub fn extract_archive(&mut self, sx_archive: &SexOffenderArchive) -> Result<Vec<ExtractedFile>> {
         let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
-        let mut archive_path: PathBuf = sx_archive.path;
+        let mut archive_path: &PathBuf = &sx_archive.path;
         let mut state_abbrev = &archive_path.file_name().unwrap().to_str().unwrap()[..2];
         let file = BufReader::new(File::open(&archive_path)?);
         let mut archive = zip::ZipArchive::new(file)?;
@@ -52,13 +60,13 @@ impl Extractor {
                 continue;
             }
 
-            let file_name = embedded_file.sanitized_name();
-            let extraction_path = self.generate_extract_path(state_abbrev.clone(), &archive_path, file_name.as_os_str());
+            let embedded_file_name = embedded_file.sanitized_name();
+            let extraction_path = self.generate_extract_path(state_abbrev.clone(), &archive_path, embedded_file_name.as_os_str());
             let mut outfile = BufWriter::new(File::create(&extraction_path)?);
             std::io::copy(&mut embedded_file, &mut outfile)?;
             println!("wrote: {}", extraction_path.display());
 
-            match file_name.extension() {
+            match embedded_file_name.extension() {
                 Some(ext) if ext == "csv" => {
                     let ex_file = ExtractedFile::Csv { path: extraction_path.clone(), state: String::from(state_abbrev), delimiter: '|' };
                     println!("csv file: {:?}", &ex_file);

@@ -22,7 +22,6 @@ impl SexOffenderArchive {
 
 #[derive(Debug, Serialize,Deserialize)]
 pub enum ExtractedFile {
-    //Csv(path::PathBuf),
     Csv { path: PathBuf, state: String, delimiter: char },
     ImageArchive { path: PathBuf, state: String },
 }

@@ -12,9 +12,10 @@ use std::string::ToString;
 use super::types::ExtractedFile;
 use zip;
 use zip::ZipArchive;
+
 static SQL_PATH: &'static str = "/home/d-rezzer/dev/sex_offender/archives/sexoffenders.sqlite";
 
-fn open_csv_reader(file: File, delim: char) -> Result<csv::Reader<File>, Box<Error>> {
+fn open_csv_reader(file: File, delim: char) -> Result<csv::Reader<File>, Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new()
         .delimiter(delim as u8)
         .from_reader(file);
@@ -164,7 +165,7 @@ pub fn prepare_import() -> Result<(), Box<Error>> {
 
 //after the archived files have been extracted, we import them into
 //a sqlite file
-pub fn import_data(extracted_file: &ExtractedFile) -> Result<(), Box<Error>> {
+pub fn import_data(extracted_file: &ExtractedFile) -> Result<(), Box<dyn Error>> {
     use ExtractedFile::*;
     let conn = Connection::open(SQL_PATH)?;
 
