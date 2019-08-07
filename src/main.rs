@@ -39,23 +39,29 @@ struct SexOffenderCli {
     #[structopt(flatten)]
     verbosity: Verbosity,
 }
-fn main() -> CliResult {
+fn main()  {
 
     //let path_config = config::PathVars::new(config::Env::Dev);
     //let ftp_conf = FtpConfig::init(config::Env::Test);
     //let addr = format!("{}:{}", &ftp_conf.address, &ftp_conf.port);
     //let args = Cli::from_args();
-    let args = SexOffenderCli::from_args();
-    args.verbosity.setup_env_logger("sexoffenderimporter")?;
+//    let args = SexOffenderCli::from_args();
+ //   args.verbosity.setup_env_logger("sexoffenderimporter").unwrap();
 
     let path_vars = PathVars::new(config::Env::Dev);
-    let mut root_path = PathBuf::from(&path_vars.vars["local_archive_path"]);
+    let sql_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["sex_offender_db"]);
+    //println!("{:?}", path_vars.vars);
+    println!("sql path: {}", sql_path.to_str().unwrap());
+   //let mut root_path = PathBuf::from(&path_vars.vars["archives_path"]);
 
-    //if args.extract == "alabama" {
+    let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["archives_path"]);
+ //   if args.extract == "alabama" {
        root_path.push("alabama");
 
+    println!("hello");
         let st_files = read_dir(root_path).unwrap();
-        prepare_import();
+
+        prepare_import(sql_path.to_str().unwrap());
         for stf in st_files {
             let fnn = stf.unwrap();
             println!("{:?}", fnn.path());
@@ -63,11 +69,10 @@ fn main() -> CliResult {
             let sx = SexOffenderArchive::new(fnn.path(), 0);
             let mut ext = Extractor::new(&path_vars);
 
-            //if sx.path.ends_with("ALSX_2019_06_10_1023_records.zip") {
 
                 let ef = ext.extract_archive(&sx).unwrap();
                 for exfile in ef {
-                    match import_data(&exfile) {
+                    match import_data(&exfile, sql_path.to_str().unwrap()) {
                         Ok(()) => {
                             println!("imported file {:?}", &exfile);
                         }
@@ -77,25 +82,10 @@ fn main() -> CliResult {
                         }
                     }
                 }
-           // }
-
-
-//            let extracted_files = ext.extract_archive(&sx);
-//
-//            for ef in extracted_files {
-//                println!("{:?}", ef);
-//            }
 
         }
-   // }
 
-    println!("{}", args.extract);
-
-//    test_root_dirs();
-   // log::info!("Reading first {} lines of {:?}", args.count, args.file);
-    Ok(())
-
-
+    println!("HELP! For fooks sake");
 }
 
 #[test]

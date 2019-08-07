@@ -22,22 +22,21 @@ impl Extractor<'_> {
       }
    }
    fn generate_extract_path(&self, state: &str, archive_path: &PathBuf, file_name: &OsStr) -> PathBuf {
-//        let mut extraction_path = archive_path.parent().unwrap().to_path_buf().clone();
-        let mut extraction_path = PathBuf::from(&self.config.vars["extraction_path"]);
-        extraction_path.push(state);
+        let mut extracts_path = PathBuf::from(&self.config.vars["app_base_path"]).join(&self.config.vars["extracts_path"]);
+        extracts_path.push(state);
 
         if archive_path.to_string_lossy().contains("records") {
-            extraction_path.push("records");
+            extracts_path.push("records");
         } else {
-            extraction_path.push("images");
+            extracts_path.push("images");
         }
 
-        println!("{:?}", extraction_path);
-        fs::create_dir_all(&extraction_path).expect("Unable to create extraction path");
+        println!("{:?}", extracts_path);
+        fs::create_dir_all(&extracts_path).expect("Unable to create extraction path");
 
-        extraction_path.push(file_name);
+        extracts_path.push(file_name);
 
-        extraction_path
+        extracts_path
 
     }
 
@@ -48,7 +47,7 @@ impl Extractor<'_> {
     ///
     pub fn extract_archive(&mut self, sx_archive: &SexOffenderArchive) -> Result<Vec<ExtractedFile>> {
         let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
-        let mut archive_path: &PathBuf = &sx_archive.path;
+        let mut archive_path: &PathBuf = &sx_archive.path; //this could come from the config. think on that
         let mut state_abbrev = &archive_path.file_name().unwrap().to_str().unwrap()[..2];
         let file = BufReader::new(File::open(&archive_path)?);
         let mut archive = zip::ZipArchive::new(file)?;
@@ -61,26 +60,26 @@ impl Extractor<'_> {
             }
 
             let embedded_file_name = embedded_file.sanitized_name();
-            let extraction_path = self.generate_extract_path(state_abbrev.clone(), &archive_path, embedded_file_name.as_os_str());
-            let mut outfile = BufWriter::new(File::create(&extraction_path)?);
+            let extracts_path = self.generate_extract_path(&state_abbrev, &archive_path, embedded_file_name.as_os_str());
+            let mut outfile = BufWriter::new(File::create(&extracts_path)?);
             std::io::copy(&mut embedded_file, &mut outfile)?;
-            println!("wrote: {}", extraction_path.display());
+            println!("wrote: {}", extracts_path.display());
 
             match embedded_file_name.extension() {
                 Some(ext) if ext == "csv" => {
-                    let ex_file = ExtractedFile::Csv { path: extraction_path.clone(), state: String::from(state_abbrev), delimiter: '|' };
+                    let ex_file = ExtractedFile::Csv { path: extracts_path, state: String::from(state_abbrev), delimiter: '|' };
                     println!("csv file: {:?}", &ex_file);
 
                     extracted_files.push(ex_file);
                 },
                 //TODO: make sure that files with txt extension always have a "," as delimiter. We're assuming based on incomplete data
                 Some(ext) if ext == "txt" => {
-                    let ex_file = ExtractedFile::Csv { path: extraction_path.clone(), state: String::from(state_abbrev), delimiter: ',' };
+                    let ex_file = ExtractedFile::Csv { path: extracts_path, state: String::from(state_abbrev), delimiter: ',' };
                     println!("txt file: {:?}", &ex_file);
                     extracted_files.push(ex_file);
                 }
                 Some(ext) if ext == "zip" => {
-                    let ex_file = ExtractedFile::ImageArchive { path: extraction_path.clone(), state: String::from(state_abbrev) };
+                    let ex_file = ExtractedFile::ImageArchive { path: extracts_path, state: String::from(state_abbrev) };
                     extracted_files.push(ex_file);
                 }
                 None => {

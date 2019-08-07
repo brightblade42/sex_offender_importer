@@ -7,7 +7,7 @@ use std::io::{BufReader, BufWriter, Read, Write};
 use std::path;
 
 use rusqlite::{params, Connection, ToSql, NO_PARAMS};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::string::ToString;
 use super::types::ExtractedFile;
 use zip;
@@ -155,8 +155,8 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
 
 use core::borrow::{Borrow, BorrowMut};
 
-pub fn prepare_import() -> Result<(), Box<Error>> {
-    let conn = Connection::open(SQL_PATH)?;
+pub fn prepare_import(sql_path: &str) -> Result<(), Box<Error>> {
+    let conn = Connection::open(sql_path)?;
 
     create_db(&conn).expect("something didn't create good.");
     conn.close();
@@ -165,96 +165,19 @@ pub fn prepare_import() -> Result<(), Box<Error>> {
 
 //after the archived files have been extracted, we import them into
 //a sqlite file
-pub fn import_data(extracted_file: &ExtractedFile) -> Result<(), Box<dyn Error>> {
+pub fn import_data(extracted_file: &ExtractedFile, sql_path: &str) -> Result<(), Box<dyn Error>> {
     use ExtractedFile::*;
-    let conn = Connection::open(SQL_PATH)?;
+    let conn = Connection::open(sql_path)?;
+
 
     match extracted_file {
-        Csv {
-            path,
-            state,
-            delimiter,
-        } => {
-            //this should be filtered out, really.
-            let dsp = path.display().to_string();
-            if dsp.contains("screenshot") {
-                //|| dsp.contains("photos") {
-                return Ok(());
-            }
-            let file = File::open(path)?; //.unwrap();
-
-            //how to decide on a delimiter
-            let mut csv_reader = open_csv_reader(file, delimiter.to_owned())?;
-
-            let table_name = String::from(path.file_stem().unwrap().to_str().unwrap());
-            drop_table(&conn, &table_name)?;
-            delete_old_photos(&conn, state.as_str());
-            let mut table_query = create_table_query(&mut csv_reader, &table_name)?;
-            conn.execute(&table_query, NO_PARAMS)?;
-
-            let insert_query = create_insert_query(&mut csv_reader, &table_name)?;
-            conn.execute("Begin Transaction;", NO_PARAMS);
-
-            //insert a record (line of csv) into sqlite table.
-            //we use as_bytes() because some data is not utf-8 compliant
-            for result in csv_reader.byte_records() {
-                match result {
-                    Ok(record) => {
-                        let mut rec = record.clone();
-                        rec.push_field(state.as_bytes());
-                        let res = conn.execute(&insert_query, &rec);
-                    }
-                    Err(e) => {
-                        println!("Row data error: {}", e);
-                    }
-                }
-            }
-            conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
+        Csv { path, state, delimiter, } => {
+            import_csv_files(&conn, path, state, delimiter);
         }
 
         ImageArchive { path, state } => {
-            let blob_table = create_blob_table_query();
-            conn.execute(&blob_table.unwrap(), NO_PARAMS);
+           import_images(&conn, path, state);
 
-            //1. we've got an archive of images. we don't want to write them
-            //to disk, we want to store them as blobs in sqlite.
-
-            //iterate images,
-            //validate,
-            //write to Vec<u8>
-            //write bytes to db.
-            let mut blob: Vec<u8> = vec![];
-
-            let file = BufReader::new(File::open(path).unwrap());
-            let mut archive = zip::ZipArchive::new(file)?;
-
-            conn.execute("BEGIN TRANSACTION;", NO_PARAMS);
-
-            for i in 0..archive.len() {
-                let mut img_file = archive.by_index(i)?;
-                let img_name = img_file.sanitized_name();
-                let img_size = img_file.size() as u32;
-                let name = img_name.display().to_string();
-                let idx = if let Some(p) = name.find('_') {
-                    p
-                } else {
-                    name.find('.').expect("a damn index")
-                };
-
-                let photo_id = &name[0..idx];
-                std::io::copy(&mut img_file, &mut blob);
-
-                let r = conn
-                    .execute(
-                        "INSERT into photos (id,name, size, data,state) VALUES (?,?,?,?,?)",
-                        params![photo_id, name, img_size, blob, state],
-                    )
-                    .expect("A damn image import");
-
-                blob.clear();
-            }
-
-            conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
         }
     };
 
@@ -262,10 +185,100 @@ pub fn import_data(extracted_file: &ExtractedFile) -> Result<(), Box<dyn Error>>
     Ok(())
 }
 
+fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &char) -> Result<(), Box<dyn Error>>{
+
+    //this should be filtered out, really.
+    let dsp = path.display().to_string();
+    if dsp.contains("screenshot") {
+        //|| dsp.contains("photos") {
+        return Ok(());
+    }
+    let file = File::open(path)?; //.unwrap();
+
+    //how to decide on a delimiter
+    let mut csv_reader = open_csv_reader(file, delimiter.to_owned())?;
+
+    let table_name = String::from(path.file_stem().unwrap().to_str().unwrap());
+    drop_table(&conn, &table_name)?;
+    let mut table_query = create_table_query(&mut csv_reader, &table_name)?;
+    conn.execute(&table_query, NO_PARAMS)?;
+
+    let insert_query = create_insert_query(&mut csv_reader, &table_name)?;
+    conn.execute("Begin Transaction;", NO_PARAMS);
+
+    //insert a record (line of csv) into sqlite table.
+    //we use as_bytes() because some data is not utf-8 compliant
+    for result in csv_reader.byte_records() {
+        match result {
+            Ok(record) => {
+                let mut rec = record.clone();
+                rec.push_field(state.as_bytes());
+                let res = conn.execute(&insert_query, &rec);
+            }
+            Err(e) => {
+                println!("Row data error: {}", e);
+            }
+        }
+    }
+    conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
+
+    Ok(())
+}
+
+fn import_images(conn: &Connection, path: &PathBuf, state: &str) -> Result<(), Box<dyn Error>>  {
+
+    let blob_table = create_blob_table_query();
+    conn.execute(&blob_table.unwrap(), NO_PARAMS);
+
+    delete_old_photos(&conn, state);
+    //1. we've got an archive of images. we don't want to write them
+    //to disk, we want to store them as blobs in sqlite.
+
+    //iterate images,
+    //validate,
+    //write to Vec<u8>
+    //write bytes to db.
+    let mut blob: Vec<u8> = vec![];
+
+    let file = BufReader::new(File::open(path).unwrap());
+    let mut archive = zip::ZipArchive::new(file)?;
+
+    conn.execute("BEGIN TRANSACTION;", NO_PARAMS);
+
+    for i in 0..archive.len() {
+        let mut img_file = archive.by_index(i)?;
+        let img_name = img_file.sanitized_name();
+        let img_size = img_file.size() as u32;
+        let name = img_name.display().to_string();
+        let idx = if let Some(p) = name.find('_') {
+            p
+        } else {
+            //name.find('.').expect("a damn index")
+            name.len()
+        };
+
+        let photo_id = &name[0..idx];
+        std::io::copy(&mut img_file, &mut blob);
+
+        //println!("image: {} {} {} {}", photo_id, name, img_size, state);
+        let r = conn
+            .execute(
+                "INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)",
+                params![photo_id, name, img_size, blob, state],
+            )
+            .expect("A damn image import");
+
+        blob.clear();
+    }
+
+    conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
+
+    Ok(())
+}
 //insert all the image files into a database table. Sounds wrong but it
 //oh so right.
-pub fn import_images(path: &Path) -> Result<(), Box<Error>> {
+/*pub fn import_images(path: &Path) -> Result<(), Box<Error>> {
     let lpath = path::Path::new(path);
     //lpath.iter().for_each()
     Ok(())
-}
+}*/

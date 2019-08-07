@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use crate::downloader::SexOffenderImportError::ConnectionError;
 use std::hash::Hash;
 
-static CONFIG: &'static str = "/home/d-rezzer/code/eyemetric/sexoffenderimporter/sql/config.sqlite";
+static CONFIG: &'static str = "/opt/eyemetric/sex_offender/config.sqlite";
 
 
 #[derive(Debug,Serialize, Deserialize)]
@@ -51,7 +51,7 @@ impl FtpConfig {
     }
 }
 
-pub type ConfigResult = Result<HashMap<String,String>, Box<std::error::Error>>;
+pub type ConfigResult = Result<HashMap<String,String>, Box<dyn std::error::Error>>;
 
 pub trait Config {
     fn load(env: &Env) -> ConfigResult;//Result<HashMap<String,String>, Box<std::error::Error>>;

@@ -108,8 +108,8 @@ impl Downloader {
     pub fn remote_file_list(&mut self, filter: fn(&String) -> bool, file_opt: DownloadOption) -> Vec<Result<FileInfo>> {
 
        let paths =  &self.config.vars; //TODO: consider loading once instead of every function call.
-       let remote_base_path = &paths["remote_base_path"];
-        let sex_offender_path = &paths["sex_offender_path"].to_string();
+       let remote_base_path = &paths["ftp_base_path"];
+        let sex_offender_path = &paths["ftp_sex_offender_path"].to_string();
         let state_folders = self.stream.nlst(Some(remote_base_path)).expect("Unable to get a remote file listing");
 
         let hard_filter = |x: &String| !x.contains(".txt") && !x.contains("united_states");
@@ -265,12 +265,13 @@ impl Downloader {
             }
         };
 
-        let pb = PathBuf::from(format!("{}{}", pb, &config.vars["sex_offender_path"] ));
+        let pb = PathBuf::from(format!("{}{}", pb, &config.vars["ftp_sex_offender_path"] ));
        pb
     }
 
     pub fn local_archive_base(fileinfo: &FileInfo, config: &PathVars ) -> PathBuf {
-        PathBuf::from(&config.vars["local_archive_path"])
+        PathBuf::from(&config.vars["app_base_path"]).join(&config.vars["archives_path"])
+        //PathBuf::from(&config.vars["archives_path"])
     }
 
     pub fn local_archive_path(fileinfo: &FileInfo, config: &PathVars) -> PathBuf {
