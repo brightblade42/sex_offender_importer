@@ -1,22 +1,3 @@
-select Address, Name, state from CA_SexOffenders_main
-union ALL
-select Address, Name, state from CO_SexOffenders_main limit 10;
-
-
-select Name,State  from CTSexOffenders_main
-UNION
-select Name, State from CO_SexOffenders_main
-limit 500;
-
--- 39 missing some states.
-select * from sqlite_master where name like '%main%' order by name;
---address tables 26
-select * from sqlite_master where name like '%_address%' order by name;
-
---main tables that contain the address data 13
-select * from sqlite_master where name  like '%main%'and sql like '%Address%' order by name;
-
-select * from sqlite_master order by type;
 
 --the odd balls. 4
 select * from sqlite_master where name like "%_sex_offenders";
@@ -27,8 +8,400 @@ select count(*) from SexOffender where state = "AR"
 select * from SexOffender where state = "AR"
 delete from SexOffender where state = "AR"
 
+Drop table ImportBuilder;
+create table ImportBuilder (Name TEXT, Query TEXT, Version INTEGER);
 
---order by state desc;
+delete from SexOffender where State = "AL";
+select * from SexOffender where State  = "AL";
+------------------- RI
+ Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
+-- WV --------------------------------------------------------------------
+SELECT id
+     ,name
+     ,DateOfBirth
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,gender as sex
+     ,trim(state) as state
+     -- aliases
+     ,json_array('Unknown') as aliases
+     -- addresses pookie
+     ,(SELECT
+           json_group_array(
+                   json_object ('address', cast(Street as TEXT)
+                       || ' ' || cast(City as TEXT)
+                       || ' ' || cast(Addr_State as TEXT)
+                       || ' ' || cast(Zip as TEXT)) )
+       FROM
+           (SELECT street,
+                   city,
+                    Addr_State,
+                   Zip
+            FROM WV_SexOffenders_addresses arad
+            where arad.ID = WV_SexOffenders_main.ID
+              and arad.state = WV_SexOffenders_main.state
+
+           )) as addresses
+     -- offenses
+     ,(SELECT
+           json_group_array (
+                   json_object ('offense', cast(offense as Text)
+                       ))
+       FROM
+
+           (SELECT Offense as offense
+            FROM WV_SexOffenders_offenses aro
+            where WV_SexOffenders_main.ID = aro.ID
+              and WV_SexOffenders_main.state = aro.state
+           )
+) as offenses
+     ,json_array("Unknown") as scarsTattoos
+     --photos
+     ,(select json_group_array(cast(PhotoFile as Text))
+       from (select PhotoFile from WV_SexOffenders_photos azp
+             where azp.id = WV_SexOffenders_main.id
+               and azp.state = WV_SexOffenders_main.state)) as photos
+
+
+from WV_SexOffenders_main;
+
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
+select id
+     ,name
+     ,DOB as DateOfBirth
+     ,Eyes
+     ,Hair
+     ,Height
+     ,Weight
+     ,race
+     ,sex
+     ,trim(state) as state
+     -- aliases
+    ,json_array("Unknown") as aliases
+     --addresses
+     ,json_array(json_object('address', cast(Address as TEXT) || ' ' ||  cast(CityTown as TEXT))) as addresses
+     --offenses
+     ,json_array(json_object('offenses', cast(ConvictedOf as TEXT))) as offenses
+     --scars tattoos
+    ,json_array("Unknown") as scarsTatoos
+     --photos
+     ,(select json_group_array(cast(PhotoFile as TEXT))
+       from (select PhotoFile from RISexOffenders_photos azp
+             where azp.id = RISexOffenders_main.id
+               and azp.state = RISexOffenders_main.state)) as photos
+
+from RISexOffenders_main;
+
+------------OK
+
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
+select id
+     ,name
+     ,DOB as DateOfBirth
+
+     ,EyeColor as eyes
+     ,HairColor as hair
+     ,height
+     ,weight
+     ,race
+     ,sex
+     ,trim(state) as state
+     -- aliases
+     -- aliases
+     ,( SELECT json_group_array (cast(alias as TEXT))
+        FROM
+            (SELECT aliases as alias
+             FROM OKSexOffenders_alias als
+             WHERE als.id = OKSexOffenders_main.id
+               AND OKSexOffenders_main.state = als.state)
+) as "aliases"
+
+     -- addresses
+     ,(SELECT
+           json_group_array(
+                   json_object ('address', cast(address as TEXT), 'type', cast(type as TEXT)) )
+       FROM
+           (SELECT address,
+                   type
+            FROM OKSexOffenders_addresses arad
+            where arad.ID = OKSexOffenders_main.ID
+              and arad.state = OKSexOffenders_main.state
+
+           )) as addresses
+
+     --offenses
+     ,(SELECT
+           json_group_array (
+                   json_object ('offense', cast(offense as TEXT))
+               )
+       FROM
+
+           (SELECT
+                Crime as offense
+            FROM OKSexOffenders_offenses aro
+            where OKSexOffenders_main.ID = aro.ID
+              and OKSexOffenders_main.state = aro.state
+           )
+) as offenses
+     -- scarsTattoos
+     ,(select json_group_array( cast(type as TEXT) || ' ' || cast(smt as text))
+       from (select Description as smt, type from OKSexOffenders_scars_marks_tattoos smts
+             where smts.id = OKSexOffenders_main.id
+               and smts.state = OKSexOffenders_main.state)) as scarsTattoos
+
+     ,(select json_group_array(cast(PhotoFile as TEXT))
+       from (select PhotoFile from OKSexOffenders_photos azp
+             where azp.id = OKSexOffenders_main.id
+               and azp.state = OKSexOffenders_main.state)) as photos
+
+
+from OKSexOffenders_main;
+
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
+select id
+     ,ifnull(LastName,'') || ', ' || ifnull(FirstName,'') || ' ' || ifnull(MiddleName,'') as name
+     ,DateOfBirth
+     ,Eyes
+     ,Hair
+     ,Height
+     ,Weight
+     ,race
+     ,gender as sex
+     ,trim(state) as state
+     -- aliases
+     ,( SELECT json_group_array (cast(alias as TEXT))
+        FROM
+            (SELECT alias
+             FROM MS_SexOffenders_aliases als
+             WHERE als.id = MS_SexOffenders_main.id
+               AND MS_SexOffenders_main .state = als.state)
+) as aliases
+
+     --addresses
+/*
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT)
+                          || ' ' ||  cast(City as TEXT)
+                          || ' ' || cast(Addr_State AS TEXT),
+                                  'type', cast(Type as TEXT)
+                          ))
+
+       FROM (SELECT Address,City, Addr_State, Type
+             FROM HI_sex_offender_addresses arad
+             where arad.ID = HI_sex_offender_main.ID
+               and arad.state = HI_sex_offender_main.state)
+)as addresses
+*/
+     ,json_array(json_object('address', cast(PrimaryAddress as TEXT))) as addresses
+     --offenses
+     ,(SELECT
+           json_group_array (
+                   json_object ('offense', cast(offense as Text)
+                       ))
+       FROM
+
+           (SELECT  offense
+            FROM MS_SexOffenders_offenses aro
+            where MS_SexOffenders_main.ID = aro.ID
+              and MS_SexOffenders_main.state = aro.state
+           )
+) as offenses
+     --scars tattoos
+     ,(select json_group_array( cast(smt as text))
+       from (select ScarTattoo as smt from MS_SexOffenders_smts smts
+             where smts.id = MS_SexOffenders_main.id
+               and smts.state = MS_SexOffenders_main.state)) as scarsTattoos
+
+     --photos
+     ,(select json_group_array(cast(PhotoFile as TEXT))
+       from (select PhotoFile from MS_SexOffenders_photos azp
+             where azp.id = MS_SexOffenders_main.id
+               and azp.state = MS_SexOffenders_main.state)) as photos
+
+from MS_SexOffenders_main;
+
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
+
+---------------IA -
+select id
+      ,ifnull(Last_Name,'') || ', ' || ifnull(First_Name,'') || ' ' || ifnull(Middle_Name,'') as name
+     ,birthdate as DateOfBirth
+     ,eye_color as Eyes
+     ,hair_color as Hair
+     ,height_inches as Height
+     ,weight_pounds as Weight
+     ,race
+     ,gender as sex
+     ,trim(state) as state
+     -- aliases
+     ,( SELECT json_group_array (cast(last_name as TEXT) || ',' || cast(first_name as TEXT ) || ' ' || cast(middle_name as TEXT))
+        FROM
+            (SELECT als.last_name, als.first_name, als.middle_name
+
+             FROM IA_sex_offender_aliases als
+             WHERE als.id = IA_sex_offender_main.id
+               AND IA_sex_offender_main .state = als.state)
+) as aliases
+
+     --addresses
+/*
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT)
+                          || ' ' ||  cast(City as TEXT)
+                          || ' ' || cast(Addr_State AS TEXT),
+                                  'type', cast(Type as TEXT)
+                          ))
+
+       FROM (SELECT Address,City, Addr_State, Type
+             FROM HI_sex_offender_addresses arad
+             where arad.ID = HI_sex_offender_main.ID
+               and arad.state = HI_sex_offender_main.state)
+)as addresses
+*/
+     ,json_array(json_object('address', cast(address as TEXT))) as addresses
+     --offenses
+     ,(SELECT
+           json_group_array (
+                   json_object ('offense', cast(offense as Text)
+                       ))
+       FROM
+
+           (SELECT conviction as offense
+            FROM IA_sex_offender_convictions aro
+            where IA_sex_offender_main.ID = aro.ID
+              and IA_sex_offender_main.state = aro.state
+           )
+) as offenses
+     --scars tattoos
+     ,(select json_group_array( cast(smt as text))
+       from (select skin_marking as smt from IA_Sex_Offender_smts smts
+             where smts.id = IA_Sex_Offender_main.id
+               and smts.state = IA_Sex_Offender_main.state)) as scarsTattoos
+
+     --photos
+     ,(select json_group_array(cast(PhotoFile as TEXT))
+       from (select PhotoFile from IA_sex_offender_photos azp
+             where azp.id = IA_sex_offender_main.id
+               and azp.state = IA_sex_offender_main.state)) as photos
+
+from IA_sex_offender_main;
+
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
+-- IL --------------------------------------------------------------------
+SELECT id
+     ,name
+     ,DOB  as DateOfBirth
+     ,'' as eyes
+     ,'' as hair
+     ,height
+     ,weight
+     ,race
+     ,sex
+     ,trim(state) as state
+     -- aliases
+     ,(SELECT json_group_array(cast(alias as Text))
+       FROM
+           (SELECT alias
+            FROM ILSexOffenders_aliases als
+            WHERE als.id = ILSexOffenders_main.id
+              AND ILSexOffenders_main.state = als.state
+           )
+) as aliases
+     -- addresses
+     ,json_array(
+        json_object('address', cast(address as Text) || ' ' || cast(City as TEXT))) as addresses
+
+     -- offenses
+     ,(SELECT
+           json_group_array (
+                   json_object ('offense', cast(offense as Text)
+                       ))
+       FROM
+
+           (SELECT Crime as offense
+            FROM ILSexOffenders_crimes aro
+            where ILSexOffenders_main.ID = aro.ID
+              and ILSexOffenders_main.state = aro.state
+           )
+) as offenses
+     ,json_array("Unknown") as scarsTattoos
+     --photos
+     ,(select json_group_array(cast(Photo as Text))
+       from (select Photo from AR_sex_offender_photos azp
+             where azp.id = ILSexOffenders_main.id
+               and azp.state = ILSexOffenders_main.state)) as photos
+
+
+from ILSexOffenders_main;
+
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
+
+----------------HI
+select id
+     ,full_name as name
+     ,year_of_birth as DateOfBirth
+     ,eye_color as Eyes
+     ,hair_color as Hair
+     ,Height
+     ,Weight
+     ,race
+     ,gender as sex
+     ,trim(state) as state
+     -- aliases
+     ,( SELECT json_group_array (cast(alias as TEXT))
+        FROM
+            (SELECT alias
+
+             FROM HI_sex_offender_aliases als
+             WHERE als.id = HI_sex_offender_main.id
+               AND HI_sex_offender_main .state = als.state)
+) as aliases
+
+     --addresses
+/*
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT)
+                          || ' ' ||  cast(City as TEXT)
+                          || ' ' || cast(Addr_State AS TEXT),
+                                  'type', cast(Type as TEXT)
+                          ))
+
+       FROM (SELECT Address,City, Addr_State, Type
+             FROM HI_sex_offender_addresses arad
+             where arad.ID = HI_sex_offender_main.ID
+               and arad.state = HI_sex_offender_main.state)
+)as addresses
+*/
+    ,json_array("Unknown") as addresses
+     --offenses
+     ,(SELECT
+           json_group_array (
+                   json_object ('offense', cast(offense as Text)
+                       ))
+       FROM
+
+           (SELECT offense
+            FROM HI_sex_offender_offenses aro
+            where HI_sex_offender_main.ID = aro.ID
+              and HI_sex_offender_main.state = aro.state
+           )
+) as offenses
+     --scars tattoos
+     ,(select json_group_array( cast(smt as text))
+       from (select Scars_Marks_Tattoos as smt from HI_Sex_Offender_smts smts
+             where smts.id = HI_Sex_Offender_main.id
+               and smts.state = HI_Sex_Offender_main.state)) as scarsTattoos
+
+     --photos
+     ,(select json_group_array(cast(PhotoFile as TEXT))
+       from (select PhotoFile from HI_sex_offender_photos azp
+             where azp.id = HI_sex_offender_main.id
+               and azp.state = HI_sex_offender_main.state)) as photos
+
+from HI_sex_offender_main;
 
 Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 
@@ -92,6 +465,7 @@ select id
                and azp.state = AK_sex_offender_main.state)) as photos
 
 from AK_sex_offender_main;
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 -- AR --------------------------------------------------------------------
 SELECT id
      ,name
@@ -128,8 +502,10 @@ SELECT id
                and azp.state = AR_sex_offender_main.state)) as photos
 
 
-from AR_sex_offender_main
-UNION
+from AR_sex_offender_main;
+--UNION
+
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 -- AL_sex_offenders -----------------------------------------------------------
 select r_Image as id
        ,name
@@ -162,10 +538,11 @@ select r_Image as id
 
        ,json_array(cast(r_Image as Text)) as photos
 
-from al_sex_offenders
-Union
+from al_sex_offenders;
+-- Union
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 --KS -------------------------------------------------------------
-select 0 as id
+select ifnull(cast(r_Image as TEXT),'0') as id
      , name
      , r_Birth_Date as DateOfBirth
      ,r_Eye_Color as eyes
@@ -200,10 +577,11 @@ select 0 as id
        ,json_array(cast(r_Image as Text)) as photos
 
 
-from ks_sex_offenders
-Union
+from ks_sex_offenders;
+-- Union
 -- MT ------------------------------------------------------------------
-select 0 as id
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
+select ifnull(case_num,'0') as id
      , name
      , r_Birth_Date as DateOfBirth
 
@@ -237,13 +615,13 @@ select 0 as id
         --photos
        ,json_array(cast(r_Image as Text)) as photos
 
-from mt_sex_offenders
-Union
+from mt_sex_offenders;
+-- Union
 -- TN --------------------------------------------------------------------------------
-select 0 as id
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
+select ifnull(case_num, '0') as id
      , name
      , r_Birth_Date as DateOfBirth
-
      ,r_Eye_Color as eyes
      ,r_Hair_Color as hair
      ,r_Height as height
@@ -273,8 +651,8 @@ select 0 as id
        --photos
        ,json_array(cast(r_Image as Text)) as photos
 
-from tn_sex_offenders
-Union
+from tn_sex_offenders;
+-- Union
 
 --------------------------------------------------------------------
 
@@ -324,9 +702,9 @@ SELECT id
                 and azp.state = AZ_SexOffenders_main.state)) as photos
 
 
-from AZ_SexOffenders_main
+from AZ_SexOffenders_main;
 
-UNION
+-- UNION
 
 
 
@@ -335,6 +713,8 @@ UNION
 select count(*) from CA_SexOffenders_photos;
 
  */
+
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 -- CA ---------------------------------------------------------
 SELECT id
        ,name
@@ -374,7 +754,7 @@ SELECT id
        ) as offenses
         --scars tattoos
         ,(select json_group_array( cast(smt as text))
-          from (select ScarMarkTattoo as smt from NCSexOffenders_smts smts
+          from (select ScarsMarksTattoos as smt from CA_SexOffenders_smts smts
                 where smts.id = CA_SexOffenders_main.id
                   and smts.state = CA_SexOffenders_main.state)) as scarsTattoos
 
@@ -385,15 +765,17 @@ SELECT id
                 and azp.state = CA_SexOffenders_main.state)) as photos
 
 
-from CA_SexOffenders_main
+from CA_SexOffenders_main;
 /*
 CREATE TABLE GA_SexOffenders_main ( Absconder,  EyeColor,  FirstName,  HairColor,  Height,  ID,  LastKnownAddress,  LastName,
   Leveling,  MiddleName,  Predator,  Race,  RegistrationDate,  ResidenceVerificationDate,  Sex,  Suffix,  Weight,  YearOfBirth, state )
 */
 
-UNION
+-- UNION
 
 --- GA ---------------------------------------------------
+
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 SELECT id
        ,ifnull(LastName,'') || ', ' || ifnull(FirstName,'') || ' ' || ifnull(MiddleName,'') as name
        --'' as age,
@@ -408,37 +790,24 @@ SELECT id
      ,trim(state) as state
      -- aliases
        -- aliases TODO: MISSING TABLE
-       /*
-       (SELECT json_group_array(cast(alias as Text))
-        FROM
-            (SELECT alias
-             FROM GA_SexOffenders_alias als
-             WHERE als.id = GA_SexOffenders_main.id
-               AND GA_SexOffenders_main.state = als.state
-            )
-       ) as aliases,
-
-        */
-        ,json_array("Update pending") as aliases
+        ,json_array("Unknown") as aliases
        --addresses
        ,json_array(
                json_object('address', cast(LastKnownAddress as Text))) as addresses
 
        -- offenses TODO: MISSING TABLE
-       /*(SELECT
-            json_group_array(json_object ( 'offense', cast(offense as Text)
+       ,(SELECT
+            json_group_array(json_object ( 'offense', cast(Offense as Text)
                 ))
-        FROM (SELECT OffenseDescription as offense
+        FROM (SELECT Offense
               FROM GA_SexOffenders_offenses azo
               WHERE azo.id = GA_SexOffenders_main.id
                 and GA_SexOffenders_main.state = azo.state
              )
-       ) as offenses,
+       ) as offenses
 
-        */
-        ,json_array("Update pending") as offenses
        --scarsTattoos
-       ,json_array("Update Pending") as scarsTattoos
+       ,json_array("Unknown") as scarsTattoos
 
        --photos
        ,(select json_group_array(cast(PhotoFile as Text))
@@ -446,9 +815,10 @@ SELECT id
               where azp.id = GA_SexOffenders_main.id
                 and azp.state = GA_SexOffenders_main.state)) as photos
 
-From GA_SexOffenders_main
-UNION
+From GA_SexOffenders_main;
+-- UNION
 --- ID ----------------------------------------------------
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 SELECT id
        ,ifnull(LastName,'') || ', ' || ifnull(FirstName,'') || ' ' || ifnull(MiddleName,'') as name
        ,DateOfBirth
@@ -469,8 +839,9 @@ SELECT id
          )
     ) as aliases
 
+     --addresses
     ,json_array(
-               json_object('address', cast(Address as TEXT) || ' ' || cast(CityStateZip as TEXT))) as addresses
+               json_object('address', cast(Address as TEXT) || ' ' || cast(Addr_State as TEXT))) as addresses
 
     --offenses
     ,(SELECT
@@ -492,9 +863,10 @@ SELECT id
               where azp.id = IDSexOffenders_main.id
                 and azp.state = IDSexOffenders_main.state)) as photos
 
-From IDSexOffenders_main
-UNION
+From IDSexOffenders_main;
+-- UNION
 --- MN ----------------------------------------------------
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 SELECT id
        ,ifnull(Name,'') as Name
        ,DateOfBirth
@@ -532,9 +904,10 @@ SELECT id
               where azp.id = MN_SexOffenders_main.id
                 and azp.state = MN_SexOffenders_main.state)) as photos
 
-From MN_SexOffenders_main
-union
+From MN_SexOffenders_main;
+-- union
 --- NC  -------------------------------------
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 SELECT id
      ,ifnull(Name,'') as Name
      ,DateOfBirth
@@ -573,10 +946,11 @@ SELECT id
                and azp.state = NCSexOffenders_main.state)) as photos
 
 
-From NCSexOffenders_main
-Union
+From NCSexOffenders_main;
+-- Union
 
 --- ND  -------------------------------------
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 SELECT id
      ,ifnull(Name,'') as Name
      ,DateOfBirth
@@ -621,11 +995,12 @@ SELECT id
                and azp.state = NDSexOffenders_main.state)) as photos
 
 
-From NDSexOffenders_main
+From NDSexOffenders_main;
 
-union
+-- union
 
 --- OR  -------------------------------------
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 SELECT id
      ,ifnull(Name,'') as Name
      ,DOB as DateOfBirth
@@ -642,11 +1017,11 @@ SELECT id
      ,json_array("None Reported") as aliases
     --address
      ,json_array(
-        json_object('address', cast(Residence as TEXT))) as addresses
+        json_object('address', cast(Residence_Address as TEXT))) as addresses
      --offenses
    ,(SELECT
 		json_group_array (
-			json_object ('offense', offense)
+			json_object ('offense', cast(offense as TEXT))
 		)
 		FROM
 
@@ -668,10 +1043,11 @@ SELECT id
                and azp.state = ORSexOffenders_main.state)) as photos
 
 
-From ORSexOffenders_main
-Union
+From ORSexOffenders_main;
+-- Union
 
 --- SD  -------------------------------------
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 SELECT id
      ,ifnull(Name,'') as Name
 
@@ -719,10 +1095,11 @@ SELECT id
                and azp.state = SDSexOffenders_main.state)) as photos
 
 
-From SDSexOffenders_main
+From SDSexOffenders_main;
 
-UNION
+-- UNION
 --- UT  -------------------------------------
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 SELECT id
      ,Name
      ,DOB as DateOfBirth
@@ -772,10 +1149,11 @@ SELECT id
                and azp.state = UT_SexOffenders_main.state)) as photos
 
 
-From UT_SexOffenders_main
+From UT_SexOffenders_main;
 
-Union
+-- Union
 --- VT  -------------------------------------
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 SELECT id
      ,Name
      ,DateOfBirth
@@ -803,9 +1181,7 @@ SELECT id
         json_object('address', cast(Address as Text))) as addresses
 
      --offenses
-     ,json_array("Pending Update") as offenses
-     --TODO: MISSING TABLE
-/*
+
      ,(SELECT
            json_group_array ( json_object ('offense', cast(offense as TEXT) ))
        FROM
@@ -814,7 +1190,8 @@ SELECT id
                 OffenseDescription as offense
             FROM VTSexOffenders_offenses aro where VTSexOffenders_main.ID = aro.ID
                                                 and VTSexOffenders_main.state = aro.state
-           )) as offenses*/
+           )) as offenses
+
     --scarsTattoos
      ,(select json_group_array( cast(smt as text))
        from (select ScarsMarksTattoos as smt from VTSexOffenders_smts smts
@@ -827,9 +1204,10 @@ SELECT id
                and azp.state = VTSexOffenders_main.state)) as photos
 
 
-From VTSexOffenders_main
-UNION
+From VTSexOffenders_main;
+-- UNION
 --- WA  -------------------------------------
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 SELECT id
      ,Name
      ,age as DateOfBirth
@@ -879,12 +1257,13 @@ SELECT id
                and azp.state = WA_SexOffenders_main.state)) as photos
 
 
-From WA_SexOffenders_main
-UNION
+From WA_SexOffenders_main;
+-- UNION
 -- The remaining
 
 ------------ CO
 
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
        ,name
        ,DateOfBirth
@@ -949,9 +1328,10 @@ select id
                 and azp.state = CO_SexOffenders_main.state)) as photos
 
 
-from CO_SexOffenders_main
-Union
+from CO_SexOffenders_main;
+-- Union
 
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 ------------- CT
 select id
      ,name
@@ -983,7 +1363,7 @@ select id
        FROM
            (SELECT address,
                    AddressExtended,
-                   CityStateZip
+                   Addr_State as CityStateZip
             FROM CTSexOffenders_addresses arad
             where arad.ID = CTSexOffenders_main.ID
               and arad.state = CTSexOffenders_main.state
@@ -1016,8 +1396,10 @@ select id
                and azp.state = CTSexOffenders_main.state)) as photos
 
 
-from CTSexOffenders_main
-union
+from CTSexOffenders_main;
+-- union
+
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 -------------DE
 select id
      ,name
@@ -1048,7 +1430,7 @@ select id
                        ,'type',cast(Type as TEXT)))
        FROM
            (SELECT street,
-                   CityStateZip,
+                  Addr_State as CityStateZip,
                    Type
             FROM DE_SexOffenders_addresses arad
             where arad.ID = DE_SexOffenders_main.ID
@@ -1086,9 +1468,10 @@ select id
                and azp.state = DE_SexOffenders_main.state)) as photos
 
 
-from DE_SexOffenders_main
-union
+from DE_SexOffenders_main;
+-- union
 
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 ------------- FL
 select id
      ,name
@@ -1119,7 +1502,7 @@ select id
                        ))
        FROM
            (SELECT street,
-                   CityStateZip
+                   Addr_State as  CityStateZip
             FROM FL_SexOffenders_addresses arad
             where arad.ID = FL_SexOffenders_main.ID
               and arad.state = FL_SexOffenders_main.state
@@ -1152,8 +1535,10 @@ select id
                and azp.state = FL_SexOffenders_main.state)) as photos
 
 
-from FL_SexOffenders_main
-Union
+from FL_SexOffenders_main;
+
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
+-- Union
 -------------ID
 select id
      ,name
@@ -1205,9 +1590,10 @@ select id
                and azp.state = IDSexOffenders_main.state)) as photos
 
 
-from IDSexOffenders_main
-Union
+from IDSexOffenders_main;
+-- Union
 --------- IN
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,YearOfBirth as DateOfBirth
@@ -1271,13 +1657,13 @@ select id
                and azp.state = INSexOffenders_main.state)) as photos
 
 
-from INSexOffenders_main
-Union
+from INSexOffenders_main;
+-- Union
 ------------------ LA
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,DateOfBirth
-
      ,eyes
      ,hair
      ,height
@@ -1335,10 +1721,11 @@ select id
              where azp.id = LA_SexOffenders_main.id
                and azp.state = LA_SexOffenders_main.state)) as photos
 
-from LA_SexOffenders_main
-UNION
+from LA_SexOffenders_main;
+-- UNION
 
 ---------------- MA
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,Year_Of_Birth as DateOfBirth
@@ -1400,11 +1787,12 @@ select id
              where azp.id = MA_SexOffenders_main.id
                and azp.state = MA_SexOffenders_main.state)) as photos
 
-from MA_SexOffenders_main
+from MA_SexOffenders_main;
 
-UNION
+-- UNION
 
 ---------------- MD
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,DateOfBirth
@@ -1462,10 +1850,11 @@ select id
              where azp.id = MDSexOffenders_main.id
                and azp.state = MDSexOffenders_main.state)) as photos
 
-from MDSexOffenders_main
-UNION
+from MDSexOffenders_main;
+-- UNION
 
 ---------------- ME
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,DateOfBirth
@@ -1526,10 +1915,11 @@ select id
              where azp.id = ME_SexOffenders_main.id
                and azp.state = ME_SexOffenders_main.state)) as photos
 
-from ME_SexOffenders_main
-Union
+from ME_SexOffenders_main;
+-- Union
 
 ---------------- MI
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,DateOfBirth
@@ -1591,10 +1981,11 @@ select id
              where azp.id = MISexOffenders_main.id
                and azp.state = MISexOffenders_main.state)) as photos
 
-from MISexOffenders_main
-UNION
+from MISexOffenders_main;
+-- UNION
 
 ---------------- MO
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,DateOfBirth
@@ -1655,10 +2046,11 @@ select id
              where azp.id = MOSexOffenders_main.id
                and azp.state = MOSexOffenders_main.state)) as photos
 
-from MOSexOffenders_main
-UNION
+from MOSexOffenders_main;
+-- UNION
 ---------- MS TODO: Missing query
 ----------------NE
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,DOB as DateOfBirth
@@ -1717,10 +2109,11 @@ select id
              where azp.id = NE_SexOffenders_main.id
                and azp.state = NE_SexOffenders_main.state)) as photos
 
-from NE_SexOffenders_main
-UNION
+from NE_SexOffenders_main;
+-- UNION
 
 ----------------NH
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,DOB as DateOfBirth
@@ -1782,10 +2175,11 @@ select id
              where azp.id = NHSexOffenders_main.id
                and azp.state = NHSexOffenders_main.state)) as photos
 
-from NHSexOffenders_main
-UNION
+from NHSexOffenders_main;
+-- UNION
 
 ----------------NJ
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,cast(age as TEXT) as DateOfBirth
@@ -1843,10 +2237,11 @@ select id
              where azp.id = NJSexOffenders_main.id
                and azp.state = NJSexOffenders_main.state)) as photos
 
-from NJSexOffenders_main
-Union
+from NJSexOffenders_main;
+-- Union
 
 ---------------- NM
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,YearOfBirth as DateOfBirth
@@ -1905,10 +2300,11 @@ select id
              where azp.id = NMSexOffenders_main.id
                and azp.state = NMSexOffenders_main.state)) as photos
 
-from NMSexOffenders_main
-Union
+from NMSexOffenders_main;
+-- Union
 
 ----------------KY
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,birth_date as DateOfBirth
@@ -1971,9 +2367,10 @@ select id
              where azp.id = ky_Sex_Offenders_main.id
                and azp.state = ky_Sex_Offenders_main.state)) as photos
 
-from ky_Sex_Offenders_main
-UNION
+from ky_Sex_Offenders_main;
+-- UNION
 ---------------- NV
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,YearOfBirth as DateOfBirth
@@ -2031,9 +2428,10 @@ select id
              where azp.id = NV_SexOffenders_main.id
                and azp.state = NV_SexOffenders_main.state)) as photos
 
-from NV_SexOffenders_main
-UNION
+from NV_SexOffenders_main;
+-- UNION
 ----------------NY
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,DOB as DateOfBirth
@@ -2092,10 +2490,11 @@ select id
              where azp.id = NYSexOffenders_main.id
                and azp.state = NYSexOffenders_main.state)) as photos
 
-from NYSexOffenders_main
-Union
+from NYSexOffenders_main;
+-- Union
 
 ----------------OH
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,DateOfBirth
@@ -2154,11 +2553,12 @@ select id
              where azp.id = OHSexOffenders_main.id
                and azp.state = OHSexOffenders_main.state)) as photos
 
-from OHSexOffenders_main
-UNION
+from OHSexOffenders_main;
+-- UNION
 
 
 ---------------- PA
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,BirthYear as DateOfBirth
@@ -2216,10 +2616,11 @@ select id
              where azp.id = PA_SexOffenders_main.id
                and azp.state = PA_SexOffenders_main.state)) as photos
 
-from PA_SexOffenders_main
-UNION
+from PA_SexOffenders_main;
+-- UNION
 
 ---------------- SC
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,FirstName || ' ' || MiddleName || ' ' || LastName as name
      ,DateOfBirth
@@ -2253,9 +2654,7 @@ select id
                and arad.state = SCSexOffenders_main.state)
 )as addresses
      --offenses
-     ,json_array("Update Pending") as offenses
-    -- TODO: Missing Offenses table
-     /*
+
      ,(SELECT
            json_group_array (
                    json_object ('offense', cast(Offense as Text)))
@@ -2268,7 +2667,6 @@ select id
            )
 ) as offenses
 
-      */
 
      --scarsTattoos
      ,(select json_group_array( cast(Type as text) || ' ' || cast(Location as TEXT) || ' ' || cast(Description as TEXT))
@@ -2282,8 +2680,8 @@ select id
              where azp.id = SCSexOffenders_main.id
                and azp.state = SCSexOffenders_main.state)) as photos
 
-from SCSexOffenders_main
-UNION
+from SCSexOffenders_main;
+-- UNION
 
 ----------------UT
 select id
@@ -2344,10 +2742,11 @@ select id
              where azp.id = UT_SexOffenders_main.id
                and azp.state = UT_SexOffenders_main.state)) as photos
 
-from UT_SexOffenders_main
-Union
+from UT_SexOffenders_main;
+-- Union
 
 ---------------- VA
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,age as DateOfBirth
@@ -2382,14 +2781,12 @@ select id
 )as addresses
 
      --offenses
-     ,json_array("Update Pending") as offenses
-     /*,(SELECT
+     ,(SELECT
            json_group_array (
-                   json_object ('offense', cast(OffenseDescription as Text) || ' ' || cast(OffenseDetails as TEXT)
-                       ))
+                   json_object ('offense', cast(offense as Text) ))
        FROM
 
-           (SELECT OffenseDescription, OffenseDetails
+           (SELECT Statute as offense
             FROM VASexOffenders_offenses aro
             where VASexOffenders_main.ID = aro.ID
               and VASexOffenders_main.state = aro.state
@@ -2398,7 +2795,7 @@ select id
 
 ) as offenses
 
-      */
+
      --scarsTattoos
      ,json_array("None Reported") as scarsTattoos
 /*     ,(select json_group_array( cast(ScarsMarksTattoos as text))
@@ -2414,12 +2811,13 @@ select id
              where azp.id = VASexOffenders_main.id
                and azp.state = VASexOffenders_main.state)) as photos
 
-from VASexOffenders_main
+from VASexOffenders_main;
 
 -- order by state desc;
-UNION
+-- UNION
 
 ---------------- WI
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,age as DateOfBirth
@@ -2468,26 +2866,19 @@ select id
 
      --scarsTattoos
      ,json_array("None Reported") as scarsTattoos
-     /*,(select json_group_array( cast(ScarsMarksTattoos as text))
-
-       from (select ScarsMarksTattoos from WI_SexOffenders_smts smts
-             where smts.id = WI_SexOffenders_main.id
-               and smts.state = WI_SexOffenders_main.state)) as scarsTattoos
-
-      */
      --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
        from (select PhotoFile from WI_SexOffenders_photos azp
              where azp.id = WI_SexOffenders_main.id
                and azp.state = WI_SexOffenders_main.state)) as photos
 
-from WI_SexOffenders_main
-Union
+from WI_SexOffenders_main;
+-- Union
 ---------------- WY
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select id
      ,name
      ,DateOfBirth
-
      ,EyeColor as eyes
      ,HairColor as hair
      ,height
@@ -2544,7 +2935,7 @@ select id
              where azp.id = WYSexOffenders_main.id
                and azp.state = WYSexOffenders_main.state)) as photos
 
-from WYSexOffenders_main
+from WYSexOffenders_main;
 order by state desc;
 
 

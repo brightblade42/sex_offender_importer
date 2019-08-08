@@ -24,8 +24,9 @@ fn open_csv_reader(file: File, delim: char) -> Result<csv::Reader<File>, Box<dyn
 }
 
 fn create_default_index(name: &str) -> String {
+
     format!(
-        r#"CREATE unique INDEX if not exists {}_idx ON {} (
+        r#"CREATE  INDEX if not exists {}__index ON {} (
          ID,
          State
      );"#,
@@ -106,11 +107,20 @@ fn drop_table(conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Er
     r
 }
 fn convert_state_field(field: &str) -> &str {
-     if field.contains("State") {
+
+    if field == "State" || field == "state" {
          "Addr_State"
      } else {
          field
      }
+}
+
+fn convert_space_in_field(field: &str) -> String {
+    if field.trim().contains(" ") {
+        field.replace(" ","_")
+    } else {
+        field.to_owned()
+    }
 }
 
 fn create_table_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<Error>> {
@@ -121,6 +131,7 @@ fn create_table_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<Str
         .unwrap()
         .iter()
         .map(convert_state_field)
+        .map(convert_space_in_field)
         .fold(q, |acc, head| {
             format!("{} {},", acc, head.replace("/", ""))
         });
@@ -156,6 +167,7 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
         .unwrap()
         .iter()
         .map(convert_state_field)
+        .map(convert_space_in_field)
         .fold(q, |acc, head| format!("{} {},", acc, head.replace("/","")));
 
         insert_query.push_str("state ) VALUES ("); //add our extra state field and close the ()
@@ -227,6 +239,11 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
     println!("=============================");
     conn.execute(&table_query, NO_PARAMS)?;
 
+    //create default index
+    let defindex = create_default_index(&table_name);
+    conn.execute(&defindex, NO_PARAMS);
+
+
     let insert_query = create_insert_query(&mut csv_reader, &table_name)?;
     println!("=============================");
     println!("");
@@ -236,12 +253,26 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
 
     //insert a record (line of csv) into sqlite table.
     //we use as_bytes() because some data is not utf-8 compliant
+    let mut sql_err = 0;
     for result in csv_reader.byte_records() {
         match result {
             Ok(record)  => {
                     let mut rec = record.clone();
                     rec.push_field(state.as_bytes());
                     let res = conn.execute(&insert_query, &rec);
+                    match res {
+                        Err(r) => {
+                           println!("======================");
+                            println!("{}", r);
+                            println!("======================");
+                        },
+                        Ok(r) if r != 0 => {
+                            sql_err = r;
+                            //println!("sql error: {}", r);
+                        },
+                        _ => {}
+                    }
+                    //println!("{}", res.unwrap());
             }
             Err(e) => {
                 println!("Row data error: {}", e);
@@ -249,7 +280,9 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
         }
     }
     conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
-
+    if sql_err > 0 {
+        println!("sql error code: {}", sql_err);
+    }
     Ok(())
 }
 
@@ -285,6 +318,9 @@ fn import_images(conn: &Connection, path: &PathBuf, state: &str) -> Result<(), B
             name.len()
         };
 
+        if name.contains("table") { //not an image
+            continue;
+        }
         let photo_id = &name[0..idx];
         std::io::copy(&mut img_file, &mut blob);
 

@@ -15,7 +15,6 @@
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sql/The_big_query.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/The_big_query.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ar_import_template.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ar_import_template.sql" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/extractor.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/extractor.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/importer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
@@ -204,7 +203,7 @@
       <workItem from="1565130537608" duration="289000" />
       <workItem from="1565133284546" duration="544000" />
       <workItem from="1565134308519" duration="1684000" />
-      <workItem from="1565191270487" duration="19748000" />
+      <workItem from="1565191270487" duration="39578000" />
     </task>
     <servers />
   </component>

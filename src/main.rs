@@ -58,22 +58,69 @@ fn main()  {
  //   if args.extract == "alabama" {
        //root_path.push("alabama");
 //    root_path.push("arkansas");
-    root_path.push("alaska");
+    //root_path.push("alaska");
+//    root_path.push("arizona");
 
-    println!("hello");
-        let st_files = read_dir(root_path).unwrap();
+//    root_path.push("california");
+//    root_path.push("colorado");
+//    root_path.push("connecticut");
+    //root_path.push("delaware");
+//    root_path.push("florida");
+//    root_path.push("georgia");
+//    root_path.push("hawaii");
+//    root_path.push("idaho");
+//    root_path.push("illinois");
+   // root_path.push("indiana");
+//     root_path.push("iowa");
+//    root_path.push("kansas");
+//    root_path.push("kentucky");
+//    root_path.push("louisiana");
+//    root_path.push("maine");
+//    root_path.push("maryland");
+//    root_path.push("massachusetts");
+//    root_path.push("michigan");
+//    root_path.push("minnesota");
+//    root_path.push("mississippi");
+//    root_path.push("missouri");
+//    root_path.push("montana");
+//    root_path.push("nebraska");
+//    root_path.push("nevada");
+//    root_path.push("new_hampshire");
+//    root_path.push("new_jersey");
+//    root_path.push("new_mexico");
+//    root_path.push("new_york");
+//    root_path.push("north_carolina");
+//    root_path.push("north_dakota");
+//    root_path.push("ohio");
+//    root_path.push("oklahoma");
+//    root_path.push("oregon");
+//    root_path.push("pennsylvania");
+//    root_path.push("rhode_island");
+//    root_path.push("south_carolina");
+//    root_path.push("south_dakota");
+//    root_path.push("tennessee");
+//    root_path.push("utah");
+//    root_path.push("vermont");
+//    root_path.push("virginia");
+//    root_path.push("washington");
+//    root_path.push("west_virginia");
+//    root_path.push("wisconsin");
+//    root_path.push("wyoming");
+    root_path.push("texas");
+    let st_files = read_dir(root_path).unwrap();
 
         prepare_import(sql_path.to_str().unwrap());
         for stf in st_files {
+
             let fnn = stf.unwrap();
             println!("{:?}", fnn.path());
             //let conf = path_vars
             let sx = SexOffenderArchive::new(fnn.path(), 0);
             let mut ext = Extractor::new(&path_vars);
 
-
                 let ef = ext.extract_archive(&sx).unwrap();
                 for exfile in ef {
+
                     match import_data(&exfile, sql_path.to_str().unwrap()) {
                         Ok(()) => {
                             println!("imported file {:?}", &exfile);
