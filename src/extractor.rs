@@ -31,7 +31,7 @@ impl Extractor<'_> {
             extracts_path.push("images");
         }
 
-        println!("{:?}", extracts_path);
+        //println!("{:?}", extracts_path);
         fs::create_dir_all(&extracts_path).expect("Unable to create extraction path");
 
         extracts_path.push(file_name);
@@ -63,7 +63,7 @@ impl Extractor<'_> {
             let extracts_path = self.generate_extract_path(&state_abbrev, &archive_path, embedded_file_name.as_os_str());
             let mut outfile = BufWriter::new(File::create(&extracts_path)?);
             std::io::copy(&mut embedded_file, &mut outfile)?;
-            println!("wrote: {}", extracts_path.display());
+            //println!("wrote: {}", extracts_path.display());
 
             match embedded_file_name.extension() {
                 Some(ext) if ext == "csv" => {

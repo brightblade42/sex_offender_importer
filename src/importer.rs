@@ -41,19 +41,26 @@ fn create_default_non_unique_index(name: &str) -> String {
         name, name
     )
 }
+
 fn create_main() -> String {
     String::from(
         r#"CREATE TABLE IF NOT EXISTS SexOffender (
         id Integer,
         name,
-        age,
         dateOfBirth,
+        eyes,
+        hair,
+        height,
+        weight,
+        race,
+        sex,
         state,
         aliases,
-        offenses,
         addresses,
-        photos,
-        personalDetails )"#,
+        offenses,
+        scarsTattoos,
+        photos
+        )"#,
     )
 }
 
@@ -95,9 +102,17 @@ fn set_pragmas(conn: &Connection) {
 
 fn drop_table(conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Error> {
     let r = conn.execute(&format!("DROP TABLE if exists {}", table_name), NO_PARAMS);
-    println!("Dropped Table: {}", table_name);
+    //println!("Dropped Table: {}", table_name);
     r
 }
+fn convert_state_field(field: &str) -> &str {
+     if field.contains("State") {
+         "Addr_State"
+     } else {
+         field
+     }
+}
+
 fn create_table_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<Error>> {
     let mut q = format!("CREATE TABLE if not exists {} (", tname);
     //add the header names as column names for out table.
@@ -105,7 +120,11 @@ fn create_table_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<Str
         .headers()
         .unwrap()
         .iter()
-        .fold(q, |acc, head| format!("{} {}, ", acc, head));
+        .map(convert_state_field)
+        .fold(q, |acc, head| {
+            format!("{} {},", acc, head.replace("/", ""))
+        });
+
     create_table.push_str("state )"); //add our extra state field and close the ()
 
     Ok(create_table)
@@ -136,28 +155,27 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
         .headers()
         .unwrap()
         .iter()
-        .fold(q, |acc, head| format!("{} {}, ", acc, head));
+        .map(convert_state_field)
+        .fold(q, |acc, head| format!("{} {},", acc, head.replace("/","")));
 
-    //create the raw data tables. essentialy a copy of whatever crayzee
-    //csv format we get.
-    insert_query.push_str("state ) VALUES ("); //add last field and open VALUES.
+        insert_query.push_str("state ) VALUES ("); //add our extra state field and close the ()
 
     //add value parameter placeholders
-    let header_count = reader.headers().unwrap().len();
+    //TODO: this seems like it could be better.
+   let header_count = reader.headers().unwrap().len();
+
     for i in 0..header_count {
         insert_query.push_str("?,");
     }
 
     insert_query.push_str("?)"); //our state parameter.
-
     Ok(insert_query)
 }
 
-use core::borrow::{Borrow, BorrowMut};
 
 pub fn prepare_import(sql_path: &str) -> Result<(), Box<Error>> {
-    let conn = Connection::open(sql_path)?;
 
+    let conn = Connection::open(sql_path)?;
     create_db(&conn).expect("something didn't create good.");
     conn.close();
     Ok(())
@@ -191,6 +209,7 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
     let dsp = path.display().to_string();
     if dsp.contains("screenshot") {
         //|| dsp.contains("photos") {
+        println!("skipping screenshot file. It is useless");
         return Ok(());
     }
     let file = File::open(path)?; //.unwrap();
@@ -201,19 +220,28 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
     let table_name = String::from(path.file_stem().unwrap().to_str().unwrap());
     drop_table(&conn, &table_name)?;
     let mut table_query = create_table_query(&mut csv_reader, &table_name)?;
+
+    println!("=============================");
+    println!("");
+    println!("{}", &table_query);
+    println!("=============================");
     conn.execute(&table_query, NO_PARAMS)?;
 
     let insert_query = create_insert_query(&mut csv_reader, &table_name)?;
+    println!("=============================");
+    println!("");
+    println!("{}", &insert_query);
+    println!("=============================");
     conn.execute("Begin Transaction;", NO_PARAMS);
 
     //insert a record (line of csv) into sqlite table.
     //we use as_bytes() because some data is not utf-8 compliant
     for result in csv_reader.byte_records() {
         match result {
-            Ok(record) => {
-                let mut rec = record.clone();
-                rec.push_field(state.as_bytes());
-                let res = conn.execute(&insert_query, &rec);
+            Ok(record)  => {
+                    let mut rec = record.clone();
+                    rec.push_field(state.as_bytes());
+                    let res = conn.execute(&insert_query, &rec);
             }
             Err(e) => {
                 println!("Row data error: {}", e);

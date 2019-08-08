@@ -56,7 +56,9 @@ fn main()  {
 
     let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["archives_path"]);
  //   if args.extract == "alabama" {
-       root_path.push("alabama");
+       //root_path.push("alabama");
+//    root_path.push("arkansas");
+    root_path.push("alaska");
 
     println!("hello");
         let st_files = read_dir(root_path).unwrap();

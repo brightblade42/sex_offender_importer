@@ -20,13 +20,118 @@ select * from sqlite_master order by type;
 
 --the odd balls. 4
 select * from sqlite_master where name like "%_sex_offenders";
-
+select count(*) from Photos where State = "AL"
 select * from al_sex_offenders;
+select count(*) from AR_sex_offender_main;
+select count(*) from SexOffender where state = "AR"
+select * from SexOffender where state = "AR"
+delete from SexOffender where state = "AR"
 
 
-Insert into Sex_Offender_T1 (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
+--order by state desc;
+
+Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
+
+----------------AK
+select id
+     ,name
+     ,DOB as DateOfBirth
+
+     ,Eyes
+     ,Hair
+     ,Height
+     ,Weight
+     ,race
+     ,sex
+     ,trim(state) as state
+     -- aliases
+     ,( SELECT json_group_array (cast(Aliases as TEXT))
+        FROM
+            (SELECT Aliases
+
+             FROM AK_sex_offender_aliases als
+             WHERE als.id = AK_sex_offender_main.id
+               AND AK_sex_offender_main .state = als.state)
+) as aliases
+
+     --addresses
+
+     ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT)
+                          || ' ' ||  cast(City as TEXT)
+                          || ' ' || cast(Addr_State AS TEXT),
+                                  'type', cast(Type as TEXT)
+                          ))
+
+       FROM (SELECT Address,City, Addr_State, Type
+             FROM AK_sex_offender_addresses arad
+             where arad.ID = AK_sex_offender_main.ID
+               and arad.state = AK_sex_offender_main.state)
+)as addresses
+
+     --offenses
+     ,(SELECT
+           json_group_array (
+                   json_object ('offense', cast(Description as Text)
+                       ))
+       FROM
+
+           (SELECT description
+            FROM AK_sex_offender_offenses aro
+            where AK_sex_offender_main.ID = aro.ID
+              and AK_sex_offender_main.state = aro.state
+           )
+) as offenses
+     --scarsTattoos
+     ,json_array("Unknown") as scarsTattoos
+
+     --photos
+     ,(select json_group_array(cast(PhotoFile as TEXT))
+       from (select PhotoFile from AK_sex_offender_photos azp
+             where azp.id = AK_sex_offender_main.id
+               and azp.state = AK_sex_offender_main.state)) as photos
+
+from AK_sex_offender_main;
+-- AR --------------------------------------------------------------------
+SELECT id
+     ,name
+     ,DOB  as DateOfBirth
+     ,eyes
+     ,hair
+     ,'' as height
+     ,'' as weight
+     ,race
+     ,sex
+     ,trim(state) as state
+     -- aliases
+     ,(SELECT json_group_array(cast(alias as Text))
+       FROM
+           (SELECT alias
+            FROM AR_sex_offender_alias als
+            WHERE als.id = AR_sex_offender_main.id
+              AND AR_sex_offender_main.state = als.state
+           )
+) as aliases
+     -- addresses
+     ,json_array(
+        json_object('address', cast(address as Text))) as addresses
+
+     -- offenses
+     ,json_array(
+         json_object('offense', cast(Offense as Text))) as offenses
+
+     ,json_array(cast(ScarsTattoos as Text)) as scarsTattoos
+     --photos
+     ,(select json_group_array(cast(Photo as Text))
+       from (select Photo from AR_sex_offender_photos azp
+             where azp.id = AR_sex_offender_main.id
+               and azp.state = AR_sex_offender_main.state)) as photos
+
+
+from AR_sex_offender_main
+UNION
 -- AL_sex_offenders -----------------------------------------------------------
-select 0 as id
+select r_Image as id
        ,name
        ,r_Birth_Date as DateOfBirth
         ,r_Eyes as eyes
@@ -222,6 +327,7 @@ SELECT id
 from AZ_SexOffenders_main
 
 UNION
+
 
 
 /*create index if not exists CA_SexOffenders_alias_index
