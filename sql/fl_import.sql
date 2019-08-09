@@ -27,7 +27,7 @@ select id
                        ))
        FROM
            (SELECT street,
-                   Addr_State as  CityStateZip
+                   CityStateZip
             FROM FL_SexOffenders_addresses arad
             where arad.ID = FL_SexOffenders_main.ID
               and arad.state = FL_SexOffenders_main.state

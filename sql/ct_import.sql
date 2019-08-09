@@ -30,7 +30,7 @@ select id
        FROM
            (SELECT address,
                    AddressExtended,
-                   Addr_State as CityStateZip
+                   CityStateZip
             FROM CTSexOffenders_addresses arad
             where arad.ID = CTSexOffenders_main.ID
               and arad.state = CTSexOffenders_main.state

@@ -29,7 +29,7 @@ select id
                        ,'type',cast(Type as TEXT)))
        FROM
            (SELECT street,
-                   Addr_State as CityStateZip,
+                   CityStateZip,
                    Type
             FROM DE_SexOffenders_addresses arad
             where arad.ID = DE_SexOffenders_main.ID
