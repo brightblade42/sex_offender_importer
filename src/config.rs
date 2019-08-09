@@ -11,6 +11,7 @@ use std::env;
 use std::collections::HashMap;
 use crate::downloader::SexOffenderImportError::ConnectionError;
 use std::hash::Hash;
+use std::error::Error;
 
 static CONFIG: &'static str = "/opt/eyemetric/sex_offender/config.sqlite";
 
@@ -21,6 +22,43 @@ pub enum Env {
     Dev,
     Production
 }
+
+
+pub trait Config {
+    fn load(env: &Env) -> ConfigResult;//Result<HashMap<String,String>, Box<std::error::Error>>;
+}
+
+pub type States = Vec<State>;
+
+pub trait LoadData {
+    fn load() -> Result<States, Box<dyn Error>>;
+
+}
+
+impl LoadData for States {
+
+   fn load() -> Result<States, Box<dyn Error>> {
+
+        let conn = Connection::open(CONFIG).expect("Unable to open data connection");
+        let mut stmt = conn.prepare("Select * from states").expect("Unable to get states data");
+        let mut rows = stmt.query(NO_PARAMS)?;
+        let r = from_rows::<State>(rows).collect();
+        Ok(r)
+    }
+
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct State {
+    pub state: String,
+    pub abbr: String,
+}
+
+
+
+
+
+
 #[derive(Debug,Serialize, Deserialize)]
 pub struct FtpConfig {
     pub address: String,
@@ -30,6 +68,8 @@ pub struct FtpConfig {
     pub port: i32,
 
 }
+
+
 
 impl FtpConfig {
     fn conf(env: &Env) -> &'static str {
@@ -52,10 +92,6 @@ impl FtpConfig {
 }
 
 pub type ConfigResult = Result<HashMap<String,String>, Box<dyn std::error::Error>>;
-
-pub trait Config {
-    fn load(env: &Env) -> ConfigResult;//Result<HashMap<String,String>, Box<std::error::Error>>;
-}
 pub struct PathVars {
    pub env: Env,
    pub vars: HashMap<String, String>

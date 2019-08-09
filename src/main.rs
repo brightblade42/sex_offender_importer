@@ -7,11 +7,11 @@ use serde;
 use sex_offender::types::{SexOffenderArchive, ExtractedFile, RecordInfo, FileInfo };
 use sex_offender::downloader::{DownloadOption, Downloader,   };
 use sex_offender::extractor::{Extractor};
-use sex_offender::importer::{import_data, prepare_import};
+use sex_offender::importer::{import_data, prepare_import, delete_old_photos};
 
 use core::borrow::Borrow;
 use rusqlite::{params, Connection, NO_PARAMS};
-use sex_offender::config::{self, Config, Env, FtpConfig, PathVars};
+use sex_offender::config::{self, Config, Env, FtpConfig, PathVars,States,State, LoadData};
 use std::collections::HashMap;
 use std::path;
 use std::path::{Path, PathBuf};
@@ -39,102 +39,89 @@ struct SexOffenderCli {
     #[structopt(flatten)]
     verbosity: Verbosity,
 }
-fn main()  {
+
+fn main_() {
+    let statelist: States = config::States::load().unwrap();
+
+    let path_vars = PathVars::new(config::Env::Dev);
+    let sql_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["sex_offender_db"]);
+    let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["archives_path"]);
+
+    for state in statelist {
+        println!("{}: {}", state.state, state.abbr);
+        let state_path = root_path.join(state.state.to_lowercase());
+        let st_files = read_dir(state_path).unwrap();
+        for stf in st_files {
+
+            let fnn = stf.unwrap();
+            println!("{:?}", fnn.path());
+        }
+    }
+
+}
+fn main() {
 
     //let path_config = config::PathVars::new(config::Env::Dev);
     //let ftp_conf = FtpConfig::init(config::Env::Test);
     //let addr = format!("{}:{}", &ftp_conf.address, &ftp_conf.port);
     //let args = Cli::from_args();
 //    let args = SexOffenderCli::from_args();
- //   args.verbosity.setup_env_logger("sexoffenderimporter").unwrap();
+    //   args.verbosity.setup_env_logger("sexoffenderimporter").unwrap();
+
+    let statelist: States = config::States::load().unwrap();
 
     let path_vars = PathVars::new(config::Env::Dev);
     let sql_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["sex_offender_db"]);
     //println!("{:?}", path_vars.vars);
     println!("sql path: {}", sql_path.to_str().unwrap());
-   //let mut root_path = PathBuf::from(&path_vars.vars["archives_path"]);
+    //let mut root_path = PathBuf::from(&path_vars.vars["archives_path"]);
 
     let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["archives_path"]);
- //   if args.extract == "alabama" {
-       //root_path.push("alabama");
-//    root_path.push("arkansas");
-    //root_path.push("alaska");
-//    root_path.push("arizona");
 
-//    root_path.push("california");
-//    root_path.push("colorado");
-//    root_path.push("connecticut");
-    //root_path.push("delaware");
-//    root_path.push("florida");
-//    root_path.push("georgia");
-//    root_path.push("hawaii");
-//    root_path.push("idaho");
-//    root_path.push("illinois");
-   // root_path.push("indiana");
-//     root_path.push("iowa");
-//    root_path.push("kansas");
-//    root_path.push("kentucky");
-//    root_path.push("louisiana");
-//    root_path.push("maine");
-//    root_path.push("maryland");
-//    root_path.push("massachusetts");
-//    root_path.push("michigan");
-//    root_path.push("minnesota");
-//    root_path.push("mississippi");
-//    root_path.push("missouri");
-//    root_path.push("montana");
-//    root_path.push("nebraska");
-//    root_path.push("nevada");
-//    root_path.push("new_hampshire");
-//    root_path.push("new_jersey");
-//    root_path.push("new_mexico");
-//    root_path.push("new_york");
-//    root_path.push("north_carolina");
-//    root_path.push("north_dakota");
-//    root_path.push("ohio");
-//    root_path.push("oklahoma");
-//    root_path.push("oregon");
-//    root_path.push("pennsylvania");
-//    root_path.push("rhode_island");
-//    root_path.push("south_carolina");
-//    root_path.push("south_dakota");
-//    root_path.push("tennessee");
-//    root_path.push("utah");
-//    root_path.push("vermont");
-//    root_path.push("virginia");
-//    root_path.push("washington");
-//    root_path.push("west_virginia");
-//    root_path.push("wisconsin");
-//    root_path.push("wyoming");
-    root_path.push("texas");
-    let st_files = read_dir(root_path).unwrap();
+    let statelist: States = config::States::load().unwrap();
 
-        prepare_import(sql_path.to_str().unwrap());
+    let path_vars = PathVars::new(config::Env::Dev);
+    let sql_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["sex_offender_db"]);
+    let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["archives_path"]);
+
+    prepare_import(sql_path.to_str().unwrap());
+    for state in statelist {
+        println!("=================================");
+        println!("{}: {}", state.state, state.abbr);
+
+        println!("=================================");
+        let state_path = root_path.join(state.state.to_lowercase());
+        let st_files = read_dir(state_path).unwrap();
+
+        delete_old_photos(state.abbr.as_str(), sql_path.to_str().unwrap());
         for stf in st_files {
-
             let fnn = stf.unwrap();
             println!("{:?}", fnn.path());
             //let conf = path_vars
             let sx = SexOffenderArchive::new(fnn.path(), 0);
             let mut ext = Extractor::new(&path_vars);
 
-                let ef = ext.extract_archive(&sx).unwrap();
-                for exfile in ef {
-
-                    match import_data(&exfile, sql_path.to_str().unwrap()) {
-                        Ok(()) => {
-                            println!("imported file {:?}", &exfile);
-                        }
-                        Err(e) => {
-                            println!("Error importing file {:?}", e);
-                            println!("ex: {:?}", &exfile);
-                        }
+            let ef = ext.extract_archive(&sx).unwrap();
+            println!("=================================");
+            for exfile in ef {
+                println!("Extract: {:?}", &exfile);
+                match import_data(&exfile, sql_path.to_str().unwrap()) {
+                    Ok(()) => {
+                        println!("imported file {:?}", &exfile);
+                    }
+                    Err(e) => {
+                        println!("Error importing file {:?}", e);
+                        println!("ex: {:?}", &exfile);
                     }
                 }
-
+            }
+            println!("=================================");
         }
 
-    println!("HELP! For fooks sake");
+        println!("=================================");
+    }
+
+    println!("Dude, there's most of your data");
 }
 
 #[test]

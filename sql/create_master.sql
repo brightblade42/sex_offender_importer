@@ -1,10 +1,28 @@
 -- we don't know how to generate root <with-no-name> (class Root) :(
+create table AK_sex_offender_addresses
+(
+	ID,
+	Type,
+	Address,
+	City,
+	Addr_State,
+	Zip,
+	LastUpdated,
+	state
+);
+
+create index AK_sex_offender_addresses__index
+	on AK_sex_offender_addresses (ID, state);
+
 create table AK_sex_offender_aliases
 (
 	ID,
 	Aliases,
 	state
 );
+
+create index AK_sex_offender_aliases__index
+	on AK_sex_offender_aliases (ID, state);
 
 create table AK_sex_offender_main
 (
@@ -25,6 +43,9 @@ create table AK_sex_offender_main
 	state
 );
 
+create index AK_sex_offender_main__index
+	on AK_sex_offender_main (ID, state);
+
 create table AK_sex_offender_offenses
 (
 	ID,
@@ -37,12 +58,18 @@ create table AK_sex_offender_offenses
 	state
 );
 
+create index AK_sex_offender_offenses__index
+	on AK_sex_offender_offenses (ID, state);
+
 create table AK_sex_offender_photos
 (
 	ID,
 	PhotoFile,
 	state
 );
+
+create index AK_sex_offender_photos__index
+	on AK_sex_offender_photos (ID, state);
 
 create table AR_sex_offender_alias
 (
@@ -51,12 +78,38 @@ create table AR_sex_offender_alias
 	state
 );
 
+create index AR_sex_offender_alias__index
+	on AR_sex_offender_alias (ID, state);
+
+create table AR_sex_offender_main
+(
+	ID,
+	Name,
+	Address,
+	DOB,
+	Sex,
+	Race,
+	Offense,
+	Eyes,
+	Hair,
+	ScarsTattoos,
+	Details,
+	Level,
+	state
+);
+
+create index AR_sex_offender_main__index
+	on AR_sex_offender_main (ID, state);
+
 create table AR_sex_offender_photos
 (
 	ID,
 	Photo,
 	state
 );
+
+create index AR_sex_offender_photos__index
+	on AR_sex_offender_photos (ID, state);
 
 create table AZ_SexOffenders_aliases
 (
@@ -72,7 +125,7 @@ create index AZ_SexOffenders_aliases__index
 create table AZ_SexOffenders_main
 (
 	ID,
-	address TEXT,
+	address,
 	age,
 	eyes,
 	hair,
@@ -114,12 +167,6 @@ create table AZ_SexOffenders_photos
 create index AZ_SexOffenders_photos__index
 	on AZ_SexOffenders_photos (ID, state);
 
-create table CA_ENC
-(
-	offense text,
-	state text
-);
-
 create table CA_SexOffenders_alias
 (
 	ID,
@@ -129,9 +176,6 @@ create table CA_SexOffenders_alias
 
 create index CA_SexOffenders_alias__index
 	on CA_SexOffenders_alias (ID, state);
-
-create index CA_SexOffenders_alias_index
-	on CA_SexOffenders_alias (ID, Alias);
 
 create table CA_SexOffenders_main
 (
@@ -149,9 +193,6 @@ create table CA_SexOffenders_main
 	state
 );
 
-create index CA_SexOffenders_main_ID_index
-	on CA_SexOffenders_main (ID, Name);
-
 create index CA_SexOffenders_main__index
 	on CA_SexOffenders_main (ID, state);
 
@@ -159,10 +200,10 @@ create table CA_SexOffenders_offenses
 (
 	ID,
 	OffenseCode,
-	OffenseDescription text,
+	OffenseDescription,
 	YearOfLastConviction,
 	YearOfLastRelease,
-	state text
+	state
 );
 
 create index CA_SexOffenders_offenses__index
@@ -186,12 +227,18 @@ create table CA_SexOffenders_risk
 	state
 );
 
+create index CA_SexOffenders_risk__index
+	on CA_SexOffenders_risk (ID, state);
+
 create table CA_SexOffenders_smts
 (
 	ID,
 	ScarsMarksTattoos,
 	state
 );
+
+create index CA_SexOffenders_smts__index
+	on CA_SexOffenders_smts (ID, state);
 
 create table CO_SexOffenders_addresses
 (
@@ -239,6 +286,9 @@ create table CO_SexOffenders_dobs
 	OurOtherUsedDOB,
 	state
 );
+
+create index CO_SexOffenders_dobs__index
+	on CO_SexOffenders_dobs (ID, state);
 
 create table CO_SexOffenders_main
 (
@@ -378,6 +428,9 @@ create table CTSexOffenders_probation_conditions
 	state
 );
 
+create index CTSexOffenders_probation_conditions__index
+	on CTSexOffenders_probation_conditions (ID, state);
+
 create table CTSexOffenders_smts
 (
 	ID,
@@ -427,6 +480,20 @@ create table DE_SexOffenders_aliases
 create index DE_SexOffenders_aliases__index
 	on DE_SexOffenders_aliases (ID, state);
 
+create table DE_SexOffenders_convictions
+(
+	ID,
+	Adjudication_Date,
+	Statute,
+	Description,
+	VictimAge,
+	Addr_State,
+	state
+);
+
+create index DE_SexOffenders_convictions__index
+	on DE_SexOffenders_convictions (ID, state);
+
 create table DE_SexOffenders_main
 (
 	Age,
@@ -466,6 +533,19 @@ create table DE_SexOffenders_photos
 
 create index DE_SexOffenders_photos__index
 	on DE_SexOffenders_photos (ID, state);
+
+create table DE_SexOffenders_vehicles
+(
+	ID,
+	Type,
+	MakeModelColor,
+	Addr_State,
+	Registration,
+	state
+);
+
+create index DE_SexOffenders_vehicles__index
+	on DE_SexOffenders_vehicles (ID, state);
 
 create table FL_SexOffenders_addresses
 (
@@ -568,6 +648,9 @@ create table FL_SexOffenders_vehicles
 	state
 );
 
+create index FL_SexOffenders_vehicles__index
+	on FL_SexOffenders_vehicles (ID, state);
+
 create table FL_SexOffenders_vessels
 (
 	ID,
@@ -581,6 +664,9 @@ create table FL_SexOffenders_vessels
 	state
 );
 
+create index FL_SexOffenders_vessels__index
+	on FL_SexOffenders_vessels (ID, state);
+
 create table FL_SexOffenders_victims
 (
 	ID,
@@ -588,6 +674,9 @@ create table FL_SexOffenders_victims
 	Minor,
 	state
 );
+
+create index FL_SexOffenders_victims__index
+	on FL_SexOffenders_victims (ID, state);
 
 create table GA_SexOffenders_main
 (
@@ -615,6 +704,18 @@ create table GA_SexOffenders_main
 create index GA_SexOffenders_main__index
 	on GA_SexOffenders_main (ID, state);
 
+create table GA_SexOffenders_offenses
+(
+	ID,
+	ConvictionDate,
+	Addr_State,
+	Offense,
+	state
+);
+
+create index GA_SexOffenders_offenses__index
+	on GA_SexOffenders_offenses (ID, state);
+
 create table GA_SexOffenders_photos
 (
 	ID,
@@ -633,6 +734,9 @@ create table HI_sex_offender_aliases
 	state
 );
 
+create index HI_sex_offender_aliases__index
+	on HI_sex_offender_aliases (ID, state);
+
 create table HI_sex_offender_appeals
 (
 	ID,
@@ -641,12 +745,18 @@ create table HI_sex_offender_appeals
 	state
 );
 
+create index HI_sex_offender_appeals__index
+	on HI_sex_offender_appeals (ID, state);
+
 create table HI_sex_offender_license
 (
 	ID,
 	license_type,
 	state
 );
+
+create index HI_sex_offender_license__index
+	on HI_sex_offender_license (ID, state);
 
 create table HI_sex_offender_main
 (
@@ -665,6 +775,9 @@ create table HI_sex_offender_main
 	state
 );
 
+create index HI_sex_offender_main__index
+	on HI_sex_offender_main (ID, state);
+
 create table HI_sex_offender_offenses
 (
 	ID,
@@ -675,6 +788,9 @@ create table HI_sex_offender_offenses
 	state
 );
 
+create index HI_sex_offender_offenses__index
+	on HI_sex_offender_offenses (ID, state);
+
 create table HI_sex_offender_photos
 (
 	ID,
@@ -682,12 +798,18 @@ create table HI_sex_offender_photos
 	state
 );
 
+create index HI_sex_offender_photos__index
+	on HI_sex_offender_photos (ID, state);
+
 create table HI_sex_offender_smts
 (
 	ID,
 	scars_marks_tattoos,
 	state
 );
+
+create index HI_sex_offender_smts__index
+	on HI_sex_offender_smts (ID, state);
 
 create table HI_sex_offender_vehicles
 (
@@ -702,6 +824,9 @@ create table HI_sex_offender_vehicles
 	state
 );
 
+create index HI_sex_offender_vehicles__index
+	on HI_sex_offender_vehicles (ID, state);
+
 create table IA_sex_offender_aliases
 (
 	ID,
@@ -710,6 +835,9 @@ create table IA_sex_offender_aliases
 	middle_name,
 	state
 );
+
+create index IA_sex_offender_aliases__index
+	on IA_sex_offender_aliases (ID, state);
 
 create table IA_sex_offender_convictions
 (
@@ -725,6 +853,52 @@ create table IA_sex_offender_convictions
 	state
 );
 
+create index IA_sex_offender_convictions__index
+	on IA_sex_offender_convictions (ID, state);
+
+create table IA_sex_offender_main
+(
+	ID,
+	address,
+	address_line_1,
+	address_line_2,
+	age,
+	birthdate,
+	city,
+	county,
+	employment_restriction,
+	exclusion_zones,
+	eye_color,
+	first_name,
+	gender,
+	hair_color,
+	height_inches,
+	isor_number,
+	last_changed,
+	last_name,
+	latitude,
+	longitude,
+	middle_name,
+	oci,
+	postal_code,
+	race,
+	registrant,
+	registrant_cluster,
+	registrant_id,
+	residency_restriciton,
+	Addr_State,
+	tier,
+	victim_adults,
+	victim_minors,
+	victim_unknown,
+	wanted,
+	weight_pounds,
+	state
+);
+
+create index IA_sex_offender_main__index
+	on IA_sex_offender_main (ID, state);
+
 create table IA_sex_offender_photos
 (
 	ID,
@@ -732,12 +906,18 @@ create table IA_sex_offender_photos
 	state
 );
 
+create index IA_sex_offender_photos__index
+	on IA_sex_offender_photos (ID, state);
+
 create table IA_sex_offender_smts
 (
 	ID,
 	skin_marking,
 	state
 );
+
+create index IA_sex_offender_smts__index
+	on IA_sex_offender_smts (ID, state);
 
 create table IDSexOffenders_addresses
 (
@@ -761,9 +941,6 @@ create table IDSexOffenders_aliases
 );
 
 create index IDSexOffenders_aliases__index
-	on IDSexOffenders_aliases (ID, state);
-
-create index IDSexOffenders_aliases__index_2
 	on IDSexOffenders_aliases (ID, state);
 
 create table IDSexOffenders_main
@@ -802,9 +979,6 @@ create table IDSexOffenders_main
 create index IDSexOffenders_main__index
 	on IDSexOffenders_main (ID, state);
 
-create index IDSexOffenders_main__index_2
-	on IDSexOffenders_main (ID, state);
-
 create table IDSexOffenders_offenses
 (
 	ID,
@@ -835,12 +1009,18 @@ create table ILSexOffenders_aliases
 	state
 );
 
+create index ILSexOffenders_aliases__index
+	on ILSexOffenders_aliases (ID, state);
+
 create table ILSexOffenders_crime_info
 (
 	ID,
 	CrimeInformation,
 	state
 );
+
+create index ILSexOffenders_crime_info__index
+	on ILSexOffenders_crime_info (ID, state);
 
 create table ILSexOffenders_crimes
 (
@@ -849,12 +1029,47 @@ create table ILSexOffenders_crimes
 	state
 );
 
+create index ILSexOffenders_crimes__index
+	on ILSexOffenders_crimes (ID, state);
+
+create table ILSexOffenders_main
+(
+	Address,
+	City,
+	CountyOfConviction,
+	DOB,
+	DateOfBirth,
+	FirstName,
+	Height,
+	ID,
+	LastName,
+	MiddleName,
+	Name,
+	PhotoName,
+	Race,
+	Sex,
+	SexualPredator,
+	Addr_State,
+	StateOfConviction,
+	Status,
+	Suffix,
+	Weight,
+	Zip,
+	state
+);
+
+create index ILSexOffenders_main__index
+	on ILSexOffenders_main (ID, state);
+
 create table ILSexOffenders_photos
 (
 	ID,
 	PhotoFile,
 	state
 );
+
+create index ILSexOffenders_photos__index
+	on ILSexOffenders_photos (ID, state);
 
 create table INSexOffenders_addresses
 (
@@ -863,7 +1078,7 @@ create table INSexOffenders_addresses
 	AddressType,
 	Address,
 	AddressExtension,
-	City State Zip,
+	City_State_Zip,
 	County,
 	state
 );
@@ -955,6 +1170,9 @@ create table INSexOffenders_warrants
 	Warrant,
 	state
 );
+
+create index INSexOffenders_warrants__index
+	on INSexOffenders_warrants (ID, state);
 
 create table LA_SexOffenders_addresses
 (
@@ -1048,6 +1266,9 @@ create table LA_SexOffenders_probation_conditions
 	state
 );
 
+create index LA_SexOffenders_probation_conditions__index
+	on LA_SexOffenders_probation_conditions (ID, state);
+
 create table LA_SexOffenders_smts
 (
 	ID,
@@ -1069,12 +1290,18 @@ create table LA_SexOffenders_vehicles
 	state
 );
 
+create index LA_SexOffenders_vehicles__index
+	on LA_SexOffenders_vehicles (ID, state);
+
 create table LA_SexOffenders_warrants
 (
 	ID,
 	WarrantInformation,
 	state
 );
+
+create index LA_SexOffenders_warrants__index
+	on LA_SexOffenders_warrants (ID, state);
 
 create table MA_SexOffenders_addresses
 (
@@ -1228,6 +1455,9 @@ create table MDSexOffenders_vehicles
 	state
 );
 
+create index MDSexOffenders_vehicles__index
+	on MDSexOffenders_vehicles (ID, state);
+
 create table ME_SexOffenders_addresses
 (
 	ID,
@@ -1258,6 +1488,9 @@ create table ME_SexOffenders_employer_info
 	county,
 	state
 );
+
+create index ME_SexOffenders_employer_info__index
+	on ME_SexOffenders_employer_info (ID, state);
 
 create table ME_SexOffenders_main
 (
@@ -1297,6 +1530,21 @@ create table ME_SexOffenders_photos
 
 create index ME_SexOffenders_photos__index
 	on ME_SexOffenders_photos (ID, state);
+
+create table MISexOffenders_addresses
+(
+	ID,
+	Name,
+	AddressType,
+	Address,
+	Address_Extended,
+	City_State_Zip,
+	County,
+	state
+);
+
+create index MISexOffenders_addresses__index
+	on MISexOffenders_addresses (ID, state);
 
 create table MISexOffenders_aliases
 (
@@ -1383,6 +1631,9 @@ create table MISexOffenders_vehicles
 	state
 );
 
+create index MISexOffenders_vehicles__index
+	on MISexOffenders_vehicles (ID, state);
+
 create table MN_SexOffenders_aliases
 (
 	ID,
@@ -1440,7 +1691,7 @@ create table MOSexOffenders_SMTs
 	state
 );
 
-create index MOSexOffenders_smts__index
+create index MOSexOffenders_SMTs__index
 	on MOSexOffenders_SMTs (ID, state);
 
 create table MOSexOffenders_addresses
@@ -1487,6 +1738,9 @@ create table MOSexOffenders_dob_aliases
 	DOBAlias,
 	state
 );
+
+create index MOSexOffenders_dob_aliases__index
+	on MOSexOffenders_dob_aliases (ID, state);
 
 create table MOSexOffenders_main
 (
@@ -1537,6 +1791,9 @@ create table MOSexOffenders_release
 	state
 );
 
+create index MOSexOffenders_release__index
+	on MOSexOffenders_release (ID, state);
+
 create table MOSexOffenders_vehicles
 (
 	ID,
@@ -1549,6 +1806,9 @@ create table MOSexOffenders_vehicles
 	state
 );
 
+create index MOSexOffenders_vehicles__index
+	on MOSexOffenders_vehicles (ID, state);
+
 create table MOSexOffenders_victim_info
 (
 	ID,
@@ -1557,6 +1817,9 @@ create table MOSexOffenders_victim_info
 	VictimAge,
 	state
 );
+
+create index MOSexOffenders_victim_info__index
+	on MOSexOffenders_victim_info (ID, state);
 
 create table MS_SexOffenders_addresses
 (
@@ -1568,12 +1831,44 @@ create table MS_SexOffenders_addresses
 	state
 );
 
+create index MS_SexOffenders_addresses__index
+	on MS_SexOffenders_addresses (ID, state);
+
 create table MS_SexOffenders_aliases
 (
 	ID,
 	Alias,
 	state
 );
+
+create index MS_SexOffenders_aliases__index
+	on MS_SexOffenders_aliases (ID, state);
+
+create table MS_SexOffenders_main
+(
+	City,
+	DOB,
+	DateOfBirth,
+	Eyes,
+	FirstName,
+	Gender,
+	Hair,
+	Height,
+	ID,
+	LastName,
+	MiddleName,
+	Name,
+	PhotoDate,
+	PrimaryAddress,
+	Race,
+	Addr_State,
+	Weight,
+	Zip,
+	state
+);
+
+create index MS_SexOffenders_main__index
+	on MS_SexOffenders_main (ID, state);
 
 create table MS_SexOffenders_offenses
 (
@@ -1585,12 +1880,18 @@ create table MS_SexOffenders_offenses
 	state
 );
 
+create index MS_SexOffenders_offenses__index
+	on MS_SexOffenders_offenses (ID, state);
+
 create table MS_SexOffenders_photos
 (
 	ID,
 	PhotoFile,
 	state
 );
+
+create index MS_SexOffenders_photos__index
+	on MS_SexOffenders_photos (ID, state);
 
 create table MS_SexOffenders_smts
 (
@@ -1600,6 +1901,9 @@ create table MS_SexOffenders_smts
 	Description,
 	state
 );
+
+create index MS_SexOffenders_smts__index
+	on MS_SexOffenders_smts (ID, state);
 
 create table MS_SexOffenders_vehicles
 (
@@ -1611,6 +1915,9 @@ create table MS_SexOffenders_vehicles
 	state
 );
 
+create index MS_SexOffenders_vehicles__index
+	on MS_SexOffenders_vehicles (ID, state);
+
 create table NCSexOffenders_alias
 (
 	ID,
@@ -1620,6 +1927,30 @@ create table NCSexOffenders_alias
 
 create index NCSexOffenders_alias__index
 	on NCSexOffenders_alias (ID, state);
+
+create table NCSexOffenders_convictions
+(
+	ID,
+	OffenseDate,
+	CountyState,
+	ConvictionDate,
+	ReleaseDate,
+	Probation,
+	Confinement,
+	Statute,
+	Description,
+	OutofStateStatute,
+	OutofStateDescription,
+	VictimAge,
+	OffenderAge,
+	PrimaryNameattimeofConviction,
+	AliasNameattimeofConviction,
+	PrimaryNameattimeofSentencing,
+	state
+);
+
+create index NCSexOffenders_convictions__index
+	on NCSexOffenders_convictions (ID, state);
 
 create table NCSexOffenders_main
 (
@@ -1823,6 +2154,9 @@ create table NE_SexOffenders_schools
 	state
 );
 
+create index NE_SexOffenders_schools__index
+	on NE_SexOffenders_schools (ID, state);
+
 create table NE_SexOffenders_vehicles
 (
 	ID,
@@ -1830,6 +2164,9 @@ create table NE_SexOffenders_vehicles
 	AdditionalInfo,
 	state
 );
+
+create index NE_SexOffenders_vehicles__index
+	on NE_SexOffenders_vehicles (ID, state);
 
 create table NHSexOffenders_addresses
 (
@@ -1863,6 +2200,9 @@ create table NHSexOffenders_crimes
 	ConvictionDate,
 	state
 );
+
+create index NHSexOffenders_crimes__index
+	on NHSexOffenders_crimes (ID, state);
 
 create table NHSexOffenders_main
 (
@@ -1910,6 +2250,9 @@ create table NHSexOffenders_photos
 	PhotoFile,
 	state
 );
+
+create index NHSexOffenders_photos__index
+	on NHSexOffenders_photos (ID, state);
 
 create table NHSexOffenders_smts
 (
@@ -2009,6 +2352,9 @@ create table NJSexOffenders_vehicles
 	color,
 	state
 );
+
+create index NJSexOffenders_vehicles__index
+	on NJSexOffenders_vehicles (id, state);
 
 create table NMSexOffenders_addresses
 (
@@ -2194,6 +2540,9 @@ create table NV_SexOffenders_vehicles
 	state
 );
 
+create index NV_SexOffenders_vehicles__index
+	on NV_SexOffenders_vehicles (ID, state);
+
 create table NYSexOffenders_addresses
 (
 	ID,
@@ -2260,6 +2609,9 @@ create table NYSexOffenders_current_conviction_charges
 	state
 );
 
+create index NYSexOffenders_current_conviction_charges__index
+	on NYSexOffenders_current_conviction_charges (ID, state);
+
 create table NYSexOffenders_main
 (
 	CorrLens,
@@ -2319,6 +2671,9 @@ create table NYSexOffenders_previous_conviction
 	state
 );
 
+create index NYSexOffenders_previous_conviction__index
+	on NYSexOffenders_previous_conviction (ID, state);
+
 create table NYSexOffenders_previous_conviction_charges
 (
 	ID,
@@ -2333,6 +2688,9 @@ create table NYSexOffenders_previous_conviction_charges
 	state
 );
 
+create index NYSexOffenders_previous_conviction_charges__index
+	on NYSexOffenders_previous_conviction_charges (ID, state);
+
 create table NYSexOffenders_smts
 (
 	ID,
@@ -2342,6 +2700,20 @@ create table NYSexOffenders_smts
 
 create index NYSexOffenders_smts__index
 	on NYSexOffenders_smts (ID, state);
+
+create table NYSexOffenders_vehicles
+(
+	ID,
+	LicPlateNo,
+	Addr_State,
+	VehicleYear,
+	MakeModel,
+	Color,
+	state
+);
+
+create index NYSexOffenders_vehicles__index
+	on NYSexOffenders_vehicles (ID, state);
 
 create table OHSexOffenders_addresses
 (
@@ -2441,6 +2813,9 @@ create table OHSexOffenders_vehicles
 	state
 );
 
+create index OHSexOffenders_vehicles__index
+	on OHSexOffenders_vehicles (ID, state);
+
 create table OHSexOffenders_victim_info
 (
 	ID,
@@ -2449,6 +2824,138 @@ create table OHSexOffenders_victim_info
 	state
 );
 
+create index OHSexOffenders_victim_info__index
+	on OHSexOffenders_victim_info (ID, state);
+
+create table OKSexOffenders_addresses
+(
+	ID,
+	Type,
+	Address,
+	PhysicalAddress,
+	Jurisdiction,
+	state
+);
+
+create index OKSexOffenders_addresses__index
+	on OKSexOffenders_addresses (ID, state);
+
+create table OKSexOffenders_alias
+(
+	ID,
+	Aliases,
+	state
+);
+
+create index OKSexOffenders_alias__index
+	on OKSexOffenders_alias (ID, state);
+
+create table OKSexOffenders_employers
+(
+	ID,
+	Type,
+	Employer,
+	Occupation,
+	Address,
+	Phone_Numbers,
+	state
+);
+
+create index OKSexOffenders_employers__index
+	on OKSexOffenders_employers (ID, state);
+
+create table OKSexOffenders_main
+(
+	Age,
+	Aggravated,
+	DOB,
+	DOC,
+	EndRegDat,
+	EyeColor,
+	Habitual,
+	HairColor,
+	Height,
+	ID,
+	Name,
+	OrigRegDate,
+	PhotoDate,
+	Race,
+	SentenceCompletionDate,
+	Sex,
+	Status,
+	Weight,
+	state
+);
+
+create index OKSexOffenders_main__index
+	on OKSexOffenders_main (ID, state);
+
+create table OKSexOffenders_offenses
+(
+	ID,
+	Crime,
+	CaseReference,
+	County,
+	City,
+	Addr_State,
+	Federal,
+	Convicted,
+	state
+);
+
+create index OKSexOffenders_offenses__index
+	on OKSexOffenders_offenses (ID, state);
+
+create table OKSexOffenders_photos
+(
+	ID,
+	PhotoFile,
+	state
+);
+
+create index OKSexOffenders_photos__index
+	on OKSexOffenders_photos (ID, state);
+
+create table OKSexOffenders_scars_marks_tattoos
+(
+	ID,
+	Type,
+	Description,
+	state
+);
+
+create index OKSexOffenders_scars_marks_tattoos__index
+	on OKSexOffenders_scars_marks_tattoos (ID, state);
+
+create table OKSexOffenders_schools
+(
+	ID,
+	Type,
+	School,
+	Occupation,
+	Address,
+	state
+);
+
+create index OKSexOffenders_schools__index
+	on OKSexOffenders_schools (ID, state);
+
+create table OKSexOffenders_vehicles
+(
+	ID,
+	Year,
+	Color,
+	Model,
+	Style,
+	TagState,
+	TagType,
+	Tag,
+	state
+);
+
+create index OKSexOffenders_vehicles__index
+	on OKSexOffenders_vehicles (ID, state);
+
 create table ORSexOffenders_employments
 (
 	ID,
@@ -2456,6 +2963,9 @@ create table ORSexOffenders_employments
 	Place,
 	state
 );
+
+create index ORSexOffenders_employments__index
+	on ORSexOffenders_employments (ID, state);
 
 create table ORSexOffenders_main
 (
@@ -2467,7 +2977,7 @@ create table ORSexOffenders_main
 	ID,
 	LastRegistrationDate,
 	Name,
-	Residence Address,
+	Residence_Address,
 	Sex,
 	Status,
 	Weight,
@@ -2517,7 +3027,7 @@ create table PA_SexOffenders_SMTs
 	state
 );
 
-create index PA_SexOffenders_smts__index
+create index PA_SexOffenders_SMTs__index
 	on PA_SexOffenders_SMTs (ID, state);
 
 create table PA_SexOffenders_addresses
@@ -2588,6 +3098,23 @@ create table PA_SexOffenders_photos
 create index PA_SexOffenders_photos__index
 	on PA_SexOffenders_photos (ID, state);
 
+create table PA_SexOffenders_vehicles
+(
+	ID,
+	Ownership,
+	Year,
+	Make,
+	Model,
+	Color,
+	Addr_State,
+	LicensePlate,
+	GeneralParkingLocations,
+	state
+);
+
+create index PA_SexOffenders_vehicles__index
+	on PA_SexOffenders_vehicles (ID, state);
+
 create table Photos
 (
 	id INTEGER,
@@ -2600,12 +3127,36 @@ create table Photos
 create index Photos_idx
 	on Photos (id, state);
 
+create table RISexOffenders_main
+(
+	Address,
+	CityTown,
+	CommunitySupervision,
+	ConvictedOf,
+	DOB,
+	Eyes,
+	Hair,
+	Height,
+	ID,
+	Name,
+	Race,
+	Sex,
+	Weight,
+	state
+);
+
+create index RISexOffenders_main__index
+	on RISexOffenders_main (ID, state);
+
 create table RISexOffenders_photos
 (
 	ID,
 	PhotoFile,
 	state
 );
+
+create index RISexOffenders_photos__index
+	on RISexOffenders_photos (ID, state);
 
 create table SCSexOffenders_addresses
 (
@@ -2633,7 +3184,7 @@ create index SCSexOffenders_aliases__index
 create table SCSexOffenders_boats
 (
 	ID,
-	Registration Number,
+	Registration_Number,
 	Make,
 	Model,
 	Type,
@@ -2642,6 +3193,9 @@ create table SCSexOffenders_boats
 	Color,
 	state
 );
+
+create index SCSexOffenders_boats__index
+	on SCSexOffenders_boats (ID, state);
 
 create table SCSexOffenders_main
 (
@@ -2663,6 +3217,19 @@ create table SCSexOffenders_main
 
 create index SCSexOffenders_main__index
 	on SCSexOffenders_main (ID, state);
+
+create table SCSexOffenders_offenses
+(
+	ID,
+	Conviction_Date,
+	Conviction_State,
+	Statute,
+	Offense,
+	state
+);
+
+create index SCSexOffenders_offenses__index
+	on SCSexOffenders_offenses (ID, state);
 
 create table SCSexOffenders_photos
 (
@@ -2695,6 +3262,9 @@ create table SCSexOffenders_vehicles
 	Color,
 	state
 );
+
+create index SCSexOffenders_vehicles__index
+	on SCSexOffenders_vehicles (ID, state);
 
 create table SDSexOffenders_alias
 (
@@ -2771,46 +3341,23 @@ create table SexOffender
 (
 	id Integer,
 	name,
-	age,
 	dateOfBirth,
-	state,
-	aliases,
-	offenses,
-	addresses,
-	photos,
-	personalDetails
-);
-
-create unique index SexOffender_idx
-	on SexOffender (id, state);
-
-create table Sex_Offender_T1
-(
-	ID,
-	name,
-	dateOfBirth,
+	eyes,
+	hair,
+	height,
+	weight,
+	race,
+	sex,
 	state,
 	aliases,
 	addresses,
 	offenses,
 	scarsTattoos,
-	photos,
-	eyes text,
-	hair text,
-	height text,
-	weight text,
-	race text,
-	sex text
+	photos
 );
 
-create index Sex_Offender_T1__index
-	on Sex_Offender_T1 (ID, state);
-
-create table States
-(
-	name text,
-	abbrev text
-);
+create index SexOffender__index
+	on SexOffender (id, state);
 
 create table UT_SexOffenders_addresses
 (
@@ -2885,6 +3432,9 @@ create table UT_SexOffenders_pro_licenses
 	state
 );
 
+create index UT_SexOffenders_pro_licenses__index
+	on UT_SexOffenders_pro_licenses (ID, state);
+
 create table UT_SexOffenders_smts
 (
 	ID,
@@ -2905,6 +3455,9 @@ create table UT_SexOffenders_vehicles
 	Color,
 	state
 );
+
+create index UT_SexOffenders_vehicles__index
+	on UT_SexOffenders_vehicles (ID, state);
 
 create table VASexOffenders_addresses
 (
@@ -2959,6 +3512,22 @@ create table VASexOffenders_main
 
 create index VASexOffenders_main__index
 	on VASexOffenders_main (ID, state);
+
+create table VASexOffenders_offenses
+(
+	ID,
+	Case_Number,
+	Sentencing_Court,
+	Code_Section,
+	Statute,
+	Date_of_Conviction,
+	State_Convicted,
+	Victim_Age,
+	state
+);
+
+create index VASexOffenders_offenses__index
+	on VASexOffenders_offenses (ID, state);
 
 create table VASexOffenders_photos
 (
@@ -3018,6 +3587,25 @@ create table VTSexOffenders_main
 create index VTSexOffenders_main__index
 	on VTSexOffenders_main (ID, state);
 
+create table VTSexOffenders_offenses
+(
+	ID,
+	OffenseDescription,
+	DateConvicted,
+	ConvictionState,
+	DateReleased,
+	OffenseDetails,
+	Counts,
+	State_Equivalent,
+	County_of_Conviction,
+	Case_Number,
+	Sentence,
+	state
+);
+
+create index VTSexOffenders_offenses__index
+	on VTSexOffenders_offenses (ID, state);
+
 create table VTSexOffenders_photos
 (
 	ID,
@@ -3035,6 +3623,9 @@ create table VTSexOffenders_probation_conditions
 	state
 );
 
+create index VTSexOffenders_probation_conditions__index
+	on VTSexOffenders_probation_conditions (ID, state);
+
 create table VTSexOffenders_smts
 (
 	ID,
@@ -3051,6 +3642,9 @@ create table VTSexOffenders_warrant
 	Warrant,
 	state
 );
+
+create index VTSexOffenders_warrant__index
+	on VTSexOffenders_warrant (ID, state);
 
 create table WA_SexOffenders_aliases
 (
@@ -3134,6 +3728,9 @@ create table WA_SexOffenders_probation_conditions
 	ProbationCondition,
 	state
 );
+
+create index WA_SexOffenders_probation_conditions__index
+	on WA_SexOffenders_probation_conditions (ID, state);
 
 create table WA_SexOffenders_smts
 (
@@ -3224,6 +3821,51 @@ create table WI_SexOffenders_photos
 create index WI_SexOffenders_photos__index
 	on WI_SexOffenders_photos (ID, state);
 
+create table WI_SexOffenders_vehicles
+(
+	ID,
+	Type,
+	Year,
+	Make,
+	Model,
+	Style,
+	Color,
+	LicensePlate,
+	Addr_State,
+	state
+);
+
+create index WI_SexOffenders_vehicles__index
+	on WI_SexOffenders_vehicles (ID, state);
+
+create table WV_SexOffenders_addresses
+(
+	ID,
+	Street,
+	City,
+	County,
+	Addr_State,
+	Zip,
+	name,
+	state
+);
+
+create index WV_SexOffenders_addresses__index
+	on WV_SexOffenders_addresses (ID, state);
+
+create table WV_SexOffenders_employers_schools
+(
+	ID,
+	Organization,
+	City,
+	County,
+	Addr_State,
+	state
+);
+
+create index WV_SexOffenders_employers_schools__index
+	on WV_SexOffenders_employers_schools (ID, state);
+
 create table WV_SexOffenders_main
 (
 	Age,
@@ -3246,6 +3888,9 @@ create table WV_SexOffenders_main
 	state
 );
 
+create index WV_SexOffenders_main__index
+	on WV_SexOffenders_main (ID, state);
+
 create table WV_SexOffenders_offenses
 (
 	ID,
@@ -3257,12 +3902,18 @@ create table WV_SexOffenders_offenses
 	state
 );
 
+create index WV_SexOffenders_offenses__index
+	on WV_SexOffenders_offenses (ID, state);
+
 create table WV_SexOffenders_photos
 (
 	ID,
 	PhotoFile,
 	state
 );
+
+create index WV_SexOffenders_photos__index
+	on WV_SexOffenders_photos (ID, state);
 
 create table WYSexOffenders_addresses
 (
@@ -3355,6 +4006,9 @@ create table WYSexOffenders_vehicles
 	Color,
 	state
 );
+
+create index WYSexOffenders_vehicles__index
+	on WYSexOffenders_vehicles (ID, state);
 
 create table al_sex_offenders
 (
@@ -3503,7 +4157,7 @@ create table ky_sex_offenders_addresses
 	state
 );
 
-create index ky_Sex_Offenders_addresses__index
+create index ky_sex_offenders_addresses__index
 	on ky_sex_offenders_addresses (id, state);
 
 create table ky_sex_offenders_aliases
@@ -3514,7 +4168,7 @@ create table ky_sex_offenders_aliases
 	state
 );
 
-create index ky_Sex_Offenders_aliases__index
+create index ky_sex_offenders_aliases__index
 	on ky_sex_offenders_aliases (id, state);
 
 create table ky_sex_offenders_main
@@ -3538,8 +4192,22 @@ create table ky_sex_offenders_main
 	state
 );
 
-create index ky_Sex_Offenders_main__index
+create index ky_sex_offenders_main__index
 	on ky_sex_offenders_main (id, state);
+
+create table ky_sex_offenders_offenses
+(
+	id,
+	code,
+	count,
+	description,
+	county_name,
+	Addr_State,
+	state
+);
+
+create index ky_sex_offenders_offenses__index
+	on ky_sex_offenders_offenses (id, state);
 
 create table ky_sex_offenders_photos
 (
@@ -3548,7 +4216,7 @@ create table ky_sex_offenders_photos
 	state
 );
 
-create index ky_Sex_Offenders_photos__index
+create index ky_sex_offenders_photos__index
 	on ky_sex_offenders_photos (ID, state);
 
 create table ky_sex_offenders_victim_info

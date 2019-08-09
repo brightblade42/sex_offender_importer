@@ -147,7 +147,9 @@ fn create_blob_table_query() -> Result<String, Box<Error>> {
     ))
 }
 
-fn delete_old_photos(conn: &Connection, state: &str) {
+pub fn delete_old_photos(state: &str, sql_path: &str) -> Result<(), Box<dyn Error>> {
+
+    let conn = Connection::open(sql_path)?;
     match conn.execute(
         &format!("DELETE FROM Photos where state='{}'", state),
         NO_PARAMS,
@@ -155,6 +157,9 @@ fn delete_old_photos(conn: &Connection, state: &str) {
         Ok(ex) => println!("deleted old photos for state: {}", state),
         Err(e) => println!("could not delete photos for state: {}. {}", state, e),
     }
+
+    Ok(())
+
 }
 
 fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<Error>> {
@@ -286,12 +291,12 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
     Ok(())
 }
 
+
 fn import_images(conn: &Connection, path: &PathBuf, state: &str) -> Result<(), Box<dyn Error>>  {
 
     let blob_table = create_blob_table_query();
     conn.execute(&blob_table.unwrap(), NO_PARAMS);
 
-    delete_old_photos(&conn, state);
     //1. we've got an archive of images. we don't want to write them
     //to disk, we want to store them as blobs in sqlite.
 
