@@ -114,7 +114,7 @@ impl Config for PathVars {
     fn load(env: &Env) -> ConfigResult //Result<HashMap<String,String>, Box<std::error::Error>>
     {
         let conn = Connection::open(CONFIG)?;
-        let mut stmt = conn.prepare("Select * from kpaths where env = ?")?;
+        let mut stmt = conn.prepare("Select * from paths where env = ?")?;
         let mut hashmp: HashMap<String, String> = HashMap::new();
         let en = match env {
 

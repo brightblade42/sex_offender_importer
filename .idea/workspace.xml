@@ -13,17 +13,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/consts.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/AL_select.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/KS_select" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/TN_select.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ar_import_template.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/az_import_template.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/create_master.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/create_master.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/create_sexoffender.sql" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/downloader.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/downloader.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/extractor.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/extractor.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/importer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -211,7 +205,7 @@
       <workItem from="1565133284546" duration="544000" />
       <workItem from="1565134308519" duration="1684000" />
       <workItem from="1565191270487" duration="39578000" />
-      <workItem from="1565364352665" duration="7684000" />
+      <workItem from="1565364352665" duration="9147000" />
     </task>
     <servers />
   </component>
@@ -255,7 +249,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/main.rs</url>
-          <line>72</line>
+          <line>53</line>
           <option name="timeStamp" value="48" />
         </line-breakpoint>
       </breakpoints>

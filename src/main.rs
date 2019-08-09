@@ -40,25 +40,6 @@ struct SexOffenderCli {
     verbosity: Verbosity,
 }
 
-fn main_() {
-    let statelist: States = config::States::load().unwrap();
-
-    let path_vars = PathVars::new(config::Env::Dev);
-    let sql_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["sex_offender_db"]);
-    let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["archives_path"]);
-
-    for state in statelist {
-        println!("{}: {}", state.state, state.abbr);
-        let state_path = root_path.join(state.state.to_lowercase());
-        let st_files = read_dir(state_path).unwrap();
-        for stf in st_files {
-
-            let fnn = stf.unwrap();
-            println!("{:?}", fnn.path());
-        }
-    }
-
-}
 fn main() {
 
     //let path_config = config::PathVars::new(config::Env::Dev);
@@ -72,9 +53,7 @@ fn main() {
 
     let path_vars = PathVars::new(config::Env::Dev);
     let sql_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["sex_offender_db"]);
-    //println!("{:?}", path_vars.vars);
     println!("sql path: {}", sql_path.to_str().unwrap());
-    //let mut root_path = PathBuf::from(&path_vars.vars["archives_path"]);
 
     let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["archives_path"]);
 
@@ -141,7 +120,6 @@ fn disconnect_test() {
 //#[test]
 fn test_root_dirs() {
     let root_path = PathBuf::from("/home/d-rezzer/dev/eyemetric/ftp/us");
-    //let iter = fs::read_dir(root_path);
     let mut flist = fs::read_dir(root_path).unwrap();//.collect();
 
     for f in flist {
@@ -154,87 +132,6 @@ fn test_root_dirs() {
     }
 }
 
-fn extract_state_archive() {
-
-    let path_vars = config::PathVars::new(config::Env::Dev);
-
-}
-fn main_old() {
-    let path_config = config::PathVars::new(config::Env::Dev);
-    let ftp_conf = FtpConfig::init(config::Env::Test);
-
-    //let path_config = config::PathVars::new(config::Env::Production);
-    //let ftp_conf =  FtpConfig::init(config::Env::Production);
-
-    let addr = format!("{}:{}", &ftp_conf.address, &ftp_conf.port);
-
-    let mut downloader = Downloader::connect(&addr, &ftp_conf.user, &ftp_conf.pass, path_config)
-        .expect("to connect to ftp server.");
-
-    println!("Begin Server Query phase. ");
-    let start = Instant::now();
-
-    let file_list = get_remote_file_list(&mut downloader); //all the files we could get
-                                                           //println!("{:?}", file_list);
-
-    let duration = start.elapsed();
-    println!("remote file listing complete. Took : {:?}", duration);
-
-    let avail_updates = Downloader::available_updates(file_list); //the files we need
-    println!("available file count: {}", &avail_updates.len());
-    //let avail_updates: Vec<FileInfo> = avail_updates.into_iter().take(1).collect();
-    for upd in &avail_updates {
-        println!(
-            "hello: {}",
-            &format!(
-                "name: {}   path: {:?}",
-                upd.name().as_str(),
-                upd.remote_path().to_str()
-            )
-        );
-    }
-
-    println!("Begin Download Phase");
-    //let sx_arch_files = downloader.download_remote_files(top_one);
-    //let sx_arch_files = downloader.download_remote_files(avail_updates);
-
-    //println!("Finished downloading... ready for extraction");
-
-    //    prepare_import();
-
-    /*
-    for sx_file in sx_arch_files {
-        let exfiles = downloader.extract_archive(sx_file);
-        let exfileL = match exfiles {
-            Ok(ext) => {
-                ext
-            },
-            Err(e) => {
-                println!("BAD MOJO! {}", e);
-                continue; //skip bad data. we'll log it. tag it and bag it.
-            }
-        };
-
-       //there can be many files stored in the archive. loop em!
-        for exfile in exfileL {
-            match import_data(&exfile) {
-                Ok(()) => {
-                    println!("imported file {:?}", &exfile);
-                }
-                Err(e) => {
-                    println!("Error importing file {:?}", e);
-                    println!("ex: {:?}", &exfile);
-                }
-            }
-        }
-
-       // println!("ex: {:?}", exfile);
-    }
-    */
-    println!("End of line...");
-
-    downloader.disconnect();
-}
 
 fn get_remote_file_list(downloader: &mut Downloader) -> Vec<Result<FileInfo, Box<error::Error>>> {
     //set up some filters
@@ -245,21 +142,5 @@ fn get_remote_file_list(downloader: &mut Downloader) -> Vec<Result<FileInfo, Box
     let az_only = |x: &String| x.contains("AR") && x.contains("records");
     let mut file_list = downloader.remote_file_list(record_filter, DownloadOption::Always);
 
-    /*
-    let mut flist = &mut file_list;
-      for file in flist.iter_mut() {
-          match file {
-              Ok(f) => {
-
-                  let arch = downloader.save_archive(&f);
-                  //let csv_files =Downloader::extract_archive(&f);
-                  println!("saved: {:?}", f.file_path().display());
-              }
-              Err(e) => {
-                  println!("could not read record! {:?}", e);
-              }
-          }
-      }
-      */
     file_list
 }

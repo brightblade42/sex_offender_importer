@@ -10,17 +10,20 @@ use ftp::status::PATH_CREATED;
 type GenError = Box<dyn std::error::Error>;
 pub type Result<T> = ::std::result::Result<T, Box<dyn std::error::Error>>;
 
+
 pub struct Extractor<'a> {
    config: &'a PathVars,
 }
 
 impl Extractor<'_> {
+
    pub fn new(config: &PathVars) -> Extractor {
 
       Extractor {
            config,
       }
    }
+
    fn generate_extract_path(&self, state: &str, archive_path: &PathBuf, file_name: &OsStr) -> PathBuf {
         let mut extracts_path = PathBuf::from(&self.config.vars["app_base_path"]).join(&self.config.vars["extracts_path"]);
         extracts_path.push(state);
@@ -54,7 +57,7 @@ impl Extractor<'_> {
 
         for i in 0..archive.len() {
             let mut embedded_file = archive.by_index(i)?;
-
+            //TODO: Reckon with this here Texas situation.
            if state_abbrev == "TX" { //Texas is a problem. Lots of files, all fucked.
                 continue;
             }

@@ -244,14 +244,14 @@ impl Downloader {
 
     fn remote_ftp_path(&mut self, fileinfo: &FileInfo) -> PathBuf {
 
-        let p = match fileinfo {
+        let p_buff = match fileinfo {
             FileInfo::Record(r) => {
                 PathBuf::from(r.rpath.as_ref().unwrap())
             }
             _ => PathBuf::new(),
         };
 
-       p
+       p_buff
 
     }
     pub fn remote_path(fileInfo: &FileInfo, config: &PathVars) -> PathBuf {
