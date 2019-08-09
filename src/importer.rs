@@ -24,7 +24,6 @@ fn open_csv_reader(file: File, delim: char) -> Result<csv::Reader<File>, Box<dyn
 }
 
 fn create_default_index(name: &str) -> String {
-
     format!(
         r#"CREATE  INDEX if not exists {}__index ON {} (
          ID,
@@ -33,6 +32,7 @@ fn create_default_index(name: &str) -> String {
         name, name
     )
 }
+
 fn create_default_non_unique_index(name: &str) -> String {
     format!(
         r#"CREATE INDEX if not exists {}_idx ON {} (
@@ -89,7 +89,7 @@ fn create_db(conn: &Connection) -> Result<(), Box<Error>> {
         create_default_non_unique_index("Photos").as_str(),
         NO_PARAMS,
     )
-    .expect("Unable to create photos index");
+        .expect("Unable to create photos index");
     Ok(())
 }
 
@@ -106,18 +106,18 @@ fn drop_table(conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Er
     //println!("Dropped Table: {}", table_name);
     r
 }
-fn convert_state_field(field: &str) -> &str {
 
+fn convert_state_field(field: &str) -> &str {
     if field == "State" || field == "state" {
-         "Addr_State"
-     } else {
-         field
-     }
+        "Addr_State"
+    } else {
+        field
+    }
 }
 
 fn convert_space_in_field(field: &str) -> String {
     if field.trim().contains(" ") {
-        field.replace(" ","_")
+        field.replace(" ", "_")
     } else {
         field.to_owned()
     }
@@ -148,7 +148,6 @@ fn create_blob_table_query() -> Result<String, Box<Error>> {
 }
 
 pub fn delete_old_photos(state: &str, sql_path: &str) -> Result<(), Box<dyn Error>> {
-
     let conn = Connection::open(sql_path)?;
     match conn.execute(
         &format!("DELETE FROM Photos where state='{}'", state),
@@ -159,7 +158,6 @@ pub fn delete_old_photos(state: &str, sql_path: &str) -> Result<(), Box<dyn Erro
     }
 
     Ok(())
-
 }
 
 fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<Error>> {
@@ -173,13 +171,13 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
         .iter()
         .map(convert_state_field)
         .map(convert_space_in_field)
-        .fold(q, |acc, head| format!("{} {},", acc, head.replace("/","")));
+        .fold(q, |acc, head| format!("{} {},", acc, head.replace("/", "")));
 
-        insert_query.push_str("state ) VALUES ("); //add our extra state field and close the ()
+    insert_query.push_str("state ) VALUES ("); //add our extra state field and close the ()
 
     //add value parameter placeholders
     //TODO: this seems like it could be better.
-   let header_count = reader.headers().unwrap().len();
+    let header_count = reader.headers().unwrap().len();
 
     for i in 0..header_count {
         insert_query.push_str("?,");
@@ -191,7 +189,6 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
 
 
 pub fn prepare_import(sql_path: &str) -> Result<(), Box<Error>> {
-
     let conn = Connection::open(sql_path)?;
     create_db(&conn).expect("something didn't create good.");
     conn.close();
@@ -211,8 +208,7 @@ pub fn import_data(extracted_file: &ExtractedFile, sql_path: &str) -> Result<(),
         }
 
         ImageArchive { path, state } => {
-           import_images(&conn, path, state);
-
+            import_images(&conn, path, state);
         }
     };
 
@@ -220,7 +216,7 @@ pub fn import_data(extracted_file: &ExtractedFile, sql_path: &str) -> Result<(),
     Ok(())
 }
 
-fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &char) -> Result<(), Box<dyn Error>>{
+fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &char) -> Result<(), Box<dyn Error>> {
 
     //this should be filtered out, really.
     let dsp = path.display().to_string();
@@ -261,23 +257,23 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
     let mut sql_err = 0;
     for result in csv_reader.byte_records() {
         match result {
-            Ok(record)  => {
-                    let mut rec = record.clone();
-                    rec.push_field(state.as_bytes());
-                    let res = conn.execute(&insert_query, &rec);
-                    match res {
-                        Err(r) => {
-                           println!("======================");
-                            println!("{}", r);
-                            println!("======================");
-                        },
-                        Ok(r) if r != 0 => {
-                            sql_err = r;
-                            //println!("sql error: {}", r);
-                        },
-                        _ => {}
+            Ok(record) => {
+                let mut rec = record.clone();
+                rec.push_field(state.as_bytes());
+                let res = conn.execute(&insert_query, &rec);
+                match res {
+                    Err(r) => {
+                        println!("======================");
+                        println!("{}", r);
+                        println!("======================");
                     }
-                    //println!("{}", res.unwrap());
+                    Ok(r) if r != 0 => {
+                        sql_err = r;
+                        //println!("sql error: {}", r);
+                    }
+                    _ => {}
+                }
+                //println!("{}", res.unwrap());
             }
             Err(e) => {
                 println!("Row data error: {}", e);
@@ -292,8 +288,7 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
 }
 
 
-fn import_images(conn: &Connection, path: &PathBuf, state: &str) -> Result<(), Box<dyn Error>>  {
-
+fn import_images(conn: &Connection, path: &PathBuf, state: &str) -> Result<(), Box<dyn Error>> {
     let blob_table = create_blob_table_query();
     conn.execute(&blob_table.unwrap(), NO_PARAMS);
 

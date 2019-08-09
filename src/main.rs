@@ -1,17 +1,20 @@
 extern crate sex_offender;
 extern crate log;
+
 use std::error;
+
 extern crate ftp;
+
 use serde;
 
-use sex_offender::types::{SexOffenderArchive, ExtractedFile, RecordInfo, FileInfo };
-use sex_offender::downloader::{DownloadOption, Downloader,   };
-use sex_offender::extractor::{Extractor};
+use sex_offender::types::{SexOffenderArchive, ExtractedFile, RecordInfo, FileInfo};
+use sex_offender::downloader::{DownloadOption, Downloader};
+use sex_offender::extractor::Extractor;
 use sex_offender::importer::{import_data, prepare_import, delete_old_photos};
 
 use core::borrow::Borrow;
 use rusqlite::{params, Connection, NO_PARAMS};
-use sex_offender::config::{self, Config, Env, FtpConfig, PathVars,States,State, LoadData};
+use sex_offender::config::{self, Config, Env, FtpConfig, PathVars, States, State, LoadData};
 use std::collections::HashMap;
 use std::path;
 use std::path::{Path, PathBuf};
@@ -35,7 +38,7 @@ struct SexOffenderCli {
     download: String,
 
     #[structopt(long = "list", short = "l", default_value = "new")]
-    list:String,
+    list: String,
     #[structopt(flatten)]
     verbosity: Verbosity,
 }
@@ -105,16 +108,15 @@ fn main() {
 
 #[test]
 fn connect_test() {
-
     let path_config = config::PathVars::new(config::Env::Production);
     let ftp_config = FtpConfig::init(config::Env::Production);
 
-   assert_eq!(1,0)
+    assert_eq!(1, 0)
 }
 
 #[test]
 fn disconnect_test() {
-   assert_eq!(1,0)
+    assert_eq!(1, 0)
 }
 
 //#[test]
@@ -128,7 +130,6 @@ fn test_root_dirs() {
         for arch in fs::read_dir(de.path()).unwrap() {
             println!("==> {:?}", arch.unwrap());
         }
-
     }
 }
 

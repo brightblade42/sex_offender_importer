@@ -1,5 +1,5 @@
 use crate::types::{SexOffenderArchive, ExtractedFile};
-use crate::config::{PathVars};
+use crate::config::PathVars;
 use std::path::{Path, PathBuf};
 use std::io::{BufWriter, BufReader};
 use std::fs::{self, File};
@@ -12,19 +12,17 @@ pub type Result<T> = ::std::result::Result<T, Box<dyn std::error::Error>>;
 
 
 pub struct Extractor<'a> {
-   config: &'a PathVars,
+    config: &'a PathVars,
 }
 
 impl Extractor<'_> {
+    pub fn new(config: &PathVars) -> Extractor {
+        Extractor {
+            config,
+        }
+    }
 
-   pub fn new(config: &PathVars) -> Extractor {
-
-      Extractor {
-           config,
-      }
-   }
-
-   fn generate_extract_path(&self, state: &str, archive_path: &PathBuf, file_name: &OsStr) -> PathBuf {
+    fn generate_extract_path(&self, state: &str, archive_path: &PathBuf, file_name: &OsStr) -> PathBuf {
         let mut extracts_path = PathBuf::from(&self.config.vars["app_base_path"]).join(&self.config.vars["extracts_path"]);
         extracts_path.push(state);
 
@@ -40,7 +38,6 @@ impl Extractor<'_> {
         extracts_path.push(file_name);
 
         extracts_path
-
     }
 
     ///extracts an arcive into a list of ExtractedFile types.
@@ -58,7 +55,7 @@ impl Extractor<'_> {
         for i in 0..archive.len() {
             let mut embedded_file = archive.by_index(i)?;
             //TODO: Reckon with this here Texas situation.
-           if state_abbrev == "TX" { //Texas is a problem. Lots of files, all fucked.
+            if state_abbrev == "TX" { //Texas is a problem. Lots of files, all fucked.
                 continue;
             }
 
@@ -74,7 +71,7 @@ impl Extractor<'_> {
                     println!("csv file: {:?}", &ex_file);
 
                     extracted_files.push(ex_file);
-                },
+                }
                 //TODO: make sure that files with txt extension always have a "," as delimiter. We're assuming based on incomplete data
                 Some(ext) if ext == "txt" => {
                     let ex_file = ExtractedFile::Csv { path: extracts_path, state: String::from(state_abbrev), delimiter: ',' };
@@ -87,7 +84,7 @@ impl Extractor<'_> {
                 }
                 None => {
                     println!("No file extension found in extracted file!");
-                },
+                }
                 _ => {
                     println!("Unsupported file extension found and ignored.");
                 }
