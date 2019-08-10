@@ -1,14 +1,14 @@
 Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
-select ifnull(case_num, '0') as id
-     , name
-     , r_Birth_Date as DateOfBirth
-     ,r_Eye_Color as eyes
-     ,r_Hair_Color as hair
-     ,r_Height as height
-     ,r_Weight as weight
-     ,r_race as race
-     ,r_Sex as sex
-     ,trim(state) as state
+select ifnull(cast(case_num as TEXT), '0') as id
+     ,cast(name as TEXT) as name
+     ,cast(r_Birth_Date as TEXT) as DateOfBirth
+     ,cast(r_Eye_Color as TEXT) as eyes
+     ,cast(r_Hair_Color as TEXT) as hair
+     ,cast(r_Height as TEXT) as height
+     ,cast(r_Weight as TEXT) as weight
+     ,cast(r_race as TEXT) as race
+     ,cast(r_Sex as TEXT) as sex
+     ,upper(trim(cast(state as TEXT))) as state
      -- aliases
 
      -- aliases

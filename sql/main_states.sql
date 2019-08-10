@@ -1,3 +1,4 @@
+CREATE TABLE if not exists states (state TEXT, abbr TEXT);
 INSERT INTO states (state, abbr) VALUES ('Alabama', 'AL');
 INSERT INTO states (state, abbr) VALUES ('Alaska', 'AK');
 INSERT INTO states (state, abbr) VALUES ('Arizona', 'AZ');

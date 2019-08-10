@@ -1,15 +1,14 @@
 Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
-select id
-     ,name
-     ,DateOfBirth
-
+select cast(id as TEXT) as id
+     ,cast(name as TEXT) as name
+     ,cast(DateOfBirth as TEXT) as DateOfBirth
      ,'' as eyes
      ,'' as hair
      ,'' as height
      ,'' as weight
      ,'' as race
      ,'' as sex
-     ,trim(state) as state
+     ,trim(cast(state as TEXT)) as state
      -- aliases
      -- aliases
      ,( SELECT json_group_array (cast(alias as TEXT))

@@ -123,7 +123,7 @@ fn convert_space_in_field(field: &str) -> String {
     }
 }
 
-fn create_table_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<Error>> {
+fn create_table_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<dyn Error>> {
     let mut q = format!("CREATE TABLE if not exists {} (", tname);
     //add the header names as column names for out table.
     let mut create_table = reader
@@ -231,12 +231,14 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
     let mut csv_reader = open_csv_reader(file, delimiter.to_owned())?;
 
     let table_name = String::from(path.file_stem().unwrap().to_str().unwrap());
+    println!("=============================");
+    println!("Dropped: {}", &table_name);
     drop_table(&conn, &table_name)?;
+
     let mut table_query = create_table_query(&mut csv_reader, &table_name)?;
 
-    println!("=============================");
-    println!("");
-    println!("{}", &table_query);
+    println!("Creating {}", &table_name);
+//    println!("{}", &table_query);
     println!("=============================");
     conn.execute(&table_query, NO_PARAMS)?;
 
@@ -246,10 +248,13 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
 
 
     let insert_query = create_insert_query(&mut csv_reader, &table_name)?;
+  /*
     println!("=============================");
     println!("");
     println!("{}", &insert_query);
+
     println!("=============================");
+    */
     conn.execute("Begin Transaction;", NO_PARAMS);
 
     //insert a record (line of csv) into sqlite table.
@@ -281,9 +286,9 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
         }
     }
     conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
-    if sql_err > 0 {
+   /* if sql_err > 0 {
         println!("sql error code: {}", sql_err);
-    }
+    } */
     Ok(())
 }
 
