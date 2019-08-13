@@ -1,5 +1,5 @@
 //extern crate csv;
-use csv;
+use csv::{self, Trim};
 use std::error::Error;
 use std::fs;
 use std::fs::File;
@@ -18,6 +18,8 @@ static SQL_PATH: &'static str = "/home/d-rezzer/dev/sex_offender/archives/sexoff
 fn open_csv_reader(file: File, delim: char) -> Result<csv::Reader<File>, Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new()
         .delimiter(delim as u8)
+        .trim(csv::Trim::All)
+
         .from_reader(file);
 
     Ok(rdr)

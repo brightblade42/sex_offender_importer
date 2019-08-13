@@ -13,57 +13,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/texas_shuffle.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ak_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ak_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/al_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/al_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ar_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ar_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/az_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/az_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ca_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ca_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/co_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/co_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ct_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ct_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/de_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/de_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/fl_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/fl_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ga_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ga_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/hi_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/hi_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ia_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ia_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/id_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/id_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/il_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/il_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/in_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/in_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ks_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ks_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ky_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ky_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/la_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/la_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ma_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ma_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/main_states.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/main_states.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/md_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/md_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/me_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/me_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/mi_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/mi_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/mn_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/mn_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/mo_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/mo_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ms_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ms_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/mt_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/mt_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/nc_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/nc_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/nd_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/nd_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ne_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ne_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/nh_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/nh_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/nj_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/nj_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/nm_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/nm_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/nv_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/nv_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ny_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ny_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/oh_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/oh_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ok_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ok_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/or_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/or_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/pa_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/pa_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ri_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ri_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/sc_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/sc_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/sd_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/sd_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/tn_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/tn_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/ut_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/ut_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/va_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/va_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/vt_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/vt_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/wa_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/wa_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/wi_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/wi_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/wv_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/wv_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/wy_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/wy_import.sql" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/importer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -118,6 +69,7 @@
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/conf.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/consts.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/extractor.rs" value="true" />
+    <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/texas_shuffle.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/things.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/types.rs" value="true" />
     <property name="org.rust.hideToolchainNotifications" value="true" />
@@ -270,7 +222,8 @@
       <workItem from="1565453774856" duration="337000" />
       <workItem from="1565454127916" duration="610000" />
       <workItem from="1565458462606" duration="31000" />
-      <workItem from="1565469289518" duration="1495000" />
+      <workItem from="1565469289518" duration="2184000" />
+      <workItem from="1565534230959" duration="11940000" />
     </task>
     <servers />
   </component>
