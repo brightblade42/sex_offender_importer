@@ -55,10 +55,10 @@ impl Extractor<'_> {
         for i in 0..archive.len() {
             let mut embedded_file = archive.by_index(i)?;
             //TODO: Reckon with this here Texas situation.
-            if state_abbrev == "TX" { //Texas is a problem. Lots of files, all fucked.
+           /* if state_abbrev == "TX" { //Texas is a problem. Lots of files, all fucked.
                 continue;
             }
-
+            */
             let embedded_file_name = embedded_file.sanitized_name();
             let extracts_path = self.generate_extract_path(&state_abbrev, &archive_path, embedded_file_name.as_os_str());
             let mut outfile = BufWriter::new(File::create(&extracts_path)?);

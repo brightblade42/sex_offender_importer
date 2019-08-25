@@ -13,13 +13,35 @@ use super::types::ExtractedFile;
 use zip;
 use zip::ZipArchive;
 
-static SQL_PATH: &'static str = "/home/d-rezzer/dev/sex_offender/archives/sexoffenders.sqlite";
+//static SQL_PATH: &'static str = "/home/d-rezzer/dev/sex_offender/archives/sexoffenders.sqlite";
 
-fn open_csv_reader(file: File, delim: char) -> Result<csv::Reader<File>, Box<dyn Error>> {
+trait CsvImporter {
+    fn open_csv_reader(&self, file: File, delim: char) -> Result<csv::Reader<File>, Box<dyn Error>> {
+        let mut rdr = csv::ReaderBuilder::new()
+            .delimiter(delim as u8)
+            .trim(csv::Trim::All)
+
+            .from_reader(file);
+        Ok(rdr)
+    }
+
+    fn create_default_index(name: &str) -> String {
+        format!("CREATE  INDEX if not exists {}__index ON {} ( ID, State );", name, name )
+    }
+
+    fn prepare();
+    fn  import_data();
+
+
+}
+
+
+fn open_csv_reader(file: File, delim: char, has_headers: bool) -> Result<csv::Reader<File>, Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new()
         .delimiter(delim as u8)
         .trim(csv::Trim::All)
-
+        .has_headers(has_headers)
+        .flexible(true)
         .from_reader(file);
 
     Ok(rdr)
@@ -28,16 +50,6 @@ fn open_csv_reader(file: File, delim: char) -> Result<csv::Reader<File>, Box<dyn
 fn create_default_index(name: &str) -> String {
     format!(
         r#"CREATE  INDEX if not exists {}__index ON {} (
-         ID,
-         State
-     );"#,
-        name, name
-    )
-}
-
-fn create_default_non_unique_index(name: &str) -> String {
-    format!(
-        r#"CREATE INDEX if not exists {}_idx ON {} (
          ID,
          State
      );"#,
@@ -88,7 +100,7 @@ fn create_db(conn: &Connection) -> Result<(), Box<Error>> {
     conn.execute(create_default_index("SexOffender").as_str(), NO_PARAMS)
         .expect("unable to create main index");
     conn.execute(
-        create_default_non_unique_index("Photos").as_str(),
+        create_default_index("Photos").as_str(),
         NO_PARAMS,
     )
         .expect("Unable to create photos index");
@@ -143,7 +155,7 @@ fn create_table_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<Str
     Ok(create_table)
 }
 
-fn create_blob_table_query() -> Result<String, Box<Error>> {
+fn create_blob_table_query() -> Result<String, Box<dyn Error>> {
     Ok(String::from(
         "CREATE TABLE if not exists Photos (id,name, size, data)",
     ))
@@ -162,7 +174,7 @@ pub fn delete_old_photos(state: &str, sql_path: &str) -> Result<(), Box<dyn Erro
     Ok(())
 }
 
-fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<Error>> {
+fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<dyn Error>> {
     //being constructing the insert statement.
     let mut q = format!("INSERT INTO {} ( ", tname);
 
@@ -190,7 +202,7 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
 }
 
 
-pub fn prepare_import(sql_path: &str) -> Result<(), Box<Error>> {
+pub fn prepare_import(sql_path: &str) -> Result<(), Box<dyn Error>> {
     let conn = Connection::open(sql_path)?;
     create_db(&conn).expect("something didn't create good.");
     conn.close();
@@ -229,8 +241,11 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
     }
     let file = File::open(path)?; //.unwrap();
 
+   // let has_headers = if state == "TX" { false } else { true };
     //how to decide on a delimiter
-    let mut csv_reader = open_csv_reader(file, delimiter.to_owned())?;
+    let mut csv_reader = open_csv_reader(file, delimiter.to_owned(), true)?;
+
+
 
     let table_name = String::from(path.file_stem().unwrap().to_str().unwrap());
     println!("=============================");

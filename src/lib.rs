@@ -3,7 +3,7 @@ pub mod importer;
 pub mod extractor;
 pub mod config;
 pub mod types;
-
+pub mod texas_shuffle;
 
 #[cfg(test)]
 mod tests {
@@ -11,5 +11,6 @@ mod tests {
     fn it_works() {
         assert_eq!(2 + 2, 4);
     }
+
 }
 

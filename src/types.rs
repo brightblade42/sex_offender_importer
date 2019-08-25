@@ -20,6 +20,12 @@ impl SexOffenderArchive {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub enum OffenderArchive {
+    Record(SexOffenderArchive),
+    Image(SexOffenderArchive)
+}
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ExtractedFile {
