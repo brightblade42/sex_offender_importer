@@ -1,4 +1,4 @@
-use crate::types::{SexOffenderArchive, ExtractedFile};
+use crate::types::{SexOffenderArchive, ExtractedFile, Csv, ImageArchive};
 use crate::config::PathVars;
 use std::path::{Path, PathBuf};
 use std::io::{BufWriter, BufReader};
@@ -67,6 +67,7 @@ impl Extractor<'_> {
 
             match embedded_file_name.extension() {
                 Some(ext) if ext == "csv" => {
+
                     let ex_file = ExtractedFile::Csv { path: extracts_path, state: String::from(state_abbrev), delimiter: '|' };
                     println!("csv file: {:?}", &ex_file);
 

@@ -49,7 +49,7 @@ struct SexOffenderCli {
 
 
 
-fn main_() {
+fn main() {
 
     //let path_config = config::PathVars::new(config::Env::Dev);
     //let ftp_conf = FtpConfig::init(config::Env::Test);
@@ -59,15 +59,14 @@ fn main_() {
     //   args.verbosity.setup_env_logger("sexoffenderimporter").unwrap();
 
     let statelist: States = config::States::load().unwrap();
-
     let path_vars = PathVars::new(config::Env::Dev);
     let sql_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["sex_offender_db"]);
     println!("sql path: {}", sql_path.to_str().unwrap());
 
     let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["archives_path"]);
 
-    let statelist: States = config::States::load().unwrap();
-
+    //let statelist: States = config::States::load().unwrap();
+    let statelist = statelist.iter().filter(|s| s.abbr == "TX");
     let path_vars = PathVars::new(config::Env::Dev);
     let sql_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["sex_offender_db"]);
     let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["archives_path"]);
@@ -128,34 +127,32 @@ fn import_texas() -> Result<(), Box<dyn Error>> {
         TexasFile {
             name: "Address.txt".into(),
             headers: vec!["AddressId", "IND_IDN", "SNU_NBR", "SNA_TXT", "SUD_COD", "SUD_NBR", "CTY_TXT", "PLC_COD", "ZIP_TXT", "COU_COD", "LAT_NBR", "LON_NBR"],
-            raw: String::from("AddressId\tIND_IDN\tSNU_NBR\tSNA_TXT\tSUD_COD\tSUD_NBR\tCTY_TXT\tPLC_COD\tZIP_TXT\tCOU_COD\tLAT_NBR\tLON_NBR\n")
-        }
-
-        /*
+        },
         TexasFile {
             name: "BRTHDATE.txt".into(),
-            headers: "DOB_IDN,PER_IDN,TYP_COD,DOB_DTE".into(),
+            headers: vec!["DOB_IDN","PER_IDN","TYP_COD","DOB_DTE"]
         },
         TexasFile {
             name: "NAME.txt".into(),
-            headers: "NAM_IDN,PER_IDN,TYP_COD,NAM_TXT,LNA_TXT,FNA_TXT".into(),
+            headers: vec!["NAM_IDN","PER_IDN","TYP_COD","NAM_TXT","LNA_TXT","FNA_TXT"]
         },
         TexasFile {
             name: "OFF_CODE_SOR.txt".into(),
-            headers: "COO_COD COJ_COD JOO_COD OFF_COD,VER_NBR,LEN_TXT,STS_COD,CIT_TXT,BeginDate,EndDate".into()
+            headers: vec!["COO_COD","COJ_COD","JOO_COD","OFF_COD","VER_NBR","LEN_TXT","STS_COD","CIT_TXT","BeginDate","EndDate"]
         },
         TexasFile {
             name: "Offense.txt".into(),
-            headers: "IND_IDN,OffenseId,COO_COD,COJ_COD,JOO_COD,OFF_COD,VER_NBR,GOC_COD,DIS_FLG,OST_COD,CPR_COD,CDD_DTE,AOV_NBR SOV_COD,CPR_VAL ".into()
+            headers: vec!["IND_IDN","OffenseId","COO_COD","COJ_COD","JOO_COD","OFF_COD","VER_NBR","GOC_COD","DIS_FLG","OST_COD","CPR_COD","CDD_DTE","AOV_NBR","SOV_COD","CPR_VAL"]
+
         },
         TexasFile {
             name: "Photo.txt".into(),
-            headers: "IND_IDN,PhotoId,POS_DTE".into()
+            headers: vec!["IND_IDN","PhotoId","POS_DTE"]
         },
         TexasFile {
             name: "PERSON.txt".into(),
-            headers: "IND_IDN,PER_IDN,SEX_COD,RAC_COD,HGT_QTY,WGT_QTY,HAI_COD,EYE_COD,ETH_COD".into()
-        }, */
+            headers: vec!["IND_IDN","PER_IDN","SEX_COD","RAC_COD","HGT_QTY","WGT_QTY","HAI_COD","EYE_COD","ETH_COD"]
+        },
     ];
 
     let conn = Connection::open(sql_path)?;
@@ -171,25 +168,9 @@ fn import_texas() -> Result<(), Box<dyn Error>> {
 
         tlist.push_str("\n");
         let tlist = tlist.trim_start();
-
- //       println!("{}", tlist);
-
-
-
         prepend_file(tlist.as_bytes(), &full_path);
 
-/*        let csv_file = File::open(&full_path).expect(&format!("Unable to open csv file {:?}", &full_path));
-        let mut csv_reader = csv::ReaderBuilder::new()
-            .delimiter('\t' as u8)
-            .has_headers(false)
-            .from_reader(csv_file);
-
-        let sb = StringRecord::from(tf.headers.as_ref());
-        csv_reader.set_headers(sb);
-*/
-
-
-
+        println!("{}", &tlist);
     });
 
     Ok(())
@@ -208,7 +189,6 @@ fn import_texas() -> Result<(), Box<dyn Error>> {
 
          let tmp_path = tmp_path.release();
 
-
         let mut tmp = File::create(&tmp_path)?;
         // Open source file for reading
         let mut src = File::open(&file_path)?;
@@ -217,7 +197,6 @@ fn import_texas() -> Result<(), Box<dyn Error>> {
         // Copy the rest of the source file
         io::copy(&mut src, &mut tmp)?;
         fs::remove_file(&file_path)?;
-        //fs::rename(&tmp_path, &file_path)?;
         fs::copy(&tmp_path, &file_path);
         fs::remove_file(&tmp_path);
         Ok(())
@@ -240,26 +219,11 @@ fn import_texas() -> Result<(), Box<dyn Error>> {
 
     //import data
 
-struct TexasFile<'a> {
+/*struct TexasFile<'a> {
     name: String,
     headers: Vec<&'a str>,
-    raw: String
 }
-
-
-fn fix_missing_headers(ext: &ExtractedFile) {
-    match ext {
-        ExtractedFile::Csv { path, state, delimiter} => {
-
-
-
-        },
-        _ => {
-            println!("Not interesting")
-        }
-
-    }
-}
+*/
 
 #[test]
 fn connect_test() {

@@ -15,25 +15,7 @@ use zip::ZipArchive;
 
 //static SQL_PATH: &'static str = "/home/d-rezzer/dev/sex_offender/archives/sexoffenders.sqlite";
 
-trait CsvImporter {
-    fn open_csv_reader(&self, file: File, delim: char) -> Result<csv::Reader<File>, Box<dyn Error>> {
-        let mut rdr = csv::ReaderBuilder::new()
-            .delimiter(delim as u8)
-            .trim(csv::Trim::All)
 
-            .from_reader(file);
-        Ok(rdr)
-    }
-
-    fn create_default_index(name: &str) -> String {
-        format!("CREATE  INDEX if not exists {}__index ON {} ( ID, State );", name, name )
-    }
-
-    fn prepare();
-    fn  import_data();
-
-
-}
 
 
 fn open_csv_reader(file: File, delim: char, has_headers: bool) -> Result<csv::Reader<File>, Box<dyn Error>> {
