@@ -55,6 +55,11 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="JsbtTreeLayoutManager">
+    <layout place="tools.popupGrunt">
+      <scroll-view-position x="0" y="0" />
+    </layout>
+  </component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="TUVBgzts" />
   </component>
@@ -232,7 +237,7 @@
       <workItem from="1566001370632" duration="6821000" />
       <workItem from="1566759654048" duration="353000" />
       <workItem from="1566760024317" duration="4994000" />
-      <workItem from="1566836707095" duration="10384000" />
+      <workItem from="1566836707095" duration="27513000" />
     </task>
     <servers />
   </component>
@@ -278,16 +283,6 @@
           <url>file://$PROJECT_DIR$/src/main.rs</url>
           <line>61</line>
           <option name="timeStamp" value="48" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/main.rs</url>
-          <line>195</line>
-          <option name="timeStamp" value="49" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/main.rs</url>
-          <line>183</line>
-          <option name="timeStamp" value="50" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

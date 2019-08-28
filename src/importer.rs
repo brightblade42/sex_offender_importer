@@ -199,12 +199,17 @@ pub fn import_data(extracted_file: &ExtractedFile, sql_path: &str) -> Result<(),
 
 
     match extracted_file {
+        Csv(csv) => {
+            import_csv_files(&conn, &csv.path, &csv.state, &csv.delimiter);
+        }
+        /*
         Csv { path, state, delimiter, } => {
             import_csv_files(&conn, path, state, delimiter);
         }
+        */
 
-        ImageArchive { path, state } => {
-            import_images(&conn, path, state);
+        ImageArchive(img)  => {
+            import_images(&conn, &img.path, &img.state);
         }
     };
 

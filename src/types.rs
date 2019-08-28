@@ -1,6 +1,10 @@
 use std::fs::{self,File};
 use std::error::Error;
-use std::path::{self, PathBuf};
+use std::path::{self, PathBuf, Path};
+use std::borrow::{Borrow};
+use std::{io, io::Write};
+
+use mktemp::Temp;
 use serde;
 use serde_derive::{Serialize, Deserialize};
 //use crate::types::ExtractedFile::{Csv, ImageArchive};
@@ -90,6 +94,7 @@ impl FileInfo {
 }
 
 
+#[derive(Debug, Serialize)]
 struct CsvMetaData<'a> {
     name: String,
     headers: Vec<&'a str>,
@@ -104,48 +109,69 @@ pub enum ExtractedFile {
     //ImageArchive { path: PathBuf, state: String },
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Csv {
     pub path: PathBuf,
     pub state: String,
     pub delimiter: char,
 }
 
-pub struct ImageArchive {
-    pub path: PathBuf,
-    pub state: String,
-}
+impl Csv {
 
-trait Import {
-    fn prepare_for_import(&self);
-    fn add_headers_to_file(&self) -> Result<(),dyn err::Error>;
-    fn load_csv_info(&self) -> Option<Vec<CsvMetaData>>;
-}
-
-impl Import for Csv {
-    fn prepare_for_import(&self) {}
-    fn add_headers_to_file(&self) -> Result<(), dyn err::Error> {
+    fn add_headers(&self) -> Result<(), Box<dyn Error>> {
 
         let csv_meta = self.load_csv_info();
 
-        let delim = &self.delimiter;
-        csv_meta.iter().for_each(|md| {
-
-            let mut tab_list = String::new();
-
-            let mut tlist: String = tf.headers.iter().fold(tab_list, |acc, head | {
-                format!("{}{}{}",acc, &delim, head )
-            });
-
-            tlist.push_str("\n");
-            let tlist = tlist.trim_start();
-
-            println!("Looks like we made it!");
-
+      //  let matched_file = csv_meta.unwrap().iter().find(|f| self.path.ends_with(f.name));
+        csv_meta.unwrap().iter().for_each(|md| {
+            if self.path.ends_with(md.name.clone()) {
+                let mut header_line = self.build_header_line(md);
+                self.prepend_file(header_line.as_bytes(), &self.path);
+                println!("Looks like we made it!");
+            }
         });
 
         Ok(())
 
     }
+
+    fn build_header_line(&self, csv_meta: &CsvMetaData) -> String {
+
+        let mut header_string = String::new();
+        let mut header_line: String = csv_meta.headers.iter().fold(header_string, |acc, head | {
+            format!("{}{}{}",acc, self.delimiter, head )
+        });
+
+        header_line.push_str("\n");
+
+        String::from(header_line.trim_start())
+    }
+
+
+    fn prepend_file(&self, data: &[u8], file_path: &Path) -> io::Result<()> {
+        // Create a temporary file
+        //let fp = PathBuf::from(file_path.clone();
+        println!("ex path: {:?}", file_path );
+        let mut tmp_path = Temp::new_file()?;
+
+        // Stop the temp file being automatically deleted when the variable
+        // is dropped, by releasing it.
+        let tmp_path = tmp_path.release();
+
+        let mut tmp_file = File::create(&tmp_path)?;
+        // Open source file for reading
+        let mut src_file = File::open(&file_path)?;
+        // Write the data to prepend
+        tmp_file.write_all(&data)?;
+        // Copy the rest of the source file
+        io::copy(&mut src_file, &mut tmp_file)?;
+        fs::remove_file(&file_path)?;
+        fs::copy(&tmp_path, &file_path);
+        fs::remove_file(&tmp_path);
+        Ok(())
+    }
+
     fn load_csv_info(&self) -> Option<Vec<CsvMetaData>> {
 
         if self.state == "TX" {
@@ -186,36 +212,37 @@ impl Import for Csv {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ImageArchive {
+    pub path: PathBuf,
+    pub state: String,
+}
+
+pub trait Import {
+    fn import(&self) -> Result<(), Box<dyn Error>>;
+}
+
+impl Import for Csv {
+    fn import(&self) -> Result<(), Box<dyn Error>>  {
+        self.add_headers();
+       Ok(())
+    }
+}
+impl Import for ImageArchive {
+    fn import(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+}
+
 impl Import for ExtractedFile {
 
-    fn prepare_for_import(&self) {
-
+    fn import(&self) -> Result<(), Box<dyn Error>> {
         match self {
+
             ExtractedFile::Csv(csv) => {
-
+                csv.import()
             },
-            _ => None
-        }
-    }
-
-    fn add_headers_to_file(&self) -> Result<(), dyn err::Error> {
-
-        match self {
-            ExtractedFile::Csv(csv) => {
-                csv.add_headers_to_file()
-            },
-            _ => Ok(()) //just passin through
-        }
-
-    }
-
-    fn load_csv_info(&self) -> Option<Vec<CsvMetaData>> {
-
-        match self {
-            ExtractedFile::Csv(csv) => {
-                csv.load_csv_info()
-            },
-            _ => None
+            _ => Ok(())
         }
     }
 }

@@ -8,7 +8,7 @@ extern crate ftp;
 
 use serde;
 use sex_offender::texas_shuffle;
-use sex_offender::types::{SexOffenderArchive, ExtractedFile, RecordInfo, FileInfo};
+use sex_offender::types::{SexOffenderArchive, ExtractedFile, RecordInfo, FileInfo, Import};
 use sex_offender::downloader::{DownloadOption, Downloader};
 use sex_offender::extractor::Extractor;
 use sex_offender::importer::{import_data, prepare_import, delete_old_photos};
@@ -78,9 +78,9 @@ fn main() {
 
         println!("=================================");
         let state_path = root_path.join(state.state.to_lowercase());
-        let st_files = read_dir(state_path).unwrap();
+        let st_files = read_dir(state_path).expect("A file but got us a directory");
 
-        delete_old_photos(state.abbr.as_str(), sql_path.to_str().unwrap());
+        //delete_old_photos(state.abbr.as_str(), sql_path.to_str().unwrap());
         for stf in st_files {
             let fnn = stf.unwrap();
             println!("{:?}", fnn.path());
@@ -88,10 +88,16 @@ fn main() {
             let sx = SexOffenderArchive::new(fnn.path(), 0);
             let mut ext = Extractor::new(&path_vars);
 
-            let ef = ext.extract_archive(&sx).unwrap();
+
+            let ef = ext.extract_archive(&sx).expect("A file but got a directory");
             println!("=================================");
             for exfile in ef {
+
+                exfile.import();
                 println!("Extract: {:?}", &exfile);
+
+                /*
+
                 match import_data(&exfile, sql_path.to_str().unwrap()) {
                     Ok(()) => {
                         println!("imported file {:?}", &exfile);
@@ -100,7 +106,7 @@ fn main() {
                         println!("Error importing file {:?}", e);
                         println!("ex: {:?}", &exfile);
                     }
-                }
+                }*/
             }
             println!("=================================");
         }
@@ -110,120 +116,6 @@ fn main() {
 
     println!("Dude, there's most of your data");
 }
-
-fn main() {
-    import_texas();
-}
-fn import_texas() -> Result<(), Box<dyn Error>> {
-    let path_vars = PathVars::new(config::Env::Dev);
-    let sql_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["sex_offender_db"]);
-    //let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["archives_path"]);
-
-//    let path_vars = PathVars::new(config::Env::Dev);
-    let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["extracts_path"]);
-    root_path.push("TX/records");
-
-    let texas_files = vec![
-        TexasFile {
-            name: "Address.txt".into(),
-            headers: vec!["AddressId", "IND_IDN", "SNU_NBR", "SNA_TXT", "SUD_COD", "SUD_NBR", "CTY_TXT", "PLC_COD", "ZIP_TXT", "COU_COD", "LAT_NBR", "LON_NBR"],
-        },
-        TexasFile {
-            name: "BRTHDATE.txt".into(),
-            headers: vec!["DOB_IDN","PER_IDN","TYP_COD","DOB_DTE"]
-        },
-        TexasFile {
-            name: "NAME.txt".into(),
-            headers: vec!["NAM_IDN","PER_IDN","TYP_COD","NAM_TXT","LNA_TXT","FNA_TXT"]
-        },
-        TexasFile {
-            name: "OFF_CODE_SOR.txt".into(),
-            headers: vec!["COO_COD","COJ_COD","JOO_COD","OFF_COD","VER_NBR","LEN_TXT","STS_COD","CIT_TXT","BeginDate","EndDate"]
-        },
-        TexasFile {
-            name: "Offense.txt".into(),
-            headers: vec!["IND_IDN","OffenseId","COO_COD","COJ_COD","JOO_COD","OFF_COD","VER_NBR","GOC_COD","DIS_FLG","OST_COD","CPR_COD","CDD_DTE","AOV_NBR","SOV_COD","CPR_VAL"]
-
-        },
-        TexasFile {
-            name: "Photo.txt".into(),
-            headers: vec!["IND_IDN","PhotoId","POS_DTE"]
-        },
-        TexasFile {
-            name: "PERSON.txt".into(),
-            headers: vec!["IND_IDN","PER_IDN","SEX_COD","RAC_COD","HGT_QTY","WGT_QTY","HAI_COD","EYE_COD","ETH_COD"]
-        },
-    ];
-
-    let conn = Connection::open(sql_path)?;
-    let tx = State { state: "Texas".into(), abbr: "TX".into() };
-    texas_files.iter().for_each(|tf| {
-
-        let mut full_path = root_path.clone().join(&tf.name);
-        let mut tab_list = String::new();
-
-        let mut tlist: String = tf.headers.iter().fold(tab_list, |acc, head | {
-            format!("{}\t{}",acc, head )
-        });
-
-        tlist.push_str("\n");
-        let tlist = tlist.trim_start();
-        prepend_file(tlist.as_bytes(), &full_path);
-
-        println!("{}", &tlist);
-    });
-
-    Ok(())
-}
-
-   // extern crate mktemp;
-    //use mktemp::Temp;
-
-    fn prepend_file<P: AsRef<Path>>(data: &[u8], file_path: &P) -> io::Result<()> {
-        // Create a temporary file
-        let mut tmp_path = Temp::new_file()?;
-        // Open temp file for writing
-
-        // Stop the temp file being automatically deleted when the variable
-        // is dropped, by releasing it.
-
-         let tmp_path = tmp_path.release();
-
-        let mut tmp = File::create(&tmp_path)?;
-        // Open source file for reading
-        let mut src = File::open(&file_path)?;
-        // Write the data to prepend
-        tmp.write_all(&data)?;
-        // Copy the rest of the source file
-        io::copy(&mut src, &mut tmp)?;
-        fs::remove_file(&file_path)?;
-        fs::copy(&tmp_path, &file_path);
-        fs::remove_file(&tmp_path);
-        Ok(())
-    }
-        //prepare for import
-/*
-        match import_data(&xfile, sql_path.to_str().unwrap()) {
-            Ok(()) => {
-                println!("imported file {:?}", &exfile);
-            }
-            Err(e) => {
-                println!("Error importing file {:?}", e);
-                println!("ex: {:?}", &exfile);
-            }
-        }
-*/
-
-
-
-
-    //import data
-
-/*struct TexasFile<'a> {
-    name: String,
-    headers: Vec<&'a str>,
-}
-*/
 
 #[test]
 fn connect_test() {

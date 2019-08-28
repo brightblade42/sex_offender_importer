@@ -48,9 +48,13 @@ impl Extractor<'_> {
     pub fn extract_archive(&mut self, sx_archive: &SexOffenderArchive) -> Result<Vec<ExtractedFile>> {
         let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
         let mut archive_path: &PathBuf = &sx_archive.path; //this could come from the config. think on that
+        if archive_path.to_string_lossy().contains("images") {
+            return Ok(vec![]) ;
+        }
         let mut state_abbrev = &archive_path.file_name().unwrap().to_str().unwrap()[..2];
         let file = BufReader::new(File::open(&archive_path)?);
         let mut archive = zip::ZipArchive::new(file)?;
+
 
         for i in 0..archive.len() {
             let mut embedded_file = archive.by_index(i)?;
@@ -60,27 +64,36 @@ impl Extractor<'_> {
             }
             */
             let embedded_file_name = embedded_file.sanitized_name();
+
             let extracts_path = self.generate_extract_path(&state_abbrev, &archive_path, embedded_file_name.as_os_str());
+            if !extracts_path.is_file() {
+               // continue;
+                println!("got a  dir");
+            }
             let mut outfile = BufWriter::new(File::create(&extracts_path)?);
+
             std::io::copy(&mut embedded_file, &mut outfile)?;
-            //println!("wrote: {}", extracts_path.display());
 
             match embedded_file_name.extension() {
                 Some(ext) if ext == "csv" => {
 
-                    let ex_file = ExtractedFile::Csv { path: extracts_path, state: String::from(state_abbrev), delimiter: '|' };
+                    let ex_file = ExtractedFile::Csv(Csv { path: extracts_path, state: String::from(state_abbrev), delimiter: '|' });
+
+                    //let ex_file = ExtractedFile::Csv { path: extracts_path, state: String::from(state_abbrev), delimiter: '|' };
                     println!("csv file: {:?}", &ex_file);
 
                     extracted_files.push(ex_file);
                 }
                 //TODO: make sure that files with txt extension always have a "," as delimiter. We're assuming based on incomplete data
                 Some(ext) if ext == "txt" => {
-                    let ex_file = ExtractedFile::Csv { path: extracts_path, state: String::from(state_abbrev), delimiter: ',' };
+                    let delim = if state_abbrev == "TX" { '\t' } else { ','};
+                    let ex_file = ExtractedFile::Csv(Csv{ path: extracts_path, state: String::from(state_abbrev), delimiter: delim });
                     println!("txt file: {:?}", &ex_file);
                     extracted_files.push(ex_file);
                 }
+
                 Some(ext) if ext == "zip" => {
-                    let ex_file = ExtractedFile::ImageArchive { path: extracts_path, state: String::from(state_abbrev) };
+                    let ex_file = ExtractedFile::ImageArchive(ImageArchive { path: extracts_path, state: String::from(state_abbrev) });
                     extracted_files.push(ex_file);
                 }
                 None => {
