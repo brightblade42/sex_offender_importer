@@ -23,7 +23,7 @@ fn open_csv_reader(file: File, delim: char, has_headers: bool) -> Result<csv::Re
         .delimiter(delim as u8)
         .trim(csv::Trim::All)
         .has_headers(has_headers)
-        .flexible(true)
+      //  .flexible(true)
         .from_reader(file);
 
     Ok(rdr)
@@ -197,17 +197,10 @@ pub fn import_data(extracted_file: &ExtractedFile, sql_path: &str) -> Result<(),
     use ExtractedFile::*;
     let conn = Connection::open(sql_path)?;
 
-
     match extracted_file {
         Csv(csv) => {
             import_csv_files(&conn, &csv.path, &csv.state, &csv.delimiter);
         }
-        /*
-        Csv { path, state, delimiter, } => {
-            import_csv_files(&conn, path, state, delimiter);
-        }
-        */
-
         ImageArchive(img)  => {
             import_images(&conn, &img.path, &img.state);
         }
@@ -221,8 +214,8 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
 
     //this should be filtered out, really.
     let dsp = path.display().to_string();
+    //TODO: filter this out from elsewhere methinks.
     if dsp.contains("screenshot") {
-        //|| dsp.contains("photos") {
         println!("skipping screenshot file. It is useless");
         return Ok(());
     }
@@ -232,8 +225,6 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
     //how to decide on a delimiter
     let mut csv_reader = open_csv_reader(file, delimiter.to_owned(), true)?;
 
-
-
     let table_name = String::from(path.file_stem().unwrap().to_str().unwrap());
     println!("=============================");
     println!("Dropped: {}", &table_name);
@@ -242,7 +233,8 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
     let mut table_query = create_table_query(&mut csv_reader, &table_name)?;
 
     println!("Creating {}", &table_name);
-//    println!("{}", &table_query);
+    println!("=============================");
+    println!("{}", &table_query);
     println!("=============================");
     conn.execute(&table_query, NO_PARAMS)?;
 
@@ -252,13 +244,12 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
 
 
     let insert_query = create_insert_query(&mut csv_reader, &table_name)?;
-  /*
+
     println!("=============================");
-    println!("");
     println!("{}", &insert_query);
 
     println!("=============================");
-    */
+
     conn.execute("Begin Transaction;", NO_PARAMS);
 
     //insert a record (line of csv) into sqlite table.
@@ -268,8 +259,13 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
         match result {
             Ok(record) => {
                 let mut rec = record.clone();
+                if table_name == "OFF_CODE_SOR" {
+                println!("{}",rec.len());
+                }
                 rec.push_field(state.as_bytes());
-                let res = conn.execute(&insert_query, &rec);
+                let res = conn.execute(&insert_query, &rec).expect("A good insert");
+
+                /*
                 match res {
                     Err(r) => {
                         println!("======================");
@@ -282,12 +278,14 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
                     }
                     _ => {}
                 }
+                */
                 //println!("{}", res.unwrap());
             }
             Err(e) => {
                 println!("Row data error: {}", e);
             }
         }
+
     }
     conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
    /* if sql_err > 0 {

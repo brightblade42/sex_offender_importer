@@ -122,4 +122,12 @@ Create index if not exists TXPhoto__index1 on
     TXPhoto (PhotoId);
 
 
+Drop table TXNAME;
+Drop table TXBRTHDATE;
+DROP TABLE TXOff_Code_Sor;
+Drop TABLE TXOffense;
+DROP TABLE TXNAME;
+DROP TABLE  TXAddress;
+DROP TABLE TXPhoto;
+
                                                     )

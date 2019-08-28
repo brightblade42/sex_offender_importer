@@ -7,7 +7,6 @@ use std::error::Error;
 extern crate ftp;
 
 use serde;
-use sex_offender::texas_shuffle;
 use sex_offender::types::{SexOffenderArchive, ExtractedFile, RecordInfo, FileInfo, Import};
 use sex_offender::downloader::{DownloadOption, Downloader};
 use sex_offender::extractor::Extractor;
@@ -47,8 +46,16 @@ struct SexOffenderCli {
     verbosity: Verbosity,
 }
 
+fn get_sql_path(vars: &PathVars) -> PathBuf {
 
+    let sql_path = PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["sex_offender_db"]);
+    println!("sql path: {}", sql_path.to_str().unwrap());
+    sql_path
+}
 
+fn get_root_path(vars: &PathVars) -> PathBuf {
+     PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["archives_path"])
+}
 fn main() {
 
     //let path_config = config::PathVars::new(config::Env::Dev);
@@ -60,18 +67,15 @@ fn main() {
 
     let statelist: States = config::States::load().unwrap();
     let path_vars = PathVars::new(config::Env::Dev);
-    let sql_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["sex_offender_db"]);
-    println!("sql path: {}", sql_path.to_str().unwrap());
-
-    let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["archives_path"]);
 
     //let statelist: States = config::States::load().unwrap();
     let statelist = statelist.iter().filter(|s| s.abbr == "TX");
     let path_vars = PathVars::new(config::Env::Dev);
-    let sql_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["sex_offender_db"]);
-    let mut root_path = PathBuf::from(&path_vars.vars["app_base_path"]).join(&path_vars.vars["archives_path"]);
+    let sql_path = get_sql_path(&path_vars);
+    let mut root_path = get_root_path(&path_vars);
 
     prepare_import(sql_path.to_str().unwrap());
+
     for state in statelist {
         println!("=================================");
         println!("{}: {}", state.state, state.abbr);
@@ -87,16 +91,14 @@ fn main() {
             //let conf = path_vars
             let sx = SexOffenderArchive::new(fnn.path(), 0);
             let mut ext = Extractor::new(&path_vars);
+            let skip_images = true; //time consuming during test phase.
 
-
-            let ef = ext.extract_archive(&sx).expect("A file but got a directory");
+            let ef = ext.extract_archive(&sx, skip_images).expect("A file but got a directory");
             println!("=================================");
             for exfile in ef {
 
                 exfile.import();
                 println!("Extract: {:?}", &exfile);
-
-                /*
 
                 match import_data(&exfile, sql_path.to_str().unwrap()) {
                     Ok(()) => {
@@ -106,7 +108,7 @@ fn main() {
                         println!("Error importing file {:?}", e);
                         println!("ex: {:?}", &exfile);
                     }
-                }*/
+                }
             }
             println!("=================================");
         }
