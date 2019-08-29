@@ -225,7 +225,7 @@ pub struct ImageArchive {
 
 trait SqlHandler {
     type Reader;
-    fn create_table_query(&self, reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>>;
+    fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> Result<String, Box<dyn Error>>;
     fn create_insert_query(&self,reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>>;
     fn drop_table(&self, conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Error> {
         let r = conn.execute(&format!("DROP TABLE if exists {}", table_name), NO_PARAMS);
@@ -238,8 +238,9 @@ trait SqlHandler {
 
 impl SqlHandler for Csv {
     type Reader = csv::Reader<File>;
-    fn create_table_query(&self, reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>> {
+    fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> Result<String, Box<dyn Error>> {
 
+        let reader = reader.unwrap();
         let  convert_space_in_field = | field: String| -> String {
 
             if field.trim().contains(" ") {
@@ -312,6 +313,7 @@ impl Import for Csv {
 
     fn import(&self) -> Result<(), Box<dyn Error>>  {
         self.add_headers();
+//        self.import_file_data()
        Ok(())
     }
 
@@ -333,7 +335,7 @@ impl Import for Csv {
         println!("Dropped: {}", &table_name);
         self.drop_table(&conn, &table_name)?;
 
-        let mut table_query = self.create_table_query(&mut csv_reader, &table_name)?;
+        let mut table_query = self.create_table_query(Some(&mut csv_reader), &table_name)?;
 
         println!("Creating {}", &table_name);
         println!("=============================");
@@ -382,8 +384,8 @@ impl Import for Csv {
 
 impl SqlHandler for ImageArchive {
     type Reader = BufReader<File>;
-    fn create_table_query(&self, reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>> {
-        unimplemented!()
+    fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> Result<String, Box<dyn Error>> {
+        Ok(format!( "CREATE TABLE if not exists {} (id,name, size, data)",tnam ))
     }
 
     fn create_insert_query(&self, reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>> {
@@ -408,7 +410,7 @@ impl Import for ImageArchive {
 
     fn import_file_data(&self, conn: &Connection) -> Result<(), Box<dyn Error>> {
         let mut file = BufReader::new(File::open(&self.path).unwrap());
-        let blob_table = self.create_table_query(&mut file, "Photos");
+        let blob_table = self.create_table_query(None, "Photos");
         conn.execute(&blob_table.unwrap(), NO_PARAMS);
 
         //1. we've got an archive of images. we don't want to write them
@@ -473,7 +475,10 @@ impl Import for ExtractedFile {
             ExtractedFile::Csv(csv) => {
                 csv.import()
             },
-            _ => Ok(())
+            ExtractedFile::ImageArchive(img) => {
+                img.import()
+            }
+           // _ => Ok(())
         }
     }
 

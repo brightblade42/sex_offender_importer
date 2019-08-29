@@ -234,7 +234,7 @@
       <workItem from="1566001370632" duration="6821000" />
       <workItem from="1566759654048" duration="353000" />
       <workItem from="1566760024317" duration="4994000" />
-      <workItem from="1566836707095" duration="55594000" />
+      <workItem from="1566836707095" duration="56197000" />
     </task>
     <servers />
   </component>
@@ -293,7 +293,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/types.rs</url>
-          <line>294</line>
+          <line>295</line>
           <option name="timeStamp" value="54" />
         </line-breakpoint>
       </breakpoints>
