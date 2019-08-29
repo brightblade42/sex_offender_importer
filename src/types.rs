@@ -7,7 +7,9 @@ use std::{io, io::Write};
 use mktemp::Temp;
 use serde;
 use serde_derive::{Serialize, Deserialize};
-use rusqlite::{Connection, NO_PARAMS};
+use rusqlite::{Connection, NO_PARAMS, params};
+use bytes::Buf;
+use std::io::BufReader;
 //use crate::types::ExtractedFile::{Csv, ImageArchive};
 
 static SEX_OFFENDER_PATH: &'static str = "";
@@ -133,6 +135,7 @@ impl Csv {
 
     }
 
+    ///transform vec of headers to a delimitted text string
     fn build_header_line(&self, csv_meta: &CsvMetaData) -> String {
 
         let mut header_string = String::new();
@@ -212,17 +215,6 @@ impl Csv {
         }
     }
 
-    /*
-    fn ToSql(&self) -> (String, String) {
-
-       let name = self.path.components().last().expect("Unable to get fiename component");
-       let tbl_name =  String::from(self.state).push_str(name.to_owned().as_os_str().to_str().unwrap());
-       let idx_stmt =  format!(r#"CREATE INDEX if not exists {}__index ON {} (ID, State);"#, &tbl_name);
-       let ins_stmt = format!(r#""#)
-
-
-        (String::from(""), String::from(""))
-    }*/
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -232,9 +224,9 @@ pub struct ImageArchive {
 }
 
 trait SqlHandler {
-
-    fn create_table_query(&self, reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<dyn Error>>;
-    fn create_insert_query(&self,reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<dyn Error>>;
+    type Reader;
+    fn create_table_query(&self, reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>>;
+    fn create_insert_query(&self,reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>>;
     fn drop_table(&self, conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Error> {
         let r = conn.execute(&format!("DROP TABLE if exists {}", table_name), NO_PARAMS);
         r
@@ -245,24 +237,25 @@ trait SqlHandler {
 }
 
 impl SqlHandler for Csv {
+    type Reader = csv::Reader<File>;
+    fn create_table_query(&self, reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>> {
 
-    fn create_table_query(&self, reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<dyn Error>> {
-
-        let convert_space_in_field = |field: &str| -> &str {
+        let  convert_space_in_field = | field: String| -> String {
 
             if field.trim().contains(" ") {
-                field.replace(" ", "_").as_str()
+                field.replace(" ", "_")
+
             } else {
-                field
+                String::from(field)
             }
         };
 
-        let convert_state_field = |field: &str|  -> &str{
+        let  convert_state_field = |field: &str|  -> String {
 
             if field == "State" || field == "state" {
-                "Addr_State"
+                String::from("Addr_State")
             } else {
-                field
+                String::from(field)
             }
         };
 
@@ -283,7 +276,7 @@ impl SqlHandler for Csv {
 
         Ok(create_table)
     }
-    fn create_insert_query(&self, reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<dyn Error>> {
+    fn create_insert_query(&self, reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>> {
 
         Ok("".to_string())
     }
@@ -295,10 +288,20 @@ impl SqlHandler for Csv {
 
 pub trait Import {
     type Reader;
-    fn open_reader() -> Result<Self::Reader , Box<dyn Error>> {
+    fn open_reader(&self, has_headers: bool) -> Result<Self::Reader , Box<dyn Error>>;
+    fn import(&self) -> Result<(), Box<dyn Error>>;
+    fn import_file_data(&self, conn: &Connection) -> Result<(), Box<dyn Error>>;
+}
+
+impl Import for Csv {
+    type Reader = csv::Reader<File>;
+
+    fn open_reader(&self, has_headers: bool) -> Result<Self::Reader , Box<dyn Error>> {
+
+        let file = File::open(&self.path)?; //.unwrap();
 
         let mut rdr = csv::ReaderBuilder::new()
-            .delimiter(delim as u8)
+            .delimiter(self.delimiter as u8)
             .trim(csv::Trim::All)
             .has_headers(has_headers)
             //  .flexible(true)
@@ -307,20 +310,12 @@ pub trait Import {
         Ok(rdr)
     }
 
-
-    fn import(&self) -> Result<(), Box<dyn Error>>;
-    fn import_csv_files(&self, conn: &Connection) -> Result<(), Box<dyn Error>>;
-}
-
-impl Import for Csv {
-    type Reader = csv::Reader<File>;
-
     fn import(&self) -> Result<(), Box<dyn Error>>  {
         self.add_headers();
        Ok(())
     }
 
-    fn import_csv_files(&self, conn: &Connection) -> Result<(), Box<dyn Error>> {
+    fn import_file_data(&self, conn: &Connection) -> Result<(), Box<dyn Error>> {
 
         //this should be filtered out, really.
         let dsp = self.path.display().to_string();
@@ -330,16 +325,13 @@ impl Import for Csv {
             return Ok(());
         }
 
-        let file = File::open(&self.path)?; //.unwrap();
+        let has_headers = true;
+        let mut csv_reader = self.open_reader(has_headers)?;
 
-        // let has_headers = if state == "TX" { false } else { true };
-        //how to decide on a delimiter
-        let mut csv_reader = open_csv_reader(file, delimiter.to_owned(), true)?;
-
-        let table_name = String::from(path.file_stem().unwrap().to_str().unwrap());
+        let table_name = String::from(self.path.file_stem().unwrap().to_str().unwrap());
         println!("=============================");
         println!("Dropped: {}", &table_name);
-        drop_table(&conn, &table_name)?;
+        self.drop_table(&conn, &table_name)?;
 
         let mut table_query = self.create_table_query(&mut csv_reader, &table_name)?;
 
@@ -349,9 +341,10 @@ impl Import for Csv {
         println!("=============================");
         conn.execute(&table_query, NO_PARAMS)?;
 
+        //TODO: create default index
         //create default index
-        let defindex = create_default_index(&table_name);
-        conn.execute(&defindex, NO_PARAMS);
+        //let defindex = create_default_index(&table_name);
+       // conn.execute(&defindex, NO_PARAMS);
 
         let insert_query = self.create_insert_query(&mut csv_reader, &table_name)?;
 
@@ -372,7 +365,7 @@ impl Import for Csv {
                     if table_name == "OFF_CODE_SOR" {
                         println!("{}",rec.len());
                     }
-                    rec.push_field(state.as_bytes());
+                    rec.push_field(self.state.as_bytes());
                     let res = conn.execute(&insert_query, &rec).expect("A good insert");
                 }
                 Err(e) => {
@@ -387,19 +380,93 @@ impl Import for Csv {
 }
 
 
+impl SqlHandler for ImageArchive {
+    type Reader = BufReader<File>;
+    fn create_table_query(&self, reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>> {
+        unimplemented!()
+    }
 
+    fn create_insert_query(&self, reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>> {
+        unimplemented!()
+    }
+
+    fn execute(&self, conn: &Connection) -> Result<usize, rusqlite::Error> {
+        unimplemented!()
+    }
+}
 impl Import for ImageArchive {
+
+    type Reader = io::BufReader<File>;
+
+    fn open_reader(&self, has_headers: bool) -> Result<Self::Reader, Box<Error>> {
+        Ok(BufReader::new(File::open(&self.path).unwrap()))
+    }
+
     fn import(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn import_csv_files(&self, conn: &Connection) -> Result<(), Box<dyn Error>> {
+    fn import_file_data(&self, conn: &Connection) -> Result<(), Box<dyn Error>> {
+        let mut file = BufReader::new(File::open(&self.path).unwrap());
+        let blob_table = self.create_table_query(&mut file, "Photos");
+        conn.execute(&blob_table.unwrap(), NO_PARAMS);
+
+        //1. we've got an archive of images. we don't want to write them
+        //to disk, we want to store them as blobs in sqlite.
+
+        //iterate images,
+        //validate,
+        //write to Vec<u8>
+        //write bytes to db.
+        let mut blob: Vec<u8> = vec![];
+
+        let mut archive = zip::ZipArchive::new(file)?;
+
+        conn.execute("BEGIN TRANSACTION;", NO_PARAMS);
+
+        for i in 0..archive.len() {
+            let mut img_file = archive.by_index(i)?;
+            let img_name = img_file.sanitized_name();
+            let img_size = img_file.size() as u32;
+            let name = img_name.display().to_string();
+            let idx = if let Some(p) = name.find('_') {
+                p
+            } else {
+                //name.find('.').expect("a damn index")
+                name.len()
+            };
+
+            if name.contains("table") { //not an image
+                continue;
+            }
+            let photo_id = &name[0..idx];
+            std::io::copy(&mut img_file, &mut blob);
+
+            //println!("image: {} {} {} {}", photo_id, name, img_size, state);
+            let r = conn
+                .execute(
+                    "INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)",
+                    params![photo_id, name, img_size, blob, self.state],
+                )
+                .expect("A damn image import");
+
+            blob.clear();
+        }
+
+        conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
+
         Ok(())
     }
 }
 
 impl Import for ExtractedFile {
+    type Reader = String;
 
+    fn open_reader(&self, has_headers: bool) -> Result<Self::Reader, Box<Error>> {
+        unimplemented!()
+    }
+
+    //not using
     fn import(&self) -> Result<(), Box<dyn Error>> {
         match self {
 
@@ -410,7 +477,7 @@ impl Import for ExtractedFile {
         }
     }
 
-    fn import_csv_files(&self, conn: &Connection) -> Result<(), Box<dyn Error>> {
+    fn import_file_data(&self, conn: &Connection) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 }
