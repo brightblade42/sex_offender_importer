@@ -1,8 +1,10 @@
 pub mod downloader;
 pub mod importer;
-pub mod extractor;
+pub mod extractors;
 pub mod config;
-pub mod types;
+
+
+
 
 #[cfg(test)]
 mod tests {

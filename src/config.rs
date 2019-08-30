@@ -11,7 +11,6 @@ use serde_rusqlite::{to_params_named, from_row, from_rows, from_rows_ref};
 use std::iter::FromIterator;
 use std::env;
 use std::collections::HashMap;
-use crate::downloader::SexOffenderImportError::ConnectionError;
 use std::hash::Hash;
 use std::error::Error;
 

@@ -1,6 +1,11 @@
 extern crate ftp;
 extern crate serde;
 
+pub mod records;
+pub mod archives;
+
+use records::{RecordStatus, RecordInfo, FileInfo};
+
 use ftp::{FtpStream, FtpError};
 use ftp::types::FileType;
 use std::iter::{Iterator, FromIterator};
@@ -22,34 +27,26 @@ use std::collections::HashSet;
 use std::clone::Clone;
 use crate::config::{self, Config, PathVars};
 use std::ffi::OsStr;
-use super::types::{SexOffenderArchive, RecordInfo, RecordStatus, FileInfo};
+
+use archives::SexOffenderArchive;
 
 static IMPORT_LOG: &'static str = "/home/d-rezzer/dev/eyemetric/ftp/importlog.sqlite";
+static SEX_OFFENDER_PATH: &'static str = "";
 const CHUNK_SIZE: usize = 2048;
-
 
 type GenError = Box<dyn std::error::Error>;
 //type GenResult<T> = Result<T, GenError>;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn std::error::Error>>;
 
-
-pub enum SexOffenderImportError {
-    ConnectionError(std::io::Error),
-    InvalidResponse(String),
-    InvalidAddress(std::net::AddrParseError),
-}
-
 pub struct Downloader {
     stream: FtpStream,
     config: PathVars,
 }
 
-
 pub enum DownloadOption {
     Only_New,
     Always,
-
 }
 
 impl Downloader {
@@ -351,67 +348,3 @@ pub struct DownloadInfo {
     pub bytes_received: i32,
 }
 
-
-/*
-    pub fn base_path(&self) -> path::PathBuf {
-        use FileInfo::*;
-
-        path::PathBuf::from(
-            match *self {
-                Record(ref r) => format!("{}/{}", LOCAL_PATH, r.rpath.as_ref().unwrap()),
-                Image(ref i) => format!("{}/{}", LOCAL_PATH, i.rpath.as_ref().unwrap()),
-            }
-        )
-    }
-
-    pub fn file_path(&self) -> path::PathBuf {
-        use FileInfo::*;
-
-        let mut fp = self.base_path();
-        match *self {
-            Record(ref r) => fp.push(r.name.as_ref().unwrap()),
-            Image(ref i) => fp.push(i.name.as_ref().unwrap()),
-        };
-
-        fp
-    }
-*/
-
-/*
-pub fn extract_path(&self) -> path::PathBuf {
-    use FileInfo::*;
-
-    let mut fp = self.base_path();
-
-    match *self {
-        Record(ref r) => fp.push("records"),
-        Image(ref i) => fp.push("images"),
-    };
-
-    fp
-} */
-
-
-/*
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn extract_nested_zip_file() {
-//        "/home/d-rezzer/dev/ftp/AZSX_2018_05_02_2355_records.zip"
-        println!("TESTING!");
-        let fileInfo = super::FileInfo {
-            rpath: Some("/home/d-rezer/dev/eyemetric/ftp".to_string()),
-            name: Some("AZSX_2018_05_02_2355_images.zip".to_string()),
-            year: None,
-            month: None,
-            day: None,
-            size: None,
-        };
-
-        let s = Downloader::extract_archive(&fileInfo);
-        assert_eq!(true, true);
-    }
-}
-*/

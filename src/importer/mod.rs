@@ -9,14 +9,72 @@ use std::path;
 use rusqlite::{params, Connection, ToSql, NO_PARAMS};
 use std::path::{Path, PathBuf};
 use std::string::ToString;
-use super::types::ExtractedFile;
 use zip;
 use zip::ZipArchive;
 
-//static SQL_PATH: &'static str = "/home/d-rezzer/dev/sex_offender/archives/sexoffenders.sqlite";
+use serde::{Deserialize, Serialize};
+pub mod extracts;
+pub mod img;
+
+
+use extracts::Csv;
+use img::ImageArchive;
+
+pub trait Import {
+    type Reader;
+    fn open_reader(&self, has_headers: bool) -> Result<Self::Reader , Box<dyn Error>>;
+    fn import(&self) -> Result<(), Box<dyn Error>>;
+    fn import_file_data(&self, conn: &Connection) -> Result<(), Box<dyn Error>>;
+}
+
+
+trait SqlHandler {
+    type Reader;
+    fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> Result<String, Box<dyn Error>>;
+    fn create_insert_query(&self,reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>>;
+    fn drop_table(&self, conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Error> {
+        let r = conn.execute(&format!("DROP TABLE if exists {}", table_name), NO_PARAMS);
+        r
+    }
+
+    fn execute(&self, conn: &Connection) -> Result<usize, rusqlite::Error>;
+}
 
 
 
+///ExtractedFile represents one of two possible types that are contained within
+/// the zip archives downloaded from the remote server.
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ExtractedFile {
+    Csv(Csv),
+    ImageArchive(ImageArchive)
+}
+
+impl Import for ExtractedFile {
+    type Reader = String;
+
+    fn open_reader(&self, has_headers: bool) -> Result<Self::Reader, Box<Error>> {
+        unimplemented!()
+    }
+
+    //not using
+    fn import(&self) -> Result<(), Box<dyn Error>> {
+        match self {
+
+            ExtractedFile::Csv(csv) => {
+                csv.import()
+            },
+            ExtractedFile::ImageArchive(img) => {
+                img.import()
+            }
+            // _ => Ok(())
+        }
+    }
+
+    fn import_file_data(&self, conn: &Connection) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+}
 
 fn open_csv_reader(file: File, delim: char, has_headers: bool) -> Result<csv::Reader<File>, Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new()

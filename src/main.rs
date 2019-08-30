@@ -7,10 +7,16 @@ use std::error::Error;
 extern crate ftp;
 
 use serde;
+/*
 use sex_offender::types::{SexOffenderArchive, ExtractedFile, RecordInfo, FileInfo, Import};
 use sex_offender::downloader::{DownloadOption, Downloader};
 use sex_offender::extractor::Extractor;
 use sex_offender::importer::{import_data, prepare_import, delete_old_photos};
+*/
+use sex_offender::importer::{ExtractedFile, import_data, prepare_import, delete_old_photos};
+use sex_offender::downloader::archives::SexOffenderArchive;
+use sex_offender::extractors::Extractor;
+
 
 use core::borrow::Borrow;
 use rusqlite::{params, Connection, NO_PARAMS};

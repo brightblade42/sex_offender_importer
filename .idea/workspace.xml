@@ -13,8 +13,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/downloader/archives.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/downloader/records.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/importer/extracts.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/importer/img.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/types.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/types.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/downloader.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/downloader/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/extractor.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/extractors/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/importer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types.rs" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -72,7 +82,10 @@
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/conf.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/consts.rs" value="true" />
+    <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/downloader/archives.rs" value="true" />
+    <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/downloader/records.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/extractor.rs" value="true" />
+    <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/extractors/extractor.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/myfile.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/texas_shuffle.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/things.rs" value="true" />
@@ -82,6 +95,9 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/extractors" />
+      <recent name="$PROJECT_DIR$/src/downloader" />
+      <recent name="$PROJECT_DIR$/src/importer" />
       <recent name="$PROJECT_DIR$/src" />
       <recent name="$PROJECT_DIR$/src/sex_offender" />
     </key>
@@ -234,7 +250,7 @@
       <workItem from="1566001370632" duration="6821000" />
       <workItem from="1566759654048" duration="353000" />
       <workItem from="1566760024317" duration="4994000" />
-      <workItem from="1566836707095" duration="56197000" />
+      <workItem from="1566836707095" duration="69187000" />
     </task>
     <servers />
   </component>
@@ -267,34 +283,24 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/downloader.rs</url>
+          <url>file://$PROJECT_DIR$/src/downloader/mod.rs</url>
           <line>285</line>
           <option name="timeStamp" value="38" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/config.rs</url>
-          <line>106</line>
+          <line>105</line>
           <option name="timeStamp" value="46" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/main.rs</url>
-          <line>68</line>
-          <option name="timeStamp" value="48" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/extractor.rs</url>
+          <url>file://$PROJECT_DIR$/src/extractors/mod.rs</url>
           <line>56</line>
           <option name="timeStamp" value="52" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/importer.rs</url>
+          <url>file://$PROJECT_DIR$/src/importer/mod.rs</url>
           <line>106</line>
           <option name="timeStamp" value="53" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/types.rs</url>
-          <line>295</line>
-          <option name="timeStamp" value="54" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
