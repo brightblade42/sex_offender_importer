@@ -13,8 +13,9 @@ use sex_offender::downloader::{DownloadOption, Downloader};
 use sex_offender::extractor::Extractor;
 use sex_offender::importer::{import_data, prepare_import, delete_old_photos};
 */
-use sex_offender::importer::{ExtractedFile, import_data, prepare_import, delete_old_photos};
+use sex_offender::importer::{ Import, ExtractedFile, import_data, prepare_import, delete_old_photos};
 use sex_offender::downloader::archives::SexOffenderArchive;
+use sex_offender::downloader::{Downloader, DownloadInfo, DownloadOption, records::FileInfo};
 use sex_offender::extractors::Extractor;
 
 
@@ -63,6 +64,9 @@ fn get_root_path(vars: &PathVars) -> PathBuf {
      PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["archives_path"])
 }
 fn main() {
+    println!("hi there from the dust bin!");
+}
+fn main__() {
 
     //let path_config = config::PathVars::new(config::Env::Dev);
     //let ftp_conf = FtpConfig::init(config::Env::Test);
