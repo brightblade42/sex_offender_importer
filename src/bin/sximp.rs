@@ -1,40 +1,33 @@
+#![allow(dead_code)]
 extern crate sex_offender;
 extern crate log;
 
 use std::error;
-
-use std::error::Error;
 extern crate ftp;
 
-use serde;
-/*
-use sex_offender::types::{SexOffenderArchive, ExtractedFile, RecordInfo, FileInfo, Import};
-use sex_offender::downloader::{DownloadOption, Downloader};
-use sex_offender::extractor::Extractor;
-use sex_offender::importer::{import_data, prepare_import, delete_old_photos};
-*/
-use sex_offender::importer::{ Import, ExtractedFile, import_data, prepare_import, delete_old_photos};
+use sex_offender::importer::{ Import, ExtractedFile,
+                              import_data,
+                              prepare_import,
+//                              delete_old_photos
+};
 use sex_offender::downloader::archives::SexOffenderArchive;
-use sex_offender::downloader::{Downloader, DownloadInfo, DownloadOption, records::FileInfo};
+use sex_offender::downloader::{ Downloader,
+                               //DownloadInfo,
+                               DownloadOption,
+                               records::FileInfo};
 use sex_offender::extractors::Extractor;
 
-
-use core::borrow::Borrow;
-use rusqlite::{params, Connection, NO_PARAMS};
-use sex_offender::config::{self, Config, Env, FtpConfig, PathVars, States, State, LoadData};
-use std::collections::HashMap;
-use std::path;
-use std::path::{Path, PathBuf};
-use std::time::{Duration, Instant};
+//use rusqlite::{params, Connection, NO_PARAMS};
+use sex_offender::config::{self,  PathVars, States, LoadData};
+use std::path::{ PathBuf};
+//use std::time::{Duration, Instant};
 use std::fs;
 use quicli::prelude::*;
 use structopt::StructOpt;
-use std::ffi::{OsStr, OsString};
-use std::fs::{read_dir, File};
-use std::{io, io::Write};
-use mktemp::Temp;
+use std::fs::{read_dir};
+//use std::{io, io::Write};
+//use mktemp::Temp;
 
-use csv::{Reader, StringRecord, ReaderBuilder, Writer, WriterBuilder };
 #[derive(Debug, StructOpt)]
 struct SexOffenderCli {
     #[structopt(long = "count", short = "n", default_value = "3")]
@@ -63,10 +56,8 @@ fn get_sql_path(vars: &PathVars) -> PathBuf {
 fn get_root_path(vars: &PathVars) -> PathBuf {
      PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["archives_path"])
 }
+
 fn main() {
-    println!("hi there from the dust bin!");
-}
-fn main__() {
 
     //let path_config = config::PathVars::new(config::Env::Dev);
     //let ftp_conf = FtpConfig::init(config::Env::Test);
@@ -76,15 +67,15 @@ fn main__() {
     //   args.verbosity.setup_env_logger("sexoffenderimporter").unwrap();
 
     let statelist: States = config::States::load().unwrap();
-    let path_vars = PathVars::new(config::Env::Dev);
+    //let path_vars = PathVars::new(config::Env::Dev);
 
     //let statelist: States = config::States::load().unwrap();
     let statelist = statelist.iter().filter(|s| s.abbr == "TX");
     let path_vars = PathVars::new(config::Env::Dev);
     let sql_path = get_sql_path(&path_vars);
-    let mut root_path = get_root_path(&path_vars);
+    let  root_path = get_root_path(&path_vars);
 
-    prepare_import(sql_path.to_str().unwrap());
+    let _prep_result = prepare_import(sql_path.to_str().unwrap());
 
     for state in statelist {
         println!("=================================");
@@ -103,11 +94,11 @@ fn main__() {
             let mut ext = Extractor::new(&path_vars);
             let skip_images = true; //time consuming during test phase.
 
-            let ef = ext.extract_archive(&sx, skip_images).expect("A file but got a directory");
+            let ef: Vec<ExtractedFile> = ext.extract_archive(&sx, skip_images).expect("A file but got a directory");
             println!("=================================");
             for exfile in ef {
 
-                exfile.import();
+                exfile.import().expect("Unable to complete file import");
                 println!("Extract: {:?}", &exfile);
 
                 match import_data(&exfile, sql_path.to_str().unwrap()) {
@@ -145,7 +136,7 @@ fn disconnect_test() {
 //#[test]
 fn test_root_dirs() {
     let root_path = PathBuf::from("/home/d-rezzer/dev/eyemetric/ftp/us");
-    let mut flist = fs::read_dir(root_path).unwrap();//.collect();
+    let flist = fs::read_dir(root_path).unwrap();//.collect();
 
     for f in flist {
         let de = f.unwrap();
@@ -157,14 +148,14 @@ fn test_root_dirs() {
 }
 
 
-fn get_remote_file_list(downloader: &mut Downloader) -> Vec<Result<FileInfo, Box<error::Error>>> {
+fn get_remote_file_list(downloader: &mut Downloader) -> Vec<Result<FileInfo, Box<dyn error::Error>>> {
     //set up some filters
     //we only want record and image files. The server has more that we don't use.
     let record_filter = |x: &String| x.contains("records") || x.contains("images");
-    let records_only = |x: &String| x.contains("records");
+    //let records_only = |x: &String| x.contains("records");
 
-    let az_only = |x: &String| x.contains("AR") && x.contains("records");
-    let mut file_list = downloader.remote_file_list(record_filter, DownloadOption::Always);
+    //let az_only = |x: &String| x.contains("AR") && x.contains("records");
+    let file_list = downloader.remote_file_list(record_filter, DownloadOption::Always);
 
     file_list
 }
