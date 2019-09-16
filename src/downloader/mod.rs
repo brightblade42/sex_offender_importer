@@ -30,7 +30,8 @@ use std::ffi::OsStr;
 
 use archives::SexOffenderArchive;
 
-static IMPORT_LOG: &'static str = "/home/d-rezzer/dev/eyemetric/ftp/importlog.sqlite";
+//static IMPORT_LOG: &'static str = "/home/d-rezzer/dev/eyemetric/ftp/importlog.sqlite";
+static IMPORT_LOG: &'static str = "/home/d-rezzer/dev/eyemetric/sex_offender/app/importlog.sqlite";
 static SEX_OFFENDER_PATH: &'static str = "";
 const CHUNK_SIZE: usize = 2048;
 
@@ -50,13 +51,15 @@ pub enum DownloadOption {
 }
 
 impl Downloader {
+
+    ///create the Downloader object, connect and login to ftp server
     pub fn connect(addr: &str, user: &str, pwd: &str, config: PathVars) -> Result<Self>
     {
         //these values, I assume will be a configuration.
 
         let mut sex_offender_importer = Downloader {
             stream: FtpStream::connect(addr)?,
-            config,
+           config,
         };
 
         sex_offender_importer
@@ -72,6 +75,7 @@ impl Downloader {
 
 
     fn create_file_info(&self, remote_file_path: &str, ftp_line: &str) -> Result<FileInfo> {
+        println!("{}", ftp_line);
         let mut line = ftp_line.split_whitespace();
         //not sure about this.
         if line.clone().count() == 0 {
@@ -79,16 +83,12 @@ impl Downloader {
         }
         let size = line.nth(4).unwrap();
         let name = line.last().unwrap();
-        let nsplit: Vec<&str> = name.split('_').collect();
-
-        let y = nsplit.get(1).unwrap();
-        let m = nsplit.get(2).unwrap();
-        let d = nsplit.get(3).unwrap();
+        let date_str = self.get_date_from_name(name);
 
         let fin = FileInfo::Record(RecordInfo {
             rpath: Some(remote_file_path.to_string()),
             name: Some(name.to_string()),
-            last_modified: Some(format!("{}-{}-{}", y, m, d)),
+            last_modified: Some(date_str),
             size: Some(size.parse().unwrap()),
 
             status: RecordStatus::None, //None is the beginning state.
@@ -98,6 +98,18 @@ impl Downloader {
         Ok(fin)
     }
 
+    fn get_date_from_name(&self, name: &str) -> String {
+
+            let mut nsplit: Vec<&str> = name.split('_').collect();
+            nsplit.reverse();
+            let y = nsplit.get(4).unwrap();
+            let m = nsplit.get(3).unwrap();
+            let d = nsplit.get(2).unwrap();
+
+
+            format!("{}-{}-{}", y,m,d)
+
+    }
 
     ///returns a list of available files for download from remote server.
     ///a filter can be passed in to narrow the list.
@@ -106,6 +118,10 @@ impl Downloader {
         let remote_base_path = &paths["ftp_base_path"];
         let sex_offender_path = &paths["ftp_sex_offender_path"].to_string();
         let state_folders = self.stream.nlst(Some(remote_base_path)).expect("Unable to get a remote file listing");
+
+        println!("ftp paths");
+        println!("{}", &remote_base_path);
+        println!("{}", &sex_offender_path);
 
         let hard_filter = |x: &String| !x.contains(".txt") && !x.contains("united_states");
 
@@ -130,6 +146,9 @@ impl Downloader {
             .flatten()
             .collect();
 
+        self.log_available_updates(&available_files);
+
+
         available_files
     }
 
@@ -140,7 +159,7 @@ impl Downloader {
     /// but since they failed to download previously we'll use a different mechanism
     /// to get them.
     ///
-    pub fn available_updates(remote_files: Vec<Result<FileInfo>>) -> Vec<FileInfo> {
+    pub fn log_available_updates(&self, remote_files: &Vec<Result<FileInfo>>) -> Result<()> {
         //get the difference between what we've previously imported and the remote files,
         //if any
         let conn = Connection::open(IMPORT_LOG).expect("unable to open a proper db connection");
@@ -148,14 +167,14 @@ impl Downloader {
         //table to store a log of available archives and the status of their downloads
         let res = conn
             .execute(
-                "CREATE TABLE if not exists remote_file_list (rpath, name, last_modified, size integer, status) ",
+                "CREATE TABLE if not exists current_available (rpath, name, last_modified, size integer, status) ",
                 NO_PARAMS,
             )
             .unwrap();
 
         //Temp table to hold a new file listing to compare to any existing remote file listing.
-        let res = conn.execute("CREATE TEMP TABLE if not exists remote_file_list_temp (rpath, name, last_modified, size integer, status);", NO_PARAMS)
-            .expect("Unable to create remote_file_list_temp table");
+        //let res = conn.execute("CREATE TEMP TABLE if not exists remote_file_list_temp (rpath, name, last_modified, size integer, status);", NO_PARAMS)
+        //    .expect("Unable to create remote_file_list_temp table");
 
         //let res = conn.execute("CREATE TABLE if not exists remote_file_list_temp (rpath, name, last_modified, size integer, status);", NO_PARAMS)
         //   .expect("Unable to create remote_file_list_temp table");
@@ -164,26 +183,19 @@ impl Downloader {
 
         for r_file in remote_files {
             if let Ok(FileInfo::Record(ri)) = r_file {
-                conn.execute_named(r#"INSERT INTO remote_file_list_temp (rpath, name, last_modified, size, status)
+
+                conn.execute("DELETE FROM current_available where name=?",
+                             &[ri.name.as_ref().unwrap()]);
+
+                conn.execute_named(r#"INSERT INTO current_available (rpath, name, last_modified, size, status)
                                        VALUES (:rpath, :name, :last_modified, :size, :status )"#,
                                    &to_params_named(ri).unwrap().to_slice()).expect("Unable to insert row into temp table");
             }
         }
 
         conn.execute("COMMIT TRANSACTION", NO_PARAMS).expect("Failed to Commit Transaction!");
-        //get file listing that do NOT exist in the remote_file_list table. These are fresh fishies.
-        //The very first time there will be nothing in the remote_file_list table, only the remote_file_list_temp table.
-        let mut stmt = conn.prepare(r#"SELECT * from remote_file_list_temp
-                                        WHERE name NOT IN (select name from remote_file_list)
-                                        order by size"#)
-            .expect("Unable to get an updated file listing");
 
-        let tmp_import = stmt
-            .query_and_then(NO_PARAMS, from_row::<RecordInfo>)
-            .expect("Unable to get remote_file_list from Import Log");
-
-        //return the freshest of the freshies.
-        tmp_import.map(|r| FileInfo::Record(r.unwrap())).collect()
+        Ok(())
     }
     ///cool
     pub fn download_remote_files(&mut self, remote_file_list: Vec<FileInfo>) -> Vec<SexOffenderArchive> {

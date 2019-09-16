@@ -18,7 +18,7 @@ use sex_offender::downloader::{ Downloader,
 use sex_offender::extractors::Extractor;
 
 //use rusqlite::{params, Connection, NO_PARAMS};
-use sex_offender::config::{self,  PathVars, States, LoadData};
+use sex_offender::config::{self, PathVars, States, LoadData, FtpConfig};
 use std::path::{ PathBuf};
 //use std::time::{Duration, Instant};
 use std::fs;
@@ -58,6 +58,33 @@ fn get_root_path(vars: &PathVars) -> PathBuf {
 }
 
 fn main() {
+
+    //maybe just download the enchilada?
+    //let avail; //entire list
+    //let avail_updates; //new than what we already have
+
+    let ftp_conf = FtpConfig::init(config::Env::Production);
+    let addr = "ftptds.shadowsoft.com:21";
+    let user = "swg_eyemetric";
+    let pass = "metric123swg99";
+
+    //println!("{}", &ftp_conf.address);
+    let path_vars = PathVars::new(config::Env::Production);
+
+
+    let mut downloader = Downloader::connect(addr, user, pass ,
+                                             path_vars).expect("Unable to get a good connection");
+
+    let record_filter = |x: &String| x.contains("records") || x.contains("images");
+    let file_list = downloader.remote_file_list(record_filter, DownloadOption::Always);
+    println!("oh hello");
+    for file in file_list {
+        let fi = file.expect("Unable to read file info");
+        println!("{:?}", fi);
+    }
+}
+
+fn main_() {
 
     //let path_config = config::PathVars::new(config::Env::Dev);
     //let ftp_conf = FtpConfig::init(config::Env::Test);

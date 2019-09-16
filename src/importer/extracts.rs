@@ -38,13 +38,15 @@ impl Csv {
 
         let csv_meta = self.load_csv_info();
 
-        csv_meta.unwrap().iter().for_each(|md| {
-            if self.path.ends_with(md.name.clone()) {
-                let mut header_line = self.build_header_line(md);
-                self.prepend_file(header_line.as_bytes(), &self.path);
-                println!("{}", &header_line);
-            }
-        });
+        if let Some(meta) = self.load_csv_info() {
+                meta.iter().for_each(|md| {
+                    if self.path.ends_with(md.name.clone()) {
+                        let mut header_line = self.build_header_line(md);
+                        self.prepend_file(header_line.as_bytes(), &self.path);
+                        println!("{}", &header_line);
+                    }
+                });
+        }
 
         Ok(())
 
