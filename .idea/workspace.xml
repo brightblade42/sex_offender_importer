@@ -16,7 +16,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/bin/sximp.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/sximp.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/downloader/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/downloader/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/importer/extracts.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/extracts.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -267,7 +266,8 @@
       <workItem from="1566759654048" duration="353000" />
       <workItem from="1566760024317" duration="4994000" />
       <workItem from="1566836707095" duration="78708000" />
-      <workItem from="1568650036716" duration="10808000" />
+      <workItem from="1568650036716" duration="12875000" />
+      <workItem from="1568821379717" duration="15427000" />
     </task>
     <servers />
   </component>
@@ -300,11 +300,6 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/downloader/mod.rs</url>
-          <line>311</line>
-          <option name="timeStamp" value="38" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/config.rs</url>
           <line>105</line>
           <option name="timeStamp" value="46" />
@@ -321,7 +316,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/downloader/mod.rs</url>
-          <line>197</line>
+          <line>187</line>
           <option name="timeStamp" value="56" />
         </line-breakpoint>
       </breakpoints>

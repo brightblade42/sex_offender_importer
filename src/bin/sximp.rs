@@ -76,11 +76,29 @@ fn main() {
                                              path_vars).expect("Unable to get a good connection");
 
     let record_filter = |x: &String| x.contains("records") || x.contains("images");
-    let file_list = downloader.remote_file_list(record_filter, DownloadOption::Always);
+    let file_list = downloader.get_updated_file_list(record_filter, DownloadOption::Always);
     println!("oh hello");
+
+   let sex_offender_archives =  file_list.iter()
+        .map(|fi| {
+            downloader.download_file(&fi.as_ref().unwrap())
+        });
+
+    for arch in sex_offender_archives {
+
+        if let Ok(sx) = arch {
+            println!("all good");
+           //do something
+        } else {
+            println!("not good at all.");
+            //err, bad download, add to error queue?
+        }
+    }
+
     for file in file_list {
         let fi = file.expect("Unable to read file info");
         println!("{:?}", fi);
+        downloader.download_file(&fi);
     }
 }
 
@@ -182,7 +200,7 @@ fn get_remote_file_list(downloader: &mut Downloader) -> Vec<Result<FileInfo, Box
     //let records_only = |x: &String| x.contains("records");
 
     //let az_only = |x: &String| x.contains("AR") && x.contains("records");
-    let file_list = downloader.remote_file_list(record_filter, DownloadOption::Always);
+    let file_list = downloader.get_updated_file_list(record_filter, DownloadOption::Always);
 
     file_list
 }
