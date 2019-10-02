@@ -7,7 +7,8 @@ use std::{io, io::Write};
 use mktemp::Temp;
 use serde;
 use serde_derive::{Serialize, Deserialize};
-use rusqlite::{Connection, NO_PARAMS, params};
+use rusqlite::{Connection, NO_PARAMS, params, ToSql};
+
 use bytes::Buf;
 use std::io::BufReader;
 
@@ -18,7 +19,7 @@ pub enum RecordStatus {
     None,
     InFlight,
     Failed,
-    Downloaded,
+    Success,
 }
 
 
@@ -37,6 +38,9 @@ pub struct RecordInfo {
 pub struct ImageInfo {
     pub rpath: Option<String>,
     pub name: Option<String>,
+    pub last_modified: Option<String>,
+    pub size: Option<i64>,
+    pub status: RecordStatus,
 }
 
 

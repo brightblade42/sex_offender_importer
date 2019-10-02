@@ -14,8 +14,13 @@
   <component name="ChangeListManager">
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/bin/sximp.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/sximp.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/downloader/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/downloader/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/downloader/records.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/downloader/records.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/importer/extracts.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/extracts.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/importer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/mod.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -267,7 +272,9 @@
       <workItem from="1566760024317" duration="4994000" />
       <workItem from="1566836707095" duration="78708000" />
       <workItem from="1568650036716" duration="12875000" />
-      <workItem from="1568821379717" duration="15427000" />
+      <workItem from="1568821379717" duration="16055000" />
+      <workItem from="1568908689326" duration="9940000" />
+      <workItem from="1569004216883" duration="43090000" />
     </task>
     <servers />
   </component>
@@ -300,11 +307,6 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/config.rs</url>
-          <line>105</line>
-          <option name="timeStamp" value="46" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/extractors/mod.rs</url>
           <line>56</line>
           <option name="timeStamp" value="52" />
@@ -315,9 +317,24 @@
           <option name="timeStamp" value="53" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/downloader/mod.rs</url>
-          <line>187</line>
-          <option name="timeStamp" value="56" />
+          <url>file://$PROJECT_DIR$/src/bin/sximp.rs</url>
+          <line>177</line>
+          <option name="timeStamp" value="64" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/bin/sximp.rs</url>
+          <line>138</line>
+          <option name="timeStamp" value="68" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/bin/sximp.rs</url>
+          <line>127</line>
+          <option name="timeStamp" value="70" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/importer/mod.rs</url>
+          <line>354</line>
+          <option name="timeStamp" value="72" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -332,6 +349,7 @@
       <configuration name="CargoCommandRunConfiguration">
         <watch expression="fo'" language="Rust" />
         <watch expression="fp" language="Rust" />
+        <watch expression="st_files" language="Rust" />
         <watch expression="file_path" language="Rust" />
         <watch expression="avail_updates" language="Rust" />
         <watch expression="base_path" language="Rust" />

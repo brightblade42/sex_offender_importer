@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 use std::string::ToString;
 use zip;
 use zip::ZipArchive;
-
+use regex::{self, bytes, Regex};
 use serde::{Deserialize, Serialize};
 pub mod extracts;
 pub mod img;
@@ -268,6 +268,32 @@ pub fn import_data(extracted_file: &ExtractedFile, sql_path: &str) -> Result<(),
     Ok(())
 }
 
+fn latin1_to_char(latin1: u8) -> char {
+    latin1 as char
+}
+
+fn to_ascii_string(chars: &[u8]) -> String {
+
+    let mut rstring = String::new();
+    for byte in chars {
+        if byte.is_ascii() {
+            let c = byte.clone() as char; //latin1_to_char(byte.clone());
+            rstring.push(c);
+        }
+    }
+    rstring
+}
+
+fn format_date(dateStr: &str) -> &str {
+      let reg =  Regex::new(r"\d{2}/\d{2}/d{4}").unwrap();
+    if reg.is_match(dateStr) {
+        "coool"
+    } else {
+        dateStr
+    }
+    //regex::bytes::
+}
+
 fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &char) -> Result<(), Box<dyn Error>> {
 
     //this should be filtered out, really.
@@ -309,46 +335,32 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
     println!("=============================");
 
     conn.execute("Begin Transaction;", NO_PARAMS);
-
-    //insert a record (line of csv) into sqlite table.
-    //we use as_bytes() because some data is not utf-8 compliant
-    let mut sql_err = 0;
+    let mut rec_vals: Vec<String> = Vec::new();
     for result in csv_reader.byte_records() {
         match result {
             Ok(record) => {
                 let mut rec = record.clone();
-                if table_name == "OFF_CODE_SOR" {
-                println!("{}",rec.len());
-                }
-                rec.push_field(state.as_bytes());
-                let res = conn.execute(&insert_query, &rec).expect("A good insert");
 
-                /*
-                match res {
-                    Err(r) => {
-                        println!("======================");
-                        println!("{}", r);
-                        println!("======================");
-                    }
-                    Ok(r) if r != 0 => {
-                        sql_err = r;
-                        //println!("sql error: {}", r);
-                    }
-                    _ => {}
+               for rr in rec.iter() {
+                   let ascii_string = to_ascii_string(&rr);
+                   rec_vals.push(ascii_string.parse().unwrap());
                 }
-                */
-                //println!("{}", res.unwrap());
+
+                if table_name == "OFF_CODE_SOR" {
+                    println!("{}",rec.len());
+                }
+
+                rec_vals.push(String::from(state));
+
+                let res = conn.execute(&insert_query, &rec_vals).expect("Good stuff");
+                rec_vals.clear();
             }
             Err(e) => {
                 println!("Row data error: {}", e);
             }
         }
-
     }
     conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
-   /* if sql_err > 0 {
-        println!("sql error code: {}", sql_err);
-    } */
     Ok(())
 }
 

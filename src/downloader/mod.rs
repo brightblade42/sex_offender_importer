@@ -29,6 +29,8 @@ use crate::config::{self, Config, PathVars};
 use std::ffi::OsStr;
 
 use archives::SexOffenderArchive;
+use crate::downloader::records::FileInfo::Image;
+use crate::downloader::records::ImageInfo;
 
 static IMPORT_LOG: &'static str = "/home/d-rezzer/dev/eyemetric/sex_offender/app/importlog.sqlite";
 static SEX_OFFENDER_PATH: &'static str = "";
@@ -55,19 +57,18 @@ impl Downloader {
     ///create the Downloader object, connect and login to ftp server
     pub fn connect(addr: &str, user: &str, pwd: &str, config: PathVars) -> Result<Self>
     {
-        //these values, I assume will be a configuration.
 
-        let mut sex_offender_importer = Downloader {
+        let mut dloader = Downloader {
             stream: FtpStream::connect(addr)?,
            config,
             conn: Connection::open(IMPORT_LOG).expect("A data connection"),
         };
 
-        sex_offender_importer
+        dloader
             .stream
             .login(user, pwd).expect("Unable to login to ftp site");
 
-        Ok(sex_offender_importer)
+        Ok(dloader)
     }
 
     pub fn disconnect(&mut self) {
@@ -170,13 +171,14 @@ impl Downloader {
             .unwrap();
 
         self.conn.execute("BEGIN TRANSACTION", NO_PARAMS).expect("Unable to start transaction");
-
+        //clear out
+        self.conn.execute("DELETE FROM current_available", NO_PARAMS).expect("Unable to delete from current_available");
         for r_file in remote_files {
             if let Ok(FileInfo::Record(ri)) = r_file {
-
+/*
                 self.conn.execute("DELETE FROM current_available where name=?",
                              &[ri.name.as_ref().unwrap()]);
-
+*/
                 self.conn.execute_named(r#"INSERT INTO current_available (rpath, name, last_modified, size, status)
                                        VALUES (:rpath, :name, :last_modified, :size, :status )"#,
                                    &to_params_named(ri).unwrap().to_slice()).expect("Unable to insert row into temp table");
@@ -188,38 +190,88 @@ impl Downloader {
         Ok(())
     }
 
-    fn log_download(&self, record_info: &RecordInfo) -> Result<()> {
+    ///Filters out downloads that have already completed successfully.
+    ///We may not get all the files in a single session. If we open a new session
+    ///we want to make sure that we don't try to download everything again.
+    pub fn get_newest_update_list(&self) -> Vec<Result<FileInfo>>  {
 
-        let rc = self.conn.execute("INSERT INTO  download_log (name, last_modified, size, bytes_downloaded, status) VALUES (?,?,?,?,?)",
-                                         params![record_info.name, record_info.last_modified, record_info.size, 0, "InFlight" ])?;
+        let mut qry = self.conn.prepare("SELECT * from current_available WHERE name not in (Select name from download_log where status='Success')")
+            .expect("Unable to get newest update list from db");
+
+        let mut fi: Vec<Result<FileInfo>> = Vec::new();
+
+       let res = qry.query_map(NO_PARAMS, |row| {
+            let rpath: String = row.get(0)?;
+            let name: String =   row.get(1)?;
+            let lmod = row.get(2)?;
+           let size = row.get(3)?;
+           let status = RecordStatus::None; //TODO: this isn't really used so think   //row.get(4)?;
+
+           let fi = if name.contains("images") {
+                FileInfo::Image(ImageInfo {
+                     rpath: Some(rpath),
+
+                     name: Some(name),
+                     last_modified: Some(lmod),
+                     size: Some(size),
+                     status
+                     })
+           } else {
+               FileInfo::Record(RecordInfo {
+
+                   rpath: Some(rpath),
+                   name: Some(name),
+                   last_modified: Some(lmod),
+                   size: Some(size),
+                   status
+               })
+           };
+
+           Ok(fi)
+       });
+
+        for x in res.unwrap() {
+            fi.push(Ok(x.unwrap()));
+        }
+
+        fi
+    }
+
+    fn start_download_log(&self, file_info: &FileInfo) -> Result<()>  {
+
+        match file_info {
+            FileInfo::Record(record_info) => {
+
+                self.conn.execute("Delete from download_log where name=? and last_modified=?", params![record_info.name, record_info.last_modified]);
+                let rc = self.conn.execute("INSERT INTO  download_log (name, last_modified, size, bytes_downloaded, status) VALUES (?,?,?,?,?)",
+                                           params![record_info.name, record_info.last_modified, record_info.size, 0, "InFlight" ])?;
+            }
+            FileInfo::Image(record_info) => {
+
+                self.conn.execute("Delete from download_log where name=? and last_modified=?", params![record_info.name, record_info.last_modified]);
+                let rc = self.conn.execute("INSERT INTO  download_log (name, last_modified, size, bytes_downloaded, status) VALUES (?,?,?,?,?)",
+                                           params![record_info.name, record_info.last_modified, record_info.size, 0, "InFlight" ])?;
+            }
+        }
 
         Ok(())
     }
 
-    fn update_byte_count(&self, byte_count: i32, name: &str) -> Result<()>{
-       let rc = self.conn.execute("UPDATE download_log set bytes_downloaded=? where name=?",
-                        params![byte_count, name])?;
-
-        Ok(())
-    }
     pub fn download_file(&mut self, file_info: &FileInfo) -> Result<SexOffenderArchive> {
 
         println!("downloading {}  ... ", file_info.name());
 
+        self.start_download_log(file_info);
         let res = self.save_archive(file_info).expect(&format!("Unable to complete saving archive {}", file_info.name()));
 
         println!("{:?}", file_info);
-
-        if let FileInfo::Record(r) = file_info {
-            self.log_download(&r);
-        }
 
         Ok(res)
 
     }
 
-
     pub fn remote_path(&self, fileInfo: &FileInfo) -> PathBuf {
+
         let mut pb = match fileInfo {
             FileInfo::Record(r) => {
                 r.rpath.as_ref().unwrap()
@@ -245,13 +297,7 @@ impl Downloader {
         p
     }
 
-    fn create_download_log() {
 
-    }
-
-    fn update_download_log() {
-
-    }
     ///downloads the remote archive file and writes to disk.
 
 
@@ -270,6 +316,26 @@ impl Downloader {
         self.stream.cwd(rpth.to_str().unwrap()).expect("could not change ftp dir"); //.is_err() {
         println!("dir change success");
 
+        let conn = Connection::open(IMPORT_LOG).expect("Unable to open Connection");
+
+        let update_log = |byte_count: usize | {
+
+            let bytes = byte_count as i64;
+            let rc = conn.execute("UPDATE download_log set bytes_downloaded=? where name=?",
+                                       params![bytes, fileinfo.name()]).expect("Unable to log byte count");
+
+         //   println!("logged: {} name: {}", bytes, fileinfo.name());
+        };
+
+        let update_download_status = |status: &str| {
+
+            let rc = conn.execute("UPDATE download_log set status=? where name=?",
+                                  params![status, fileinfo.name()]).expect("Unable to log byte count");
+
+
+            println!("dbcode: {} status: {}", rc, status);
+        };
+
         let res = self.stream.retr(&fname, |stream| {
 
             fs::create_dir_all(&local_archive_base).expect("Unable to create archive dir");
@@ -285,7 +351,8 @@ impl Downloader {
             while bytes_read > 0 {
                 let bytes_written = local_file.write(&buff[..bytes_read]).expect("Unable to write bytes");
                 bytes_read = stream.read(&mut buff).expect("Unable to read stream");
-                total_bytes += bytes_read
+                total_bytes += bytes_read;
+                update_log(total_bytes);
             }
             //TODO: if the file size from the server doesn't match
             //the total bytes we've received then we didn't get the whole file
@@ -293,8 +360,13 @@ impl Downloader {
             match local_file.flush() {
                 Ok(()) => {
                     println!("bytes written:: {}", total_bytes);
+                    update_download_status("Success");
                 }
-                Err(e) => println!("bad mojo {}", e),
+                Err(e) => {
+                    println!("bad mojo {}", e);
+                    update_download_status("Failure");
+                    //TODO queue for a resume if possible.
+                }
             }
 
             Ok(SexOffenderArchive {
@@ -309,11 +381,5 @@ impl Downloader {
 
     //return the list of files that are newer than what we have
     fn filter_mod_time() {}
-}
-
-#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone)]
-pub struct DownloadInfo {
-    pub started: String,
-    pub bytes_received: i32,
 }
 

@@ -248,7 +248,6 @@ impl SqlHandler for Csv {
             }
         };
 
-
         let mut q = format!("CREATE TABLE if not exists {} (", tname);
         //add the header names as column names for out table.
         let mut create_table = reader

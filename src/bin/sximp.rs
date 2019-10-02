@@ -57,7 +57,7 @@ fn get_root_path(vars: &PathVars) -> PathBuf {
      PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["archives_path"])
 }
 
-fn main() {
+fn download_files() {
 
     //maybe just download the enchilada?
     //let avail; //entire list
@@ -76,30 +76,90 @@ fn main() {
                                              path_vars).expect("Unable to get a good connection");
 
     let record_filter = |x: &String| x.contains("records") || x.contains("images");
+
+    //let record_filter = |x: &String| x.contains("records");
     let file_list = downloader.get_updated_file_list(record_filter, DownloadOption::Always);
+    let file_list = downloader.get_newest_update_list();
     println!("oh hello");
 
-   let sex_offender_archives =  file_list.iter()
+    let sex_offender_archives =  file_list.iter()
         .map(|fi| {
-            downloader.download_file(&fi.as_ref().unwrap())
+            let m = downloader.download_file(&fi.as_ref().unwrap());
+            println!("downloaded: {}", fi.as_ref().unwrap().name());
+            m
         });
 
     for arch in sex_offender_archives {
 
         if let Ok(sx) = arch {
             println!("all good");
-           //do something
+            //do something
         } else {
             println!("not good at all.");
             //err, bad download, add to error queue?
         }
     }
 
-    for file in file_list {
-        let fi = file.expect("Unable to read file info");
-        println!("{:?}", fi);
-        downloader.download_file(&fi);
+}
+fn main() {
+
+    //download_files();
+    //import_files();
+
+
+    let statelist: States = config::States::load().unwrap();
+    //let path_vars = PathVars::new(config::Env::Dev);
+
+    //let statelist: States = config::States::load().unwrap();
+   // let statelist = statelist.iter().filter(|s| s.abbr == "NJ");
+    let statelist = statelist.iter().filter(|s| s.abbr == "TX");
+    let path_vars = PathVars::new(config::Env::Production);
+    let sql_path = get_sql_path(&path_vars);
+    let  root_path = get_root_path(&path_vars);
+
+    let _prep_result = prepare_import(sql_path.to_str().unwrap());
+
+    for state in statelist {
+        println!("=================================");
+        println!("{}: {}", state.state, state.abbr);
+
+        println!("=================================");
+        let state_path = root_path.join(state.abbr.to_uppercase());
+        let st_files = read_dir(state_path).expect("A file but got us a directory");
+
+        //delete_old_photos(state.abbr.as_str(), sql_path.to_str().unwrap());
+        for stf in st_files {
+            let fnn = stf.unwrap();
+            println!("{:?}", fnn.path());
+            //let conf = path_vars
+            let sx = SexOffenderArchive::new(fnn.path(), 0);
+            let mut ext = Extractor::new(&path_vars);
+            let skip_images = true; //time consuming during test phase.
+
+            let ef: Vec<ExtractedFile> = ext.extract_archive(&sx, skip_images).expect("A file but got a directory");
+            println!("=================================");
+            for exfile in ef {
+
+                exfile.import().expect("Unable to complete file import");
+                println!("Extract: {:?}", &exfile);
+
+                match import_data(&exfile, sql_path.to_str().unwrap()) {
+                    Ok(()) => {
+                        println!("imported file {:?}", &exfile);
+                    }
+                    Err(e) => {
+                        println!("Error importing file {:?}", e);
+                        println!("ex: {:?}", &exfile);
+                    }
+                }
+            }
+            println!("=================================");
+        }
+
+        println!("=================================");
     }
+
+    println!("Dude, there's most of your data");
 }
 
 fn main_() {
@@ -115,7 +175,7 @@ fn main_() {
     //let path_vars = PathVars::new(config::Env::Dev);
 
     //let statelist: States = config::States::load().unwrap();
-    let statelist = statelist.iter().filter(|s| s.abbr == "TX");
+    let statelist = statelist.iter().filter(|s| s.abbr == "AK");
     let path_vars = PathVars::new(config::Env::Dev);
     let sql_path = get_sql_path(&path_vars);
     let  root_path = get_root_path(&path_vars);
@@ -193,14 +253,38 @@ fn test_root_dirs() {
 }
 
 
-fn get_remote_file_list(downloader: &mut Downloader) -> Vec<Result<FileInfo, Box<dyn error::Error>>> {
-    //set up some filters
-    //we only want record and image files. The server has more that we don't use.
-    let record_filter = |x: &String| x.contains("records") || x.contains("images");
-    //let records_only = |x: &String| x.contains("records");
+fn fix_directories() {
 
-    //let az_only = |x: &String| x.contains("AR") && x.contains("records");
-    let file_list = downloader.get_updated_file_list(record_filter, DownloadOption::Always);
+    let statelist: States = config::States::load().unwrap();
+    let path_vars = PathVars::new(config::Env::Production);
+    let  root_path = get_root_path(&path_vars);
 
-    file_list
+    for state in statelist {
+        let npath = root_path.join(state.abbr.to_uppercase());
+        if let Ok(()) = fs::create_dir(&npath) {
+            println!("made dir : {:?}", &npath);
+        } else {
+            println!("path already exists, no need to create");
+        }
+
+        println!("=======================================================");
+        for entry in fs::read_dir(&root_path).unwrap() {
+            let entry = entry.unwrap();
+            let data = entry.metadata().unwrap();
+            let path = entry.path();
+
+            if data.is_file() {
+                if let Some(ex) = path.extension() {
+                    let pre = &entry.file_name().to_os_string().into_string().unwrap().to_uppercase()[0..2];
+                    //println!("pre: {}", pre);
+                    if ex == "zip" && pre == &state.abbr.to_uppercase() {
+                        println!("{} length {}", path.display(), data.len());
+                    }
+                }
+            }
+        }
+        println!("=======================================================");
+
+    }
+
 }
