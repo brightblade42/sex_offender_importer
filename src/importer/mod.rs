@@ -15,6 +15,7 @@ use regex::{self, bytes, Regex};
 use serde::{Deserialize, Serialize};
 pub mod extracts;
 pub mod img;
+mod util;
 
 
 use extracts::Csv;
@@ -76,6 +77,47 @@ impl Import for ExtractedFile {
     }
 }
 
+//=============================
+//Module level functions
+//================================
+pub fn prepare_import(sql_path: &str) -> Result<(), Box<dyn Error>> {
+    let conn = Connection::open(sql_path)?;
+    create_db(&conn).expect("something didn't create good.");
+    conn.close();
+    Ok(())
+}
+
+//after the archived files have been extracted, we import them into
+//a sqlite file
+pub fn import_data(extracted_file: &ExtractedFile, sql_path: &str) -> Result<(), Box<dyn Error>> {
+    use ExtractedFile::*;
+    let conn = Connection::open(sql_path)?;
+
+    match extracted_file {
+        Csv(csv) => {
+            import_csv_files(&conn, &csv.path, &csv.state, &csv.delimiter);
+        }
+        ImageArchive(img)  => {
+            import_images(&conn, &img.path, &img.state);
+        }
+    };
+
+    conn.close();
+    Ok(())
+}
+
+pub fn delete_old_photos(state: &str, sql_path: &str) -> Result<(), Box<dyn Error>> {
+    let conn = Connection::open(sql_path)?;
+    match conn.execute(
+        &format!("DELETE FROM Photos where state='{}'", state),
+        NO_PARAMS,
+    ) {
+        Ok(ex) => println!("deleted old photos for state: {}", state),
+        Err(e) => println!("could not delete photos for state: {}. {}", state, e),
+    }
+
+    Ok(())
+}
 fn open_csv_reader(file: File, delim: char, has_headers: bool) -> Result<csv::Reader<File>, Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new()
         .delimiter(delim as u8)
@@ -201,18 +243,6 @@ fn create_blob_table_query() -> Result<String, Box<dyn Error>> {
     ))
 }
 
-pub fn delete_old_photos(state: &str, sql_path: &str) -> Result<(), Box<dyn Error>> {
-    let conn = Connection::open(sql_path)?;
-    match conn.execute(
-        &format!("DELETE FROM Photos where state='{}'", state),
-        NO_PARAMS,
-    ) {
-        Ok(ex) => println!("deleted old photos for state: {}", state),
-        Err(e) => println!("could not delete photos for state: {}. {}", state, e),
-    }
-
-    Ok(())
-}
 
 fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<String, Box<dyn Error>> {
     //being constructing the insert statement.
@@ -242,47 +272,8 @@ fn create_insert_query(reader: &mut csv::Reader<File>, tname: &str) -> Result<St
 }
 
 
-pub fn prepare_import(sql_path: &str) -> Result<(), Box<dyn Error>> {
-    let conn = Connection::open(sql_path)?;
-    create_db(&conn).expect("something didn't create good.");
-    conn.close();
-    Ok(())
-}
 
-//after the archived files have been extracted, we import them into
-//a sqlite file
-pub fn import_data(extracted_file: &ExtractedFile, sql_path: &str) -> Result<(), Box<dyn Error>> {
-    use ExtractedFile::*;
-    let conn = Connection::open(sql_path)?;
 
-    match extracted_file {
-        Csv(csv) => {
-            import_csv_files(&conn, &csv.path, &csv.state, &csv.delimiter);
-        }
-        ImageArchive(img)  => {
-            import_images(&conn, &img.path, &img.state);
-        }
-    };
-
-    conn.close();
-    Ok(())
-}
-
-fn latin1_to_char(latin1: u8) -> char {
-    latin1 as char
-}
-
-fn to_ascii_string(chars: &[u8]) -> String {
-
-    let mut rstring = String::new();
-    for byte in chars {
-        if byte.is_ascii() {
-            let c = byte.clone() as char; //latin1_to_char(byte.clone());
-            rstring.push(c);
-        }
-    }
-    rstring
-}
 
 fn format_date(dateStr: &str) -> &str {
       let reg =  Regex::new(r"\d{2}/\d{2}/d{4}").unwrap();
@@ -342,7 +333,7 @@ fn import_csv_files(conn: &Connection, path: &PathBuf, state: &str, delimiter: &
                 let mut rec = record.clone();
 
                for rr in rec.iter() {
-                   let ascii_string = to_ascii_string(&rr);
+                   let ascii_string = util::to_ascii_string(&rr);
                    rec_vals.push(ascii_string.parse().unwrap());
                 }
 

@@ -5,7 +5,7 @@ extern crate log;
 use std::error;
 extern crate ftp;
 
-use sex_offender::importer::{ Import, ExtractedFile,
+use sex_offender::importer::{ self, Import, ExtractedFile,
                               import_data,
                               prepare_import,
 //                              delete_old_photos
@@ -117,7 +117,7 @@ fn main() {
     let sql_path = get_sql_path(&path_vars);
     let  root_path = get_root_path(&path_vars);
 
-    let _prep_result = prepare_import(sql_path.to_str().unwrap());
+    let _prep_result = importer::prepare_import(sql_path.to_str().unwrap());
 
     for state in statelist {
         println!("=================================");
@@ -130,13 +130,11 @@ fn main() {
         //delete_old_photos(state.abbr.as_str(), sql_path.to_str().unwrap());
         for stf in st_files {
             let fnn = stf.unwrap();
-            println!("{:?}", fnn.path());
-            //let conf = path_vars
-            let sx = SexOffenderArchive::new(fnn.path(), 0);
-            let mut ext = Extractor::new(&path_vars);
+            let mut extractor = Extractor::new(&path_vars);
             let skip_images = true; //time consuming during test phase.
 
-            let ef: Vec<ExtractedFile> = ext.extract_archive(&sx, skip_images).expect("A file but got a directory");
+            let ef: Vec<ExtractedFile> = extractor.extract_archive(fnn.path(), skip_images).expect("A file but got a directory");
+
             println!("=================================");
             for exfile in ef {
 
@@ -195,11 +193,10 @@ fn main_() {
             let fnn = stf.unwrap();
             println!("{:?}", fnn.path());
             //let conf = path_vars
-            let sx = SexOffenderArchive::new(fnn.path(), 0);
             let mut ext = Extractor::new(&path_vars);
             let skip_images = true; //time consuming during test phase.
 
-            let ef: Vec<ExtractedFile> = ext.extract_archive(&sx, skip_images).expect("A file but got a directory");
+            let ef: Vec<ExtractedFile> = ext.extract_archive(fnn.path(), skip_images).expect("A file but got a directory");
             println!("=================================");
             for exfile in ef {
 

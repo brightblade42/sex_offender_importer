@@ -10,7 +10,7 @@ use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection, NO_PARAMS, params};
 use bytes::Buf;
 use std::io::BufReader;
-use super::{Import, SqlHandler};
+use super::{Import, SqlHandler, util};
 
 ///CsvMetaData contains some basic information about a csv file.
 ///name: The file name and extension of the csv file.
@@ -198,26 +198,34 @@ impl Import for Csv {
 
         conn.execute("Begin Transaction;", NO_PARAMS);
 
-        //insert a record (line of csv) into sqlite table.
-        //we use as_bytes() because some data is not utf-8 compliant
-        let mut sql_err = 0;
+        let mut rec_vals: Vec<String> = Vec::new();
         for result in csv_reader.byte_records() {
             match result {
                 Ok(record) => {
                     let mut rec = record.clone();
+
+                    for rr in rec.iter() {
+                        let ascii_string = util::to_ascii_string(&rr);
+                        rec_vals.push(ascii_string.parse().unwrap());
+                    }
+
                     if table_name == "OFF_CODE_SOR" {
                         println!("{}",rec.len());
                     }
-                    rec.push_field(self.state.as_bytes());
-                    let res = conn.execute(&insert_query, &rec).expect("A good insert");
+
+                    rec_vals.push(String::from(state));
+
+                    let res = conn.execute(&insert_query, &rec_vals).expect("Good stuff");
+                    rec_vals.clear();
                 }
                 Err(e) => {
                     println!("Row data error: {}", e);
                 }
             }
-
         }
+
         conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
+        //we use as_bytes() because some data is not utf-8 compliant
         Ok(())
     }
 }
