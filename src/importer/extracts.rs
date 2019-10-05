@@ -10,7 +10,8 @@ use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection, NO_PARAMS, params};
 use bytes::Buf;
 use std::io::BufReader;
-use super::{Import, SqlHandler, util};
+use super::{Import, SqlHandler};
+use crate::util;
 
 ///CsvMetaData contains some basic information about a csv file.
 ///name: The file name and extension of the csv file.
@@ -137,6 +138,8 @@ impl Csv {
 
 impl Import for Csv {
     type Reader = csv::Reader<File>;
+    //type Connection = ();
+
 
     fn open_reader(&self, has_headers: bool) -> Result<Self::Reader , Box<dyn Error>> {
 
@@ -152,14 +155,17 @@ impl Import for Csv {
         Ok(rdr)
     }
 
+
     fn import(&self) -> Result<(), Box<dyn Error>>  {
         self.add_headers();
-//        self.import_file_data()
+        self.import_file_data();
         Ok(())
     }
 
-    fn import_file_data(&self, conn: &Connection) -> Result<(), Box<dyn Error>> {
+    fn import_file_data(&self) -> Result<(), Box<dyn Error>> {
 
+        //let  conn = Connection::open(sql_path).expect("unable to connect to db");
+        let conn = util::get_connection().expect("Unable to connect to db");
         //this should be filtered out, really.
         let dsp = self.path.display().to_string();
         //TODO: filter this out from elsewhere methinks.
@@ -186,8 +192,9 @@ impl Import for Csv {
 
         //TODO: create default index
         //create default index
-        //let defindex = create_default_index(&table_name);
-        // conn.execute(&defindex, NO_PARAMS);
+
+        let defindex = self.create_default_index(&table_name);
+        conn.execute(&defindex, NO_PARAMS)?;
 
         let insert_query = self.create_insert_query(&mut csv_reader, &table_name)?;
 
@@ -199,6 +206,7 @@ impl Import for Csv {
         conn.execute("Begin Transaction;", NO_PARAMS);
 
         let mut rec_vals: Vec<String> = Vec::new();
+        //we use bytes to work around non-utf-8 issues in csv.
         for result in csv_reader.byte_records() {
             match result {
                 Ok(record) => {
@@ -213,7 +221,7 @@ impl Import for Csv {
                         println!("{}",rec.len());
                     }
 
-                    rec_vals.push(String::from(state));
+                    rec_vals.push(self.state.clone());
 
                     let res = conn.execute(&insert_query, &rec_vals).expect("Good stuff");
                     rec_vals.clear();
@@ -225,7 +233,6 @@ impl Import for Csv {
         }
 
         conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
-        //we use as_bytes() because some data is not utf-8 compliant
         Ok(())
     }
 }
@@ -233,28 +240,11 @@ impl Import for Csv {
 
 
 impl SqlHandler for Csv {
+
     type Reader = csv::Reader<File>;
     fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> Result<String, Box<dyn Error>> {
 
         let reader = reader.unwrap();
-        let  convert_space_in_field = | field: String| -> String {
-
-            if field.trim().contains(" ") {
-                field.replace(" ", "_")
-
-            } else {
-                String::from(field)
-            }
-        };
-
-        let  convert_state_field = |field: &str|  -> String {
-
-            if field == "State" || field == "state" {
-                String::from("Addr_State")
-            } else {
-                String::from(field)
-            }
-        };
 
         let mut q = format!("CREATE TABLE if not exists {} (", tname);
         //add the header names as column names for out table.
@@ -262,8 +252,8 @@ impl SqlHandler for Csv {
             .headers()
             .unwrap()
             .iter()
-            .map(convert_state_field)
-            .map(convert_space_in_field)
+            .map(util::convert_state_field)
+            .map(util::convert_space_in_field)
             .fold(q, |acc, head| {
                 format!("{} {},", acc, head.replace("/", ""))
             });
@@ -272,10 +262,36 @@ impl SqlHandler for Csv {
 
         Ok(create_table)
     }
+
     fn create_insert_query(&self, reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>> {
 
-        Ok("".to_string())
+        //being constructing the insert statement.
+        let mut q = format!("INSERT INTO {} ( ", tname);
+
+        //add the headers as columns
+        let mut insert_query = reader
+            .headers()
+            .unwrap()
+            .iter()
+            .map(util::convert_state_field)
+            .map(util::convert_space_in_field)
+            .fold(q, |acc, head| format!("{} {},", acc, head.replace("/", "")));
+
+        insert_query.push_str("state ) VALUES ("); //add our extra state field and close the ()
+
+        //add value parameter placeholders
+        //TODO: this seems like it could be better.
+        let header_count = reader.headers().unwrap().len();
+
+        for i in 0..header_count {
+            insert_query.push_str("?,");
+        }
+
+        insert_query.push_str("?)"); //our state parameter.
+        Ok(insert_query)
     }
+
+    //this is not currently used
     fn execute(&self, conn: &Connection) -> Result<usize, rusqlite::Error> {
         Ok(0)
     }

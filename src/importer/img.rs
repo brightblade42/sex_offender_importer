@@ -11,6 +11,7 @@ use rusqlite::{Connection, NO_PARAMS, params};
 use bytes::Buf;
 use std::io::BufReader;
 
+use crate::{config, util};
 use super::{Import, SqlHandler};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -27,12 +28,14 @@ impl Import for ImageArchive {
     }
 
     fn import(&self) -> Result<(), Box<dyn Error>> {
+        self.import_file_data();
         Ok(())
     }
 
-    fn import_file_data(&self, conn: &Connection) -> Result<(), Box<dyn Error>> {
+    fn import_file_data(&self) -> Result<(), Box<dyn Error>> {
         let mut file = BufReader::new(File::open(&self.path).unwrap());
         let blob_table = self.create_table_query(None, "Photos");
+        let conn = util::get_connection().expect("Unable to open connection");
         conn.execute(&blob_table.unwrap(), NO_PARAMS);
 
         //1. we've got an archive of images. we don't want to write them

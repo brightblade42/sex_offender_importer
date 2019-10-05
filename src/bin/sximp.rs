@@ -6,7 +6,7 @@ use std::error;
 extern crate ftp;
 
 use sex_offender::importer::{ self, Import, ExtractedFile,
-                              import_data,
+                              //import_data,
                               prepare_import,
 //                              delete_old_photos
 };
@@ -19,6 +19,7 @@ use sex_offender::extractors::Extractor;
 
 //use rusqlite::{params, Connection, NO_PARAMS};
 use sex_offender::config::{self, PathVars, States, LoadData, FtpConfig};
+use sex_offender::util;
 use std::path::{ PathBuf};
 //use std::time::{Duration, Instant};
 use std::fs;
@@ -44,13 +45,6 @@ struct SexOffenderCli {
     list: String,
     #[structopt(flatten)]
     verbosity: Verbosity,
-}
-
-fn get_sql_path(vars: &PathVars) -> PathBuf {
-
-    let sql_path = PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["sex_offender_db"]);
-    println!("sql path: {}", sql_path.to_str().unwrap());
-    sql_path
 }
 
 fn get_root_path(vars: &PathVars) -> PathBuf {
@@ -105,25 +99,21 @@ fn main() {
 
     //download_files();
     //import_files();
-
-
     let statelist: States = config::States::load().unwrap();
-    //let path_vars = PathVars::new(config::Env::Dev);
-
-    //let statelist: States = config::States::load().unwrap();
    // let statelist = statelist.iter().filter(|s| s.abbr == "NJ");
-    let statelist = statelist.iter().filter(|s| s.abbr == "TX");
+    let statelist = statelist.iter().filter(|s| s.abbr == "NJ");
     let path_vars = PathVars::new(config::Env::Production);
-    let sql_path = get_sql_path(&path_vars);
-    let  root_path = get_root_path(&path_vars);
+    let  root_path = util::get_root_path(&path_vars);
 
-    let _prep_result = importer::prepare_import(sql_path.to_str().unwrap());
+    let _prep_result = importer::prepare_import();
 
     for state in statelist {
+
         println!("=================================");
         println!("{}: {}", state.state, state.abbr);
 
         println!("=================================");
+
         let state_path = root_path.join(state.abbr.to_uppercase());
         let st_files = read_dir(state_path).expect("A file but got us a directory");
 
@@ -131,7 +121,7 @@ fn main() {
         for stf in st_files {
             let fnn = stf.unwrap();
             let mut extractor = Extractor::new(&path_vars);
-            let skip_images = true; //time consuming during test phase.
+            let skip_images = false; //true; //time consuming during test phase.
 
             let ef: Vec<ExtractedFile> = extractor.extract_archive(fnn.path(), skip_images).expect("A file but got a directory");
 
@@ -139,9 +129,10 @@ fn main() {
             for exfile in ef {
 
                 exfile.import().expect("Unable to complete file import");
+
                 println!("Extract: {:?}", &exfile);
 
-                match import_data(&exfile, sql_path.to_str().unwrap()) {
+             /*   match import_data(&exfile, sql_path.to_str().unwrap()) {
                     Ok(()) => {
                         println!("imported file {:?}", &exfile);
                     }
@@ -149,7 +140,7 @@ fn main() {
                         println!("Error importing file {:?}", e);
                         println!("ex: {:?}", &exfile);
                     }
-                }
+                } */
             }
             println!("=================================");
         }
@@ -159,7 +150,7 @@ fn main() {
 
     println!("Dude, there's most of your data");
 }
-
+/*
 fn main_() {
 
     //let path_config = config::PathVars::new(config::Env::Dev);
@@ -175,10 +166,9 @@ fn main_() {
     //let statelist: States = config::States::load().unwrap();
     let statelist = statelist.iter().filter(|s| s.abbr == "AK");
     let path_vars = PathVars::new(config::Env::Dev);
-    let sql_path = get_sql_path(&path_vars);
-    let  root_path = get_root_path(&path_vars);
+    let  root_path = util::get_root_path(&path_vars);
 
-    let _prep_result = prepare_import(sql_path.to_str().unwrap());
+    let _prep_result = prepare_import();
 
     for state in statelist {
         println!("=================================");
@@ -203,7 +193,7 @@ fn main_() {
                 exfile.import().expect("Unable to complete file import");
                 println!("Extract: {:?}", &exfile);
 
-                match import_data(&exfile, sql_path.to_str().unwrap()) {
+                match import_data(&exfile) {
                     Ok(()) => {
                         println!("imported file {:?}", &exfile);
                     }
@@ -221,7 +211,7 @@ fn main_() {
 
     println!("Dude, there's most of your data");
 }
-
+*/
 #[test]
 fn connect_test() {
     let path_config = config::PathVars::new(config::Env::Production);
@@ -254,7 +244,7 @@ fn fix_directories() {
 
     let statelist: States = config::States::load().unwrap();
     let path_vars = PathVars::new(config::Env::Production);
-    let  root_path = get_root_path(&path_vars);
+    let  root_path =  util::get_root_path(&path_vars);
 
     for state in statelist {
         let npath = root_path.join(state.abbr.to_uppercase());
