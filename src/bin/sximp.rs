@@ -1,33 +1,28 @@
 #![allow(dead_code)]
-extern crate sex_offender;
-extern crate log;
 
-use std::error;
-extern crate ftp;
-
-use sex_offender::importer::{ self, Import, ExtractedFile,
-                              //import_data,
-                              prepare_import,
-//                              delete_old_photos
-};
-use sex_offender::downloader::archives::SexOffenderArchive;
-use sex_offender::downloader::{ Downloader,
-                               //DownloadInfo,
-                               DownloadOption,
-                               records::FileInfo};
-use sex_offender::extractors::Extractor;
-
-//use rusqlite::{params, Connection, NO_PARAMS};
-use sex_offender::config::{self, PathVars, States, LoadData, FtpConfig};
-use sex_offender::util;
-use std::path::{ PathBuf};
 //use std::time::{Duration, Instant};
-use std::fs;
 use quicli::prelude::*;
 use structopt::StructOpt;
-use std::fs::{read_dir};
-//use std::{io, io::Write};
-//use mktemp::Temp;
+
+use std::{
+    fs::{self, read_dir},
+    error,
+    path::PathBuf,
+};
+
+use sex_offender::{
+    importer::{self, Import, ExtractedFile, prepare_import},
+    downloader::{
+        Downloader,
+        DownloadOption,
+        records::FileInfo,
+        archives::SexOffenderArchive,
+
+    },
+    extractors::Extractor,
+    config::{self, PathVars, States, LoadData, FtpConfig},
+    util
+};
 
 #[derive(Debug, StructOpt)]
 struct SexOffenderCli {

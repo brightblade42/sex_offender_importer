@@ -1,18 +1,17 @@
-use std::fs::{self,File};
-use std::error::Error;
-use std::path::{self, PathBuf, Path};
-use std::borrow::{Borrow};
-use std::{io, io::Write};
+use std::{
+    fs::{self,File},
+    error::Error,
+    path::{self, PathBuf, Path},
+    borrow::{Borrow},
+    io::{self, Write, BufReader},
+};
 
+use super::SEX_OFFENDER_PATH;
 use mktemp::Temp;
 use serde;
 use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection, NO_PARAMS, params, ToSql};
-
 use bytes::Buf;
-use std::io::BufReader;
-
-use super::SEX_OFFENDER_PATH;
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone)]
 pub enum RecordStatus {

@@ -1,18 +1,18 @@
-use std::fs::{self,File};
-use std::error::Error;
-use std::path::{self, PathBuf, Path};
-use std::borrow::{Borrow};
-use std::{io, io::Write};
+use std::{
+    fs::{self,File},
+    error::Error,
+    path::{self, PathBuf, Path},
+    borrow::{Borrow},
+    io::{self,Write, BufReader},
+};
 
+use crate::{config, util};
+use super::{Import, SqlHandler};
 use mktemp::Temp;
 use serde;
 use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection, NO_PARAMS, params};
 use bytes::Buf;
-use std::io::BufReader;
-
-use crate::{config, util};
-use super::{Import, SqlHandler};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ImageArchive {

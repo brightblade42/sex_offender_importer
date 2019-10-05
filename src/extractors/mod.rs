@@ -1,16 +1,18 @@
-use crate::config::PathVars;
-use std::path::{Path, PathBuf};
-use std::io::{BufWriter, BufReader};
-use std::fs::{self, File};
-use std::ffi::OsStr;
-use ftp::status::PATH_CREATED;
+use std::{
+    path::{Path, PathBuf},
+    io::{BufWriter, BufReader},
+    fs::{self, File},
+    ffi::OsStr,
+};
 
+use crate::config::PathVars;
+use crate::downloader::archives::SexOffenderArchive;
+use crate::importer::{ExtractedFile, extracts::Csv, img::ImageArchive};
+
+use ftp::status::PATH_CREATED;
 
 type GenError = Box<dyn std::error::Error>;
 pub type Result<T> = ::std::result::Result<T, Box<dyn std::error::Error>>;
-
-use super::downloader::archives::SexOffenderArchive;
-use super::importer::{ExtractedFile, extracts::Csv, img::ImageArchive};
 
 
 pub struct Extractor<'a> {

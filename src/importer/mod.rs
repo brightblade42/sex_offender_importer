@@ -1,26 +1,24 @@
-//extern crate csv;
-use csv::{self, Trim};
-use std::error::Error;
-use std::fs;
-use std::fs::File;
-use std::io::{BufReader, BufWriter, Read, Write};
-use std::path;
-
-use rusqlite::{params, Connection, ToSql, NO_PARAMS};
-use std::path::{Path, PathBuf};
-use std::string::ToString;
-use zip;
-use zip::ZipArchive;
-use regex::{self, bytes, Regex};
-use serde::{Deserialize, Serialize};
 pub mod extracts;
 pub mod img;
-use crate::util;
-//mod util;
 
+use std::{
+    fs::{self, File},
+    io::{BufReader, BufWriter, Read, Write},
+    path::{self, Path, PathBuf},
+    string::ToString,
+    error::Error
+};
+
+use ftp::types::FtpError::ConnectionError;
+use csv::{self, Trim};
+use rusqlite::{params, Connection, ToSql, NO_PARAMS};
+use zip::{self, ZipArchive};
+use regex::{self, bytes, Regex};
+use serde::{Deserialize, Serialize};
+use crate::util;
+//submodules
 use extracts::Csv;
 use img::ImageArchive;
-use ftp::types::FtpError::ConnectionError;
 
 pub trait Import {
     type Reader;

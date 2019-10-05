@@ -1,5 +1,8 @@
-use std::io;
-use std::path::{PathBuf};
+use std::{
+    io,
+    path::{PathBuf}
+};
+
 use regex::{self, bytes, Regex};
 
 use crate::config::{PathVars, Env};

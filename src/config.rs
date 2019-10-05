@@ -1,18 +1,16 @@
-use std::io;
-
-extern crate serde;
+use std::{
+    io,
+    path::{PathBuf, Iter},
+    iter::FromIterator,
+    env,
+    collections::HashMap,
+    hash::Hash,
+    error::Error
+};
 
 use serde_derive::{Serialize, Deserialize};
-
 use rusqlite::{Connection, NO_PARAMS, params};
-use serde_rusqlite;
-use std::path::{PathBuf, Iter};
-use serde_rusqlite::{to_params_named, from_row, from_rows, from_rows_ref};
-use std::iter::FromIterator;
-use std::env;
-use std::collections::HashMap;
-use std::hash::Hash;
-use std::error::Error;
+use serde_rusqlite::{self, to_params_named, from_row, from_rows, from_rows_ref};
 
 static CONFIG: &'static str = "/opt/eyemetric/sex_offender/config.sqlite";
 

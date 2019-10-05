@@ -1,32 +1,34 @@
-extern crate ftp;
-extern crate serde;
-
 pub mod records;
 pub mod archives;
 
 use records::{RecordStatus, RecordInfo, FileInfo};
 
-use ftp::{FtpStream, FtpError};
-use ftp::types::FileType;
-use std::iter::{Iterator, FromIterator};
-use std::fs::{self, File};
-use std::path::{self, Path, PathBuf};
-use std::str;
-use std::io::{BufWriter, Write, Read, ErrorKind, BufReader, copy};
-use std::convert::{AsRef, From};
+use ftp::{
+    FtpStream, FtpError,
+    types::FileType,
+
+};
+use std::{
+    str,
+    process::id,
+    fs::{self, File},
+    io::{BufWriter, Write, Read, ErrorKind, BufReader, copy},
+    error::{self, Error},
+    iter::{Iterator, FromIterator},
+    path::{self, Path, PathBuf},
+    convert::{AsRef, From},
+    collections::HashSet,
+    clone::Clone,
+    ffi::OsStr,
+};
+
 use core::borrow::{Borrow, BorrowMut};
-use std::process::id;
-use std::{self, error::Error};
-use zip;
-use zip::ZipArchive;
+use zip::{ self, ZipArchive};
 use serde_derive::{Serialize, Deserialize};
 use serde_json;
 use rusqlite::{self, Connection, params, NO_PARAMS, ToSql};
 use serde_rusqlite::{from_row, to_params_named, to_params};
-use std::collections::HashSet;
-use std::clone::Clone;
 use crate::config::{self, Config, PathVars};
-use std::ffi::OsStr;
 
 use archives::SexOffenderArchive;
 use crate::downloader::records::FileInfo::Image;
