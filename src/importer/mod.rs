@@ -2,27 +2,22 @@ pub mod extracts;
 pub mod img;
 
 use std::{
-    fs::{self, File},
-    io::{BufReader, BufWriter, Read, Write},
-    path::{self, Path, PathBuf},
-    string::ToString,
     error::Error
 };
 
-use ftp::types::FtpError::ConnectionError;
-use csv::{self, Trim};
-use rusqlite::{params, Connection, ToSql, NO_PARAMS};
-use zip::{self, ZipArchive};
-use regex::{self, bytes, Regex};
+use rusqlite::{Connection, NO_PARAMS};
 use serde::{Deserialize, Serialize};
-use crate::util;
+use crate::util::{
+    self,
+    GenResult
+};
 //submodules
 use extracts::Csv;
 use img::ImageArchive;
 
 pub trait Import {
     type Reader;
-    fn open_reader(&self, has_headers: bool) -> Result<Self::Reader , Box<dyn Error>>;
+    fn open_reader(&self, has_headers: bool) -> GenResult<Self::Reader>;
     fn import(&self) -> Result<(), Box<dyn Error>>;
     fn import_file_data(&self) -> Result<(), Box<dyn Error>>;
 }
@@ -30,8 +25,8 @@ pub trait Import {
 
 trait SqlHandler {
     type Reader;
-    fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> Result<String, Box<dyn Error>>;
-    fn create_insert_query(&self,reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>>;
+    fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> GenResult<String>;
+    fn create_insert_query(&self,reader: &mut Self::Reader, tname: &str) -> GenResult<String>;
 
     fn create_default_index(&self, name: &str) -> String {
 
@@ -61,11 +56,11 @@ pub enum ExtractedFile {
 impl Import for ExtractedFile {
     type Reader = String;
 
-    fn open_reader(&self, has_headers: bool) -> Result<Self::Reader, Box<Error>> {
+    fn open_reader(&self, _has_headers: bool) -> GenResult<Self::Reader> {
         unimplemented!()
     }
 
-    fn import(&self) -> Result<(), Box<dyn Error>> {
+    fn import(&self) -> GenResult<()> {
         match self {
 
             ExtractedFile::Csv(csv) => {
@@ -77,7 +72,7 @@ impl Import for ExtractedFile {
         }
     }
 
-    fn import_file_data(&self) -> Result<(), Box<dyn Error>> {
+    fn import_file_data(&self) -> GenResult<()> {
         Ok(())
     }
 }
@@ -85,20 +80,19 @@ impl Import for ExtractedFile {
 //=============================
 //Module level functions
 //================================
-pub fn prepare_import() -> Result<(), Box<dyn Error>> {
-    let conn = util::get_connection().expect("unable to connect to db");//Connection::open(sql_path)?;
+pub fn prepare_import() -> GenResult<()> {
+    let conn = util::get_connection(None).expect("unable to connect to db");//Connection::open(sql_path)?;
     create_db(&conn).expect("something didn't create good.");
-    conn.close();
     Ok(())
 }
 
-pub fn delete_old_photos(state: &str) -> Result<(), Box<dyn Error>> {
-    let conn = util::get_connection()?;
+pub fn delete_old_photos(state: &str) -> GenResult<()> {
+    let conn = util::get_connection(None)?;
     match conn.execute(
         &format!("DELETE FROM Photos where state='{}'", state),
         NO_PARAMS,
     ) {
-        Ok(ex) => println!("deleted old photos for state: {}", state),
+        Ok(_) => println!("deleted old photos for state: {}", state),
         Err(e) => println!("could not delete photos for state: {}. {}", state, e),
     }
 
@@ -149,7 +143,7 @@ fn create_photos() -> String {
     )
 }
 
-fn create_db(conn: &Connection) -> Result<(), Box<Error>> {
+fn create_db(conn: &Connection) -> GenResult<()> {
     set_pragmas(conn);
     conn.execute(create_main().as_str(), NO_PARAMS)
         .expect("Unable to create main");
@@ -169,18 +163,6 @@ fn create_db(conn: &Connection) -> Result<(), Box<Error>> {
 fn set_pragmas(conn: &Connection) {
     match conn.pragma_update(None, "journal_mode", &String::from("OFF")) {
         Ok(()) => println!("Updated pragma journal_mode: off"),
-        Err(e) => println!("Could not update pragma journal_mode"),
+        Err(e) => println!("Could not update pragma journal_mode {}", e.description()),
     }
-}
-
-fn drop_table(conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Error> {
-    let r = conn.execute(&format!("DROP TABLE if exists {}", table_name), NO_PARAMS);
-    //println!("Dropped Table: {}", table_name);
-    r
-}
-
-fn create_blob_table_query() -> Result<String, Box<dyn Error>> {
-    Ok(String::from(
-        "CREATE TABLE if not exists Photos (id,name, size, data)",
-    ))
 }

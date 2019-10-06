@@ -1,18 +1,18 @@
 use std::{
-    fs::{self,File},
-    error::Error,
-    path::{self, PathBuf, Path},
-    borrow::{Borrow},
-    io::{self,Write, BufReader},
+    fs::File,
+    path::PathBuf,
+    io::BufReader,
 };
 
-use crate::{config, util};
+use crate::{
+    util::{
+        self,
+        GenResult
+    }};
+
 use super::{Import, SqlHandler};
-use mktemp::Temp;
-use serde;
 use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection, NO_PARAMS, params};
-use bytes::Buf;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ImageArchive {
@@ -21,22 +21,22 @@ pub struct ImageArchive {
 }
 
 impl Import for ImageArchive {
-    type Reader = io::BufReader<File>;
+    type Reader = BufReader<File>;
 
-    fn open_reader(&self, has_headers: bool) -> Result<Self::Reader, Box<Error>> {
+    fn open_reader(&self, _has_headers: bool) -> GenResult<Self::Reader> {
         Ok(BufReader::new(File::open(&self.path).unwrap()))
     }
 
-    fn import(&self) -> Result<(), Box<dyn Error>> {
-        self.import_file_data();
+    fn import(&self) -> GenResult<()> {
+        self.import_file_data()?;
         Ok(())
     }
 
-    fn import_file_data(&self) -> Result<(), Box<dyn Error>> {
-        let mut file = BufReader::new(File::open(&self.path).unwrap());
+    fn import_file_data(&self) -> GenResult<()> {
+        let file = BufReader::new(File::open(&self.path)?);
         let blob_table = self.create_table_query(None, "Photos");
-        let conn = util::get_connection().expect("Unable to open connection");
-        conn.execute(&blob_table.unwrap(), NO_PARAMS);
+        let conn = util::get_connection(None).expect("Unable to open connection");
+        conn.execute(&blob_table.unwrap(), NO_PARAMS)?;
 
         //1. we've got an archive of images. we don't want to write them
         //to disk, we want to store them as blobs in sqlite.
@@ -49,7 +49,7 @@ impl Import for ImageArchive {
 
         let mut archive = zip::ZipArchive::new(file)?;
 
-        conn.execute("BEGIN TRANSACTION;", NO_PARAMS);
+        conn.execute("BEGIN TRANSACTION;", NO_PARAMS)?;
 
         for i in 0..archive.len() {
             let mut img_file = archive.by_index(i)?;
@@ -67,20 +67,19 @@ impl Import for ImageArchive {
                 continue;
             }
             let photo_id = &name[0..idx];
-            std::io::copy(&mut img_file, &mut blob);
+            std::io::copy(&mut img_file, &mut blob)?;
 
             //println!("image: {} {} {} {}", photo_id, name, img_size, state);
-            let r = conn
-                .execute(
+            conn.execute(
                     "INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)",
                     params![photo_id, name, img_size, blob, self.state],
-                )
-                .expect("A damn image import");
+                )?;
+            //    .expect("A damn image import");
 
             blob.clear();
         }
 
-        conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
+        conn.execute("COMMIT TRANSACTION;", NO_PARAMS)?;
 
         Ok(())
     }
@@ -88,15 +87,15 @@ impl Import for ImageArchive {
 
 impl SqlHandler for ImageArchive {
     type Reader = BufReader<File>;
-    fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> Result<String, Box<dyn Error>> {
-        Ok(format!( "CREATE TABLE if not exists {} (id,name, size, data)",tname ))
+    fn create_table_query(&self, _reader: Option<&mut Self::Reader>, table_name: &str) -> GenResult<String>{
+        Ok(format!( "CREATE TABLE if not exists {} (id,name, size, data)",table_name ))
     }
 
-    fn create_insert_query(&self, reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>> {
+    fn create_insert_query(&self, _reader: &mut Self::Reader, _tname: &str) -> GenResult<String> {
         unimplemented!()
     }
 
-    fn execute(&self, conn: &Connection) -> Result<usize, rusqlite::Error> {
+    fn execute(&self, _conn: &Connection) -> Result<usize, rusqlite::Error> {
         unimplemented!()
     }
 }

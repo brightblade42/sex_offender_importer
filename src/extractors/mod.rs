@@ -1,18 +1,17 @@
 use std::{
-    path::{Path, PathBuf},
+    path::{PathBuf},
     io::{BufWriter, BufReader},
     fs::{self, File},
     ffi::OsStr,
 };
 
+use crate::util::{
+    GenResult
+};
+
 use crate::config::PathVars;
-use crate::downloader::archives::SexOffenderArchive;
 use crate::importer::{ExtractedFile, extracts::Csv, img::ImageArchive};
 
-use ftp::status::PATH_CREATED;
-
-type GenError = Box<dyn std::error::Error>;
-pub type Result<T> = ::std::result::Result<T, Box<dyn std::error::Error>>;
 
 
 pub struct Extractor<'a> {
@@ -30,14 +29,14 @@ impl Extractor<'_> {
     ///Takes a path to an archive file, extracts its contents and returns
     /// a List of ExtractedFile objects that describe the contents.
     /// An Extracted file can be one of two variants. Csv or ImageArchive
-    pub fn extract_archive(&mut self, archive_path: PathBuf, skip_images: bool) -> Result<Vec<ExtractedFile>> {
+    pub fn extract_archive(&mut self, archive_path: PathBuf, skip_images: bool) -> GenResult<Vec<ExtractedFile>> {
         let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
 
         if skip_images && archive_path.to_string_lossy().contains("images") {
             return Ok(vec![]) ;
         }
 
-        let mut state_abbrev = &archive_path.file_name().unwrap().to_str().unwrap()[..2];
+        let state_abbrev = &archive_path.file_name().unwrap().to_str().unwrap()[..2];
         let archive_file = BufReader::new(File::open(&archive_path)?);
         let mut archive = zip::ZipArchive::new(archive_file)?;
 
@@ -88,7 +87,7 @@ impl Extractor<'_> {
     /// are parsed and imported.
     fn get_extract_path(&self, state: &str, archive_path: &PathBuf, file_name: &OsStr) -> PathBuf {
 
-        let mut extracts_path = PathBuf::from(&self.config.vars["app_base_path"]).join(&self.config.vars["extracts_path"]);
+        let mut extracts_path = self.config.extracts_path();
         extracts_path.push(state);
 
         if archive_path.to_string_lossy().contains("records") {

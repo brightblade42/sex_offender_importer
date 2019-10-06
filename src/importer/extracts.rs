@@ -1,18 +1,17 @@
 use std::{
     fs::{self,File},
-    error::Error,
-    path::{self, PathBuf, Path},
-    borrow::{Borrow},
-    io::{self, Write, BufReader},
+    path::{PathBuf, Path},
+    io::{self, Write},
 };
 
 use super::{Import, SqlHandler};
-use crate::util;
+use crate::util::{
+    self,
+    GenResult,
+};
 use mktemp::Temp;
-use serde;
 use serde_derive::{Serialize, Deserialize};
-use rusqlite::{Connection, NO_PARAMS, params};
-use bytes::Buf;
+use rusqlite::{Connection, NO_PARAMS};
 
 ///CsvMetaData contains some basic information about a csv file.
 ///name: The file name and extension of the csv file.
@@ -36,15 +35,13 @@ pub struct Csv {
 impl Csv {
 
     //Some csv files may not have headers, in those cases we want to add some.
-    fn add_headers(&self) -> Result<(), Box<dyn Error>> {
-
-        let csv_meta = self.load_csv_info();
+    fn add_headers(&self) -> GenResult<()> {
 
         if let Some(meta) = self.load_csv_info() {
                 meta.iter().for_each(|md| {
                     if self.path.ends_with(md.name.clone()) {
-                        let mut header_line = self.build_header_line(md);
-                        self.prepend_file(header_line.as_bytes(), &self.path);
+                        let header_line = self.build_header_line(md);
+                        self.prepend_file(header_line.as_bytes(), &self.path).unwrap();
                         println!("{}", &header_line);
                     }
                 });
@@ -57,7 +54,7 @@ impl Csv {
     ///transform vec of headers to a delimitted text string
     fn build_header_line(&self, csv_meta: &CsvMetaData) -> String {
 
-        let mut header_string = String::new();
+        let header_string = String::new();
         let mut header_line: String = csv_meta.headers.iter().fold(header_string, |acc, head | {
             format!("{}{}{}",acc, self.delimiter, head )
         });
@@ -72,7 +69,7 @@ impl Csv {
     fn prepend_file(&self, data: &[u8], file_path: &Path) -> io::Result<()> {
         // Create a temporary file
         println!("ex path: {:?}", file_path );
-        let mut tmp_path = Temp::new_file()?;
+        let tmp_path = Temp::new_file()?;
 
         // Stop the temp file being automatically deleted when the variable
         // is dropped, by releasing it.
@@ -86,8 +83,8 @@ impl Csv {
         // Copy the rest of the source file
         io::copy(&mut src_file, &mut tmp_file)?;
         fs::remove_file(&file_path)?;
-        fs::copy(&tmp_path, &file_path);
-        fs::remove_file(&tmp_path);
+        fs::copy(&tmp_path, &file_path)?;
+        fs::remove_file(&tmp_path)?;
         Ok(())
     }
 
@@ -142,11 +139,11 @@ impl Import for Csv {
     //type Connection = ();
 
 
-    fn open_reader(&self, has_headers: bool) -> Result<Self::Reader , Box<dyn Error>> {
+    fn open_reader(&self, has_headers: bool) -> GenResult<Self::Reader> {
 
         let file = File::open(&self.path)?; //.unwrap();
 
-        let mut rdr = csv::ReaderBuilder::new()
+        let rdr = csv::ReaderBuilder::new()
             .delimiter(self.delimiter as u8)
             .trim(csv::Trim::All)
             .has_headers(has_headers)
@@ -157,16 +154,15 @@ impl Import for Csv {
     }
 
 
-    fn import(&self) -> Result<(), Box<dyn Error>>  {
-        self.add_headers();
-        self.import_file_data();
+    fn import(&self) -> GenResult<()>  {
+        self.add_headers()?;
+        self.import_file_data()?;
         Ok(())
     }
 
-    fn import_file_data(&self) -> Result<(), Box<dyn Error>> {
+    fn import_file_data(&self) -> GenResult<()> {
 
-        //let  conn = Connection::open(sql_path).expect("unable to connect to db");
-        let conn = util::get_connection().expect("Unable to connect to db");
+        let conn = util::get_connection(None).expect("Unable to connect to db");
         //this should be filtered out, really.
         let dsp = self.path.display().to_string();
         //TODO: filter this out from elsewhere methinks.
@@ -183,7 +179,7 @@ impl Import for Csv {
         println!("Dropped: {}", &table_name);
         self.drop_table(&conn, &table_name)?;
 
-        let mut table_query = self.create_table_query(Some(&mut csv_reader), &table_name)?;
+        let table_query = self.create_table_query(Some(&mut csv_reader), &table_name)?;
 
         println!("Creating {}", &table_name);
         println!("=============================");
@@ -204,14 +200,14 @@ impl Import for Csv {
 
         println!("=============================");
 
-        conn.execute("Begin Transaction;", NO_PARAMS);
+        conn.execute("Begin Transaction;", NO_PARAMS)?;
 
         let mut rec_vals: Vec<String> = Vec::new();
         //we use bytes to work around non-utf-8 issues in csv.
         for result in csv_reader.byte_records() {
             match result {
                 Ok(record) => {
-                    let mut rec = record.clone();
+                    let rec = record.clone();
 
                     for rr in rec.iter() {
                         let ascii_string = util::to_ascii_string(&rr);
@@ -224,7 +220,7 @@ impl Import for Csv {
 
                     rec_vals.push(self.state.clone());
 
-                    let res = conn.execute(&insert_query, &rec_vals).expect("Good stuff");
+                    conn.execute(&insert_query, &rec_vals)?; //.expect("Good stuff");
                     rec_vals.clear();
                 }
                 Err(e) => {
@@ -233,7 +229,7 @@ impl Import for Csv {
             }
         }
 
-        conn.execute("COMMIT TRANSACTION;", NO_PARAMS);
+        conn.execute("COMMIT TRANSACTION;", NO_PARAMS)?;
         Ok(())
     }
 }
@@ -243,11 +239,11 @@ impl Import for Csv {
 impl SqlHandler for Csv {
 
     type Reader = csv::Reader<File>;
-    fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> Result<String, Box<dyn Error>> {
+    fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> GenResult<String> {
 
         let reader = reader.unwrap();
 
-        let mut q = format!("CREATE TABLE if not exists {} (", tname);
+        let q = format!("CREATE TABLE if not exists {} (", tname);
         //add the header names as column names for out table.
         let mut create_table = reader
             .headers()
@@ -264,10 +260,10 @@ impl SqlHandler for Csv {
         Ok(create_table)
     }
 
-    fn create_insert_query(&self, reader: &mut Self::Reader, tname: &str) -> Result<String, Box<dyn Error>> {
+    fn create_insert_query(&self, reader: &mut Self::Reader, tname: &str) -> GenResult<String> {
 
         //being constructing the insert statement.
-        let mut q = format!("INSERT INTO {} ( ", tname);
+        let q = format!("INSERT INTO {} ( ", tname);
 
         //add the headers as columns
         let mut insert_query = reader
@@ -284,7 +280,7 @@ impl SqlHandler for Csv {
         //TODO: this seems like it could be better.
         let header_count = reader.headers().unwrap().len();
 
-        for i in 0..header_count {
+        for _i in 0..header_count {
             insert_query.push_str("?,");
         }
 
@@ -293,7 +289,7 @@ impl SqlHandler for Csv {
     }
 
     //this is not currently used
-    fn execute(&self, conn: &Connection) -> Result<usize, rusqlite::Error> {
+    fn execute(&self, _conn: &Connection) -> Result<usize, rusqlite::Error> {
         Ok(0)
     }
 }

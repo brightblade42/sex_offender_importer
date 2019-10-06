@@ -1,16 +1,12 @@
 use std::{
-    io,
-    path::{PathBuf, Iter},
-    iter::FromIterator,
-    env,
+    path::{PathBuf},
     collections::HashMap,
-    hash::Hash,
     error::Error
 };
 
 use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection, NO_PARAMS, params};
-use serde_rusqlite::{self, to_params_named, from_row, from_rows, from_rows_ref};
+use serde_rusqlite::{self,  from_rows };
 
 static CONFIG: &'static str = "/opt/eyemetric/sex_offender/config.sqlite";
 
@@ -37,7 +33,7 @@ impl LoadData for States {
     fn load() -> Result<States, Box<dyn Error>> {
         let conn = Connection::open(CONFIG).expect("Unable to open data connection");
         let mut stmt = conn.prepare("Select * from states").expect("Unable to get states data");
-        let mut rows = stmt.query(NO_PARAMS)?;
+        let rows = stmt.query(NO_PARAMS)?;
         let r = from_rows::<State>(rows).collect();
         Ok(r)
     }
@@ -73,7 +69,7 @@ impl FtpConfig {
         let conn = Connection::open(CONFIG).expect("A good connection");
         let name = FtpConfig::conf(&env);
         let mut stmt = conn.prepare("Select * from ftp where name = ?").expect("a statement "); //unwrap();
-        let mut rows = stmt.query(params![name]).unwrap();
+        let rows = stmt.query(params![name]).unwrap();
         let r = from_rows::<FtpConfig>(rows).last().expect("A row");
 
         r
@@ -96,6 +92,27 @@ impl PathVars {
             vars,
         }
     }
+
+    pub fn archive_path(&self) -> PathBuf {
+        PathBuf::from(&self.vars["app_base_path"]).join(&self.vars["archives_path"])
+    }
+
+    pub fn root_path(&self) -> PathBuf {
+        PathBuf::from(&self.vars["app_base_path"]) //.join(&self.vars["archives_path"])
+    }
+
+    pub fn extracts_path(&self) -> PathBuf {
+        PathBuf::from(&self.vars["app_base_path"]).join(&self.vars["extracts_path"])
+    }
+
+    pub fn archive_file_path(&self, file_name: &str) -> PathBuf {
+        PathBuf::from(self.archive_path().display().to_string()).join(file_name)
+    }
+
+    pub fn sql_path(&self) -> PathBuf {
+         PathBuf::from(&self.vars["app_base_path"]).join(&self.vars["sex_offender_db"])
+    }
+
 }
 
 impl Config for PathVars {

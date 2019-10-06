@@ -1,12 +1,12 @@
-use std::{
-    io,
-    path::{PathBuf}
-};
-
-use regex::{self, bytes, Regex};
+use regex::{self,  Regex};
 
 use crate::config::{PathVars, Env};
 use rusqlite::Connection;
+
+pub type GenError = Box<dyn std::error::Error>;
+//pub type Result<T> = ::std::result::Result<T, GenError>;
+pub type GenResult<T> = ::std::result::Result<T, GenError>;
+
 
 pub fn to_ascii_string(chars: &[u8]) -> String {
 
@@ -19,22 +19,22 @@ pub fn to_ascii_string(chars: &[u8]) -> String {
     }
     rstring
 }
+///returns an open sqlite connection.
+///if vars Option is None then connection will be from Production config values
+pub fn get_connection(vars: Option<PathVars>) -> GenResult<Connection> {
 
-pub fn get_sql_path(vars: &PathVars) -> PathBuf {
 
-    let sql_path = PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["sex_offender_db"]);
-    println!("sql path: {}", sql_path.to_str().unwrap());
-    sql_path
-}
+    let sql_path  = if let Some(v) = vars {
+        v.sql_path()
+    } else {
+        let v = PathVars::new(Env::Production);
+        v.sql_path()
+    };
 
-pub fn get_root_path(vars: &PathVars) -> PathBuf {
-    PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["archives_path"])
-}
-
-pub fn get_connection() -> Result<Connection, rusqlite::Error> {
-    let path_vars = PathVars::new(Env::Production);
-    let sql_path = get_sql_path(&path_vars);
-    Connection::open(sql_path)
+    match  Connection::open(sql_path) {
+        Ok(conn) => Ok(conn),
+        Err(err) => Err(GenError::from(err))
+    }
 }
 
 pub fn convert_state_field(field: &str) -> &str {
@@ -53,12 +53,12 @@ pub fn convert_space_in_field(field: &str) -> String {
     }
 }
 
-fn format_date(dateStr: &str) -> &str {
+fn format_date(date_str: &str) -> &str {
     let reg =  Regex::new(r"\d{2}/\d{2}/d{4}").unwrap();
-    if reg.is_match(dateStr) {
+    if reg.is_match(date_str) {
         "coool"
     } else {
-        dateStr
+        date_str
     }
     //regex::bytes::
 }

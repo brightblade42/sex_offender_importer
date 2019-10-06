@@ -6,17 +6,14 @@ use structopt::StructOpt;
 
 use std::{
     fs::{self, read_dir},
-    error,
     path::PathBuf,
 };
 
 use sex_offender::{
-    importer::{self, Import, ExtractedFile, prepare_import},
+    importer::{self, Import, ExtractedFile },
     downloader::{
         Downloader,
         DownloadOption,
-        records::FileInfo,
-        archives::SexOffenderArchive,
 
     },
     extractors::Extractor,
@@ -46,13 +43,13 @@ fn get_root_path(vars: &PathVars) -> PathBuf {
      PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["archives_path"])
 }
 
-fn download_files() {
+fn download_files()  {
 
     //maybe just download the enchilada?
     //let avail; //entire list
     //let avail_updates; //new than what we already have
 
-    let ftp_conf = FtpConfig::init(config::Env::Production);
+    let _ftp_conf = FtpConfig::init(config::Env::Production);
     let addr = "ftptds.shadowsoft.com:21";
     let user = "swg_eyemetric";
     let pass = "metric123swg99";
@@ -81,7 +78,7 @@ fn download_files() {
     for arch in sex_offender_archives {
 
         if let Ok(sx) = arch {
-            println!("all good");
+            println!("all good {}", sx.path.display());
             //do something
         } else {
             println!("not good at all.");
@@ -90,7 +87,7 @@ fn download_files() {
     }
 
 }
-fn main() {
+fn main()  {
 
     //download_files();
     //import_files();
@@ -98,7 +95,7 @@ fn main() {
    // let statelist = statelist.iter().filter(|s| s.abbr == "NJ");
     let statelist = statelist.iter().filter(|s| s.abbr == "NJ");
     let path_vars = PathVars::new(config::Env::Production);
-    let  root_path = util::get_root_path(&path_vars);
+    let  root_path = path_vars.archive_path();//util::get_root_path(&path_vars);
 
     let _prep_result = importer::prepare_import();
 
@@ -114,6 +111,7 @@ fn main() {
 
         //delete_old_photos(state.abbr.as_str(), sql_path.to_str().unwrap());
         for stf in st_files {
+
             let fnn = stf.unwrap();
             let mut extractor = Extractor::new(&path_vars);
             let skip_images = false; //true; //time consuming during test phase.
@@ -121,21 +119,10 @@ fn main() {
             let ef: Vec<ExtractedFile> = extractor.extract_archive(fnn.path(), skip_images).expect("A file but got a directory");
 
             println!("=================================");
+
             for exfile in ef {
-
                 exfile.import().expect("Unable to complete file import");
-
                 println!("Extract: {:?}", &exfile);
-
-             /*   match import_data(&exfile, sql_path.to_str().unwrap()) {
-                    Ok(()) => {
-                        println!("imported file {:?}", &exfile);
-                    }
-                    Err(e) => {
-                        println!("Error importing file {:?}", e);
-                        println!("ex: {:?}", &exfile);
-                    }
-                } */
             }
             println!("=================================");
         }
@@ -144,6 +131,7 @@ fn main() {
     }
 
     println!("Dude, there's most of your data");
+
 }
 /*
 fn main_() {
@@ -239,7 +227,7 @@ fn fix_directories() {
 
     let statelist: States = config::States::load().unwrap();
     let path_vars = PathVars::new(config::Env::Production);
-    let  root_path =  util::get_root_path(&path_vars);
+    let  root_path =  path_vars.archive_path();
 
     for state in statelist {
         let npath = root_path.join(state.abbr.to_uppercase());

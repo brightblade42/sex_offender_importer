@@ -1,17 +1,9 @@
 use std::{
-    fs::{self,File},
-    error::Error,
-    path::{self, PathBuf, Path},
-    borrow::{Borrow},
-    io::{self, Write, BufReader},
+    path::{self, PathBuf},
 };
 
 use super::SEX_OFFENDER_PATH;
-use mktemp::Temp;
-use serde;
 use serde_derive::{Serialize, Deserialize};
-use rusqlite::{Connection, NO_PARAMS, params, ToSql};
-use bytes::Buf;
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone)]
 pub enum RecordStatus {
@@ -59,7 +51,7 @@ impl FileInfo {
         }
     }
 
-    pub fn base_path(info: &FileInfo) -> PathBuf {
+    pub fn base_path(_info: &FileInfo) -> PathBuf {
         PathBuf::from("/some/cool/path")
     }
 
