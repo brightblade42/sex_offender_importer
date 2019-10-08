@@ -12,6 +12,7 @@ use crate::util::{
 use mktemp::Temp;
 use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection, NO_PARAMS};
+use std::error::Error;
 
 ///CsvMetaData contains some basic information about a csv file.
 ///name: The file name and extension of the csv file.
@@ -110,7 +111,8 @@ impl Csv {
                 },
                 CsvMetaData {
                     name: "OFF_CODE_SOR.txt".into(),
-                    headers: vec!["COO_COD","COJ_COD","JOO_COD","OFF_COD","VER_NBR","LEN_TXT","STS_COD","CIT_TXT"], //,"BeginDate","EndDate"]
+                    //headers: vec!["COO_COD","COJ_COD","JOO_COD","OFF_COD","VER_NBR","LEN_TXT","STS_COD","CIT_TXT"], //,"BeginDate","EndDate"]
+                    headers: vec!["COO_COD","COJ_COD","JOO_COD","OFF_COD","VER_NBR","LEN_TXT","STS_COD","CIT_TXT","BeginDate","EndDate"]
                 },
                 CsvMetaData {
                     name: "Offense.txt".into(),
@@ -174,11 +176,22 @@ impl Import for Csv {
         let has_headers = true;
         let mut csv_reader = self.open_reader(has_headers)?;
 
-        let table_name = String::from(self.path.file_stem().unwrap().to_str().unwrap());
+        let mut  table_name = String::from(self.path.file_stem().unwrap().to_str().unwrap());
+        if self.state == "TX" {
+           table_name = format!("TX{}", table_name);
+        }
         println!("=============================");
-        println!("Dropped: {}", &table_name);
-        self.drop_table(&conn, &table_name)?;
+        println!("Deleted from : {}", &table_name);
 
+        //delete data instead of drop.
+//        self.drop_table(&conn, &table_name)?;
+        self.delete_data(&conn, &table_name);
+        //TODO:
+        //We want to start with an already created DB.
+        //If the table doesn't exist that means our data layout has changed and
+        //we should log this and make another pass with new data.
+
+        /*
         let table_query = self.create_table_query(Some(&mut csv_reader), &table_name)?;
 
         println!("Creating {}", &table_name);
@@ -192,7 +205,7 @@ impl Import for Csv {
 
         let defindex = self.create_default_index(&table_name);
         conn.execute(&defindex, NO_PARAMS)?;
-
+        */
         let insert_query = self.create_insert_query(&mut csv_reader, &table_name)?;
 
         println!("=============================");
@@ -214,17 +227,26 @@ impl Import for Csv {
                         rec_vals.push(ascii_string.parse().unwrap());
                     }
 
-                    if table_name == "OFF_CODE_SOR" {
-                        println!("{}",rec.len());
-                    }
-
                     rec_vals.push(self.state.clone());
 
-                    conn.execute(&insert_query, &rec_vals)?; //.expect("Good stuff");
+                    match conn.execute(&insert_query, &rec_vals)  {
+                        Ok(res) => {
+                            ()
+
+                        },
+                        Err(er) => {
+                            println!("Err: {}", er.description());
+                           println!("Bad mojo {:?}", rec_vals );
+                        }
+                    }
                     rec_vals.clear();
+                    //conn.execute(&insert_query, &rec_vals)?; //.expect("Good stuff");
+                    //conn.execute(&insert_query, &rec_vals)?; //.expect("Good stuff");
                 }
                 Err(e) => {
+
                     println!("Row data error: {}", e);
+                    println!("vals {:?}", rec_vals );
                 }
             }
         }
@@ -242,6 +264,7 @@ impl SqlHandler for Csv {
     fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> GenResult<String> {
 
         let reader = reader.unwrap();
+
 
         let q = format!("CREATE TABLE if not exists {} (", tname);
         //add the header names as column names for out table.
@@ -285,6 +308,9 @@ impl SqlHandler for Csv {
         }
 
         insert_query.push_str("?)"); //our state parameter.
+
+       println!("Query: {}", &insert_query);
+
         Ok(insert_query)
     }
 

@@ -12,7 +12,11 @@ pub fn to_ascii_string(chars: &[u8]) -> String {
 
     let mut rstring = String::new();
     for byte in chars {
-        if byte.is_ascii() {
+        /*if byte.is_ascii_control() {
+
+            //rstring.push_str("");
+        }*/
+        if byte.is_ascii() && !byte.is_ascii_control() {
             let c = byte.clone() as char; //latin1_to_char(byte.clone());
             rstring.push(c);
         }

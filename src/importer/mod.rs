@@ -36,10 +36,16 @@ trait SqlHandler {
                  );"#, name, name )
     }
 
+    //this could be a drop table or a delete all data
     fn drop_table(&self, conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Error> {
         let r = conn.execute(&format!("DROP TABLE if exists {}", table_name), NO_PARAMS);
         r
     }
+
+    fn delete_data(&self, conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Error> {
+        conn.execute(&format!("Delete from {}", table_name), NO_PARAMS)
+    }
+
     fn execute(&self, conn: &Connection) -> Result<usize, rusqlite::Error>;
 }
 
@@ -83,19 +89,6 @@ impl Import for ExtractedFile {
 pub fn prepare_import() -> GenResult<()> {
     let conn = util::get_connection(None).expect("unable to connect to db");//Connection::open(sql_path)?;
     create_db(&conn).expect("something didn't create good.");
-    Ok(())
-}
-
-pub fn delete_old_photos(state: &str) -> GenResult<()> {
-    let conn = util::get_connection(None)?;
-    match conn.execute(
-        &format!("DELETE FROM Photos where state='{}'", state),
-        NO_PARAMS,
-    ) {
-        Ok(_) => println!("deleted old photos for state: {}", state),
-        Err(e) => println!("could not delete photos for state: {}. {}", state, e),
-    }
-
     Ok(())
 }
 

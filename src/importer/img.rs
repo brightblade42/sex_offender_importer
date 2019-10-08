@@ -8,7 +8,8 @@ use crate::{
     util::{
         self,
         GenResult
-    }};
+    },
+};
 
 use super::{Import, SqlHandler};
 use serde_derive::{Serialize, Deserialize};
@@ -18,6 +19,19 @@ use rusqlite::{Connection, NO_PARAMS, params};
 pub struct ImageArchive {
     pub path: PathBuf,
     pub state: String,
+}
+
+impl ImageArchive {
+    fn delete_old_photos(&self) -> GenResult<()> {
+        let conn = util::get_connection(None)?;
+        match conn.execute( &format!("DELETE FROM Photos where state='{}'", &self.state), NO_PARAMS, ) {
+            Ok(_) => println!("deleted old photos for state: {}", &self.state),
+            Err(e) => println!("could not delete photos for state: {}. {}", &self.state, e),
+        }
+
+        Ok(())
+    }
+
 }
 
 impl Import for ImageArchive {
@@ -37,6 +51,8 @@ impl Import for ImageArchive {
         let blob_table = self.create_table_query(None, "Photos");
         let conn = util::get_connection(None).expect("Unable to open connection");
         conn.execute(&blob_table.unwrap(), NO_PARAMS)?;
+
+        self.delete_old_photos()?;
 
         //1. we've got an archive of images. we don't want to write them
         //to disk, we want to store them as blobs in sqlite.
@@ -72,9 +88,7 @@ impl Import for ImageArchive {
             //println!("image: {} {} {} {}", photo_id, name, img_size, state);
             conn.execute(
                     "INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)",
-                    params![photo_id, name, img_size, blob, self.state],
-                )?;
-            //    .expect("A damn image import");
+                    params![photo_id, name, img_size, blob, self.state], )?;
 
             blob.clear();
         }
@@ -83,12 +97,15 @@ impl Import for ImageArchive {
 
         Ok(())
     }
+
+
+
 }
 
 impl SqlHandler for ImageArchive {
     type Reader = BufReader<File>;
     fn create_table_query(&self, _reader: Option<&mut Self::Reader>, table_name: &str) -> GenResult<String>{
-        Ok(format!( "CREATE TABLE if not exists {} (id,name, size, data)",table_name ))
+        Ok(format!( "CREATE TABLE if not exists {} (id,name, size, data, state)",table_name ))
     }
 
     fn create_insert_query(&self, _reader: &mut Self::Reader, _tname: &str) -> GenResult<String> {

@@ -93,11 +93,14 @@ fn main()  {
     //import_files();
     let statelist: States = config::States::load().unwrap();
    // let statelist = statelist.iter().filter(|s| s.abbr == "NJ");
-    let statelist = statelist.iter().filter(|s| s.abbr == "NJ");
+   // let statelist = statelist.iter().filter(|s| s.abbr == "NJ");
+    let statelist = statelist.iter().filter(|s| s.abbr == "TX");
     let path_vars = PathVars::new(config::Env::Production);
     let  root_path = path_vars.archive_path();//util::get_root_path(&path_vars);
 
     let _prep_result = importer::prepare_import();
+
+    let skip_images = true; //true; //time consuming during test phase.
 
     for state in statelist {
 
@@ -109,19 +112,17 @@ fn main()  {
         let state_path = root_path.join(state.abbr.to_uppercase());
         let st_files = read_dir(state_path).expect("A file but got us a directory");
 
-        //delete_old_photos(state.abbr.as_str(), sql_path.to_str().unwrap());
         for stf in st_files {
 
             let fnn = stf.unwrap();
             let mut extractor = Extractor::new(&path_vars);
-            let skip_images = false; //true; //time consuming during test phase.
 
             let ef: Vec<ExtractedFile> = extractor.extract_archive(fnn.path(), skip_images).expect("A file but got a directory");
 
             println!("=================================");
 
             for exfile in ef {
-                exfile.import().expect("Unable to complete file import");
+                exfile.import().expect(&format!("Unable to complete file import {:?}", fnn.file_name()));
                 println!("Extract: {:?}", &exfile);
             }
             println!("=================================");
