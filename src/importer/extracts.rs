@@ -153,7 +153,7 @@ impl Csv {
         println!("=======================================" );
         let conn = util::get_connection(None)?;
         //conn.execute(&format!("Delete from SexOffender where state='{}'", self.state), NO_PARAMS)?;
-        //conn.execute(&final_import_query, NO_PARAMS);
+        conn.execute(&final_import_query, NO_PARAMS).expect("Unable to do final import");
 
         Ok(())
     }
@@ -249,7 +249,7 @@ impl Import for Csv {
                         rec_vals.push(ascii_string.parse().unwrap());
                     }
 
-                    rec_vals.push(self.state.clone());
+                    rec_vals.push(self.state.to_uppercase());
 
                     match conn.execute(&insert_query, &rec_vals)  {
                         Ok(_) =>  () ,

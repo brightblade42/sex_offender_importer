@@ -105,13 +105,13 @@ pub fn finalize_import(state: &str) -> GenResult<()> {
 
     let final_import_query = fs::read_to_string(pth)?;
 
-    /*println!("=======================================" );
+    println!("=======================================" );
     println!("{}", &final_import_query);
     println!("=======================================" );
-    */
+
     let conn = util::get_connection(None)?;
     conn.execute(&format!("Delete from SexOffender where state='{}'", state), NO_PARAMS)?;
-    conn.execute(&final_import_query, NO_PARAMS);
+    conn.execute(&final_import_query, NO_PARAMS)?;
 
     Ok(())
 }

@@ -90,8 +90,9 @@ fn main()  {
     //download_files();
     //import_files();
     let statelist: States = config::States::load().unwrap();
+     let statelist = statelist.iter().filter(|s| s.abbr == "TX");
    // let statelist = statelist.iter().filter(|s| s.abbr == "NJ");
-    let statelist = statelist.iter().filter(|s| s.abbr == "HI");
+   // let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) > Some('H'));
 //    let statelist = statelist.iter().filter(|s| s.abbr == "TX");
     let path_vars = PathVars::new(config::Env::Production);
     let  root_path = path_vars.archive_path();//util::get_root_path(&path_vars);
