@@ -13,6 +13,7 @@ use mktemp::Temp;
 use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection, NO_PARAMS};
 use std::error::Error;
+use std::fs::DirEntry;
 
 ///CsvMetaData contains some basic information about a csv file.
 ///name: The file name and extension of the csv file.
@@ -133,6 +134,47 @@ impl Csv {
         }
     }
 
+
+    ///After csv data is converted to table data, we still need to convert data
+    /// into the final data format which goes into the main SexOffender table.
+    fn import_final_phase(&self) -> GenResult<()> {
+        let mut pth = PathBuf::from(util::SQL_FOLDER);
+        pth.push(format!("{}_import.sql", self.state.to_lowercase()));
+
+        if !pth.exists() {
+            println!("The import file is missing: {}", &pth.display());
+            return Ok(());
+        }
+
+        let final_import_query = fs::read_to_string(pth)?;
+
+        println!("=======================================" );
+        println!("{}", &final_import_query);
+        println!("=======================================" );
+        let conn = util::get_connection(None)?;
+        //conn.execute(&format!("Delete from SexOffender where state='{}'", self.state), NO_PARAMS)?;
+        //conn.execute(&final_import_query, NO_PARAMS);
+
+        Ok(())
+    }
+
+
+    fn find_date_position(&self, headers: &csv::StringRecord) -> Option<usize> {
+
+        match self.state.as_str() {
+            "NJ" => {
+                let date_header = "age";
+                let mut dt = None;
+                for (i, hdr) in headers.iter().enumerate() {
+                       if hdr == date_header {
+                           dt = Some(i);
+                       }
+                }
+                dt
+            },
+            _ => None
+        }
+    }
 }
 
 
@@ -159,6 +201,7 @@ impl Import for Csv {
     fn import(&self) -> GenResult<()>  {
         self.add_headers()?;
         self.import_file_data()?;
+//        self.import_final_phase()?;
         Ok(())
     }
 
@@ -175,46 +218,16 @@ impl Import for Csv {
 
         let has_headers = true;
         let mut csv_reader = self.open_reader(has_headers)?;
-
         let mut  table_name = String::from(self.path.file_stem().unwrap().to_str().unwrap());
         if self.state == "TX" {
            table_name = format!("TX{}", table_name);
         }
-        println!("=============================");
-        println!("Deleted from : {}", &table_name);
-
-        //delete data instead of drop.
-//        self.drop_table(&conn, &table_name)?;
-        self.delete_data(&conn, &table_name);
-        //TODO:
-        //We want to start with an already created DB.
-        //If the table doesn't exist that means our data layout has changed and
-        //we should log this and make another pass with new data.
-
-        /*
-        let table_query = self.create_table_query(Some(&mut csv_reader), &table_name)?;
-
-        println!("Creating {}", &table_name);
-        println!("=============================");
-        println!("{}", &table_query);
-        println!("=============================");
-        conn.execute(&table_query, NO_PARAMS)?;
-
-        //TODO: create default index
-        //create default index
-
-        let defindex = self.create_default_index(&table_name);
-        conn.execute(&defindex, NO_PARAMS)?;
-        */
+        self.delete_data(&conn, &table_name)?;
         let insert_query = self.create_insert_query(&mut csv_reader, &table_name)?;
-
-        println!("=============================");
-        println!("{}", &insert_query);
-
-        println!("=============================");
 
         conn.execute("Begin Transaction;", NO_PARAMS)?;
 
+        let date_pos = self.find_date_position(&csv_reader.headers().unwrap());
         let mut rec_vals: Vec<String> = Vec::new();
         //we use bytes to work around non-utf-8 issues in csv.
         for result in csv_reader.byte_records() {
@@ -222,26 +235,31 @@ impl Import for Csv {
                 Ok(record) => {
                     let rec = record.clone();
 
-                    for rr in rec.iter() {
-                        let ascii_string = util::to_ascii_string(&rr);
+                    for (idx, rr) in rec.iter().enumerate() {
+                        let mut ascii_string = util::to_ascii_string(&rr);
+
+                        if let Some(i) = date_pos {
+                           if i == idx {
+                               ascii_string = util::format_date(&ascii_string).to_string();
+                              // println!("aw sheeet {}", &ascii_string);
+                               //format date
+                           }
+                        }
+
                         rec_vals.push(ascii_string.parse().unwrap());
                     }
 
                     rec_vals.push(self.state.clone());
 
                     match conn.execute(&insert_query, &rec_vals)  {
-                        Ok(res) => {
-                            ()
-
-                        },
+                        Ok(_) =>  () ,
                         Err(er) => {
-                            println!("Err: {}", er.description());
-                           println!("Bad mojo {:?}", rec_vals );
+                            //TODO: Consider logging these kinds of errors.
+                            println!("Unable to insert csv record: {}", er.description());
+                           println!("csv record: {:?}", rec_vals );
                         }
                     }
                     rec_vals.clear();
-                    //conn.execute(&insert_query, &rec_vals)?; //.expect("Good stuff");
-                    //conn.execute(&insert_query, &rec_vals)?; //.expect("Good stuff");
                 }
                 Err(e) => {
 
@@ -264,7 +282,6 @@ impl SqlHandler for Csv {
     fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> GenResult<String> {
 
         let reader = reader.unwrap();
-
 
         let q = format!("CREATE TABLE if not exists {} (", tname);
         //add the header names as column names for out table.

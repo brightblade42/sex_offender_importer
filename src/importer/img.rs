@@ -21,18 +21,6 @@ pub struct ImageArchive {
     pub state: String,
 }
 
-impl ImageArchive {
-    fn delete_old_photos(&self) -> GenResult<()> {
-        let conn = util::get_connection(None)?;
-        match conn.execute( &format!("DELETE FROM Photos where state='{}'", &self.state), NO_PARAMS, ) {
-            Ok(_) => println!("deleted old photos for state: {}", &self.state),
-            Err(e) => println!("could not delete photos for state: {}. {}", &self.state, e),
-        }
-
-        Ok(())
-    }
-
-}
 
 impl Import for ImageArchive {
     type Reader = BufReader<File>;
@@ -48,21 +36,16 @@ impl Import for ImageArchive {
 
     fn import_file_data(&self) -> GenResult<()> {
         let file = BufReader::new(File::open(&self.path)?);
-        let blob_table = self.create_table_query(None, "Photos");
         let conn = util::get_connection(None).expect("Unable to open connection");
-        conn.execute(&blob_table.unwrap(), NO_PARAMS)?;
-
-        self.delete_old_photos()?;
+        self.delete_data(&conn, "Photos")?;
 
         //1. we've got an archive of images. we don't want to write them
         //to disk, we want to store them as blobs in sqlite.
-
         //iterate images,
         //validate,
         //write to Vec<u8>
         //write bytes to db.
         let mut blob: Vec<u8> = vec![];
-
         let mut archive = zip::ZipArchive::new(file)?;
 
         conn.execute("BEGIN TRANSACTION;", NO_PARAMS)?;
@@ -72,34 +55,22 @@ impl Import for ImageArchive {
             let img_name = img_file.sanitized_name();
             let img_size = img_file.size() as u32;
             let name = img_name.display().to_string();
-            let idx = if let Some(p) = name.find('_') {
-                p
-            } else {
-                //name.find('.').expect("a damn index")
-                name.len()
-            };
+            let idx = if let Some(char_idx) = name.find('_') { char_idx } else { name.len() };
+            if name.contains("table") { continue; } //not an image
 
-            if name.contains("table") { //not an image
-                continue;
-            }
             let photo_id = &name[0..idx];
             std::io::copy(&mut img_file, &mut blob)?;
 
-            //println!("image: {} {} {} {}", photo_id, name, img_size, state);
-            conn.execute(
-                    "INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)",
+            //TODO: make part of the SqlHandler trait impl.
+            conn.execute("INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)",
                     params![photo_id, name, img_size, blob, self.state], )?;
 
             blob.clear();
         }
 
         conn.execute("COMMIT TRANSACTION;", NO_PARAMS)?;
-
         Ok(())
     }
-
-
-
 }
 
 impl SqlHandler for ImageArchive {
@@ -112,7 +83,12 @@ impl SqlHandler for ImageArchive {
         unimplemented!()
     }
 
+    fn delete_data(&self, conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Error> {
+        conn.execute( &format!("DELETE FROM {} where state='{}'", table_name, &self.state), NO_PARAMS, )
+    }
+
     fn execute(&self, _conn: &Connection) -> Result<usize, rusqlite::Error> {
         unimplemented!()
     }
+
 }

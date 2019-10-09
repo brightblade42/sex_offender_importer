@@ -1,3 +1,4 @@
+#[macro_use] extern crate lazy_static;
 pub mod downloader;
 pub mod importer;
 pub mod extractors;

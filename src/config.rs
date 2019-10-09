@@ -8,7 +8,7 @@ use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection, NO_PARAMS, params};
 use serde_rusqlite::{self,  from_rows };
 
-static CONFIG: &'static str = "/opt/eyemetric/sex_offender/config.sqlite";
+static CONFIG: &'static str = "/opt/eyemetric/sex_offender/app/config.sqlite";
 
 
 #[derive(Debug, Serialize, Deserialize)]

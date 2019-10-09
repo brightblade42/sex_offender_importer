@@ -18,7 +18,6 @@ use sex_offender::{
     },
     extractors::Extractor,
     config::{self, PathVars, States, LoadData, FtpConfig},
-    util
 };
 
 #[derive(Debug, StructOpt)]
@@ -66,7 +65,6 @@ fn download_files()  {
     //let record_filter = |x: &String| x.contains("records");
     let file_list = downloader.get_updated_file_list(record_filter, DownloadOption::Always);
     let file_list = downloader.get_newest_update_list();
-    println!("oh hello");
 
     let sex_offender_archives =  file_list.iter()
         .map(|fi| {
@@ -93,8 +91,8 @@ fn main()  {
     //import_files();
     let statelist: States = config::States::load().unwrap();
    // let statelist = statelist.iter().filter(|s| s.abbr == "NJ");
-   // let statelist = statelist.iter().filter(|s| s.abbr == "NJ");
-    let statelist = statelist.iter().filter(|s| s.abbr == "TX");
+    let statelist = statelist.iter().filter(|s| s.abbr == "HI");
+//    let statelist = statelist.iter().filter(|s| s.abbr == "TX");
     let path_vars = PathVars::new(config::Env::Production);
     let  root_path = path_vars.archive_path();//util::get_root_path(&path_vars);
 
@@ -110,92 +108,33 @@ fn main()  {
         println!("=================================");
 
         let state_path = root_path.join(state.abbr.to_uppercase());
-        let st_files = read_dir(state_path).expect("A file but got us a directory");
+        let st_files = fs::read_dir(state_path).expect("A file but got us a directory");
 
-        for stf in st_files {
+        for state_archive in st_files {
 
-            let fnn = stf.unwrap();
+            let archive = state_archive.unwrap();
             let mut extractor = Extractor::new(&path_vars);
 
-            let ef: Vec<ExtractedFile> = extractor.extract_archive(fnn.path(), skip_images).expect("A file but got a directory");
+            let extracted_files: Vec<ExtractedFile> = extractor.extract_archive(archive.path(), skip_images).expect("A file but got a directory");
 
             println!("=================================");
 
-            for exfile in ef {
-                exfile.import().expect(&format!("Unable to complete file import {:?}", fnn.file_name()));
+            for exfile in extracted_files {
+                exfile.import().expect(&format!("Unable to complete file import {:?}", archive.file_name()));
                 println!("Extract: {:?}", &exfile);
             }
             println!("=================================");
         }
 
         println!("=================================");
+        importer::finalize_import(&state.abbr);
     }
 
     println!("Dude, there's most of your data");
 
 }
-/*
-fn main_() {
 
-    //let path_config = config::PathVars::new(config::Env::Dev);
-    //let ftp_conf = FtpConfig::init(config::Env::Test);
-    //let addr = format!("{}:{}", &ftp_conf.address, &ftp_conf.port);
-    //let args = Cli::from_args();
-//    let args = SexOffenderCli::from_args();
-    //   args.verbosity.setup_env_logger("sexoffenderimporter").unwrap();
 
-    let statelist: States = config::States::load().unwrap();
-    //let path_vars = PathVars::new(config::Env::Dev);
-
-    //let statelist: States = config::States::load().unwrap();
-    let statelist = statelist.iter().filter(|s| s.abbr == "AK");
-    let path_vars = PathVars::new(config::Env::Dev);
-    let  root_path = util::get_root_path(&path_vars);
-
-    let _prep_result = prepare_import();
-
-    for state in statelist {
-        println!("=================================");
-        println!("{}: {}", state.state, state.abbr);
-
-        println!("=================================");
-        let state_path = root_path.join(state.state.to_lowercase());
-        let st_files = read_dir(state_path).expect("A file but got us a directory");
-
-        //delete_old_photos(state.abbr.as_str(), sql_path.to_str().unwrap());
-        for stf in st_files {
-            let fnn = stf.unwrap();
-            println!("{:?}", fnn.path());
-            //let conf = path_vars
-            let mut ext = Extractor::new(&path_vars);
-            let skip_images = true; //time consuming during test phase.
-
-            let ef: Vec<ExtractedFile> = ext.extract_archive(fnn.path(), skip_images).expect("A file but got a directory");
-            println!("=================================");
-            for exfile in ef {
-
-                exfile.import().expect("Unable to complete file import");
-                println!("Extract: {:?}", &exfile);
-
-                match import_data(&exfile) {
-                    Ok(()) => {
-                        println!("imported file {:?}", &exfile);
-                    }
-                    Err(e) => {
-                        println!("Error importing file {:?}", e);
-                        println!("ex: {:?}", &exfile);
-                    }
-                }
-            }
-            println!("=================================");
-        }
-
-        println!("=================================");
-    }
-
-    println!("Dude, there's most of your data");
-}
-*/
 #[test]
 fn connect_test() {
     let path_config = config::PathVars::new(config::Env::Production);

@@ -22,13 +22,14 @@ use rusqlite::{self, Connection, params, NO_PARAMS};
 use serde_rusqlite::{to_params_named};
 use crate::config::PathVars;
 use crate::util::{
+    self,
     GenResult,
-    GenError
+    GenError,
+    IMPORT_LOG,
 };
 use archives::SexOffenderArchive;
 use crate::downloader::records::ImageInfo;
 
-static IMPORT_LOG: &'static str = "/home/d-rezzer/dev/eyemetric/sex_offender/app/importlog.sqlite";
 static SEX_OFFENDER_PATH: &'static str = "";
 const CHUNK_SIZE: usize = 2048;
 
@@ -57,7 +58,7 @@ impl Downloader {
         let mut dloader = Downloader {
             stream: FtpStream::connect(addr)?,
            config,
-            conn: Connection::open(IMPORT_LOG).expect("A data connection"),
+            conn: Connection::open(util::IMPORT_LOG).expect("A data connection"),
         };
 
         dloader

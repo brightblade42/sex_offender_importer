@@ -2,9 +2,10 @@ pub mod extracts;
 pub mod img;
 
 use std::{
-    error::Error
+    error::Error,
+    fs,
+    path::{PathBuf}
 };
-
 use rusqlite::{Connection, NO_PARAMS};
 use serde::{Deserialize, Serialize};
 use crate::util::{
@@ -89,6 +90,29 @@ impl Import for ExtractedFile {
 pub fn prepare_import() -> GenResult<()> {
     let conn = util::get_connection(None).expect("unable to connect to db");//Connection::open(sql_path)?;
     create_db(&conn).expect("something didn't create good.");
+    Ok(())
+}
+
+pub fn finalize_import(state: &str) -> GenResult<()> {
+
+    let mut pth = PathBuf::from(util::SQL_FOLDER);
+    pth.push(format!("{}_import.sql", state.to_lowercase()));
+
+    if !pth.exists() {
+        println!("The import file is missing: {}", &pth.display());
+        return Ok(());
+    }
+
+    let final_import_query = fs::read_to_string(pth)?;
+
+    /*println!("=======================================" );
+    println!("{}", &final_import_query);
+    println!("=======================================" );
+    */
+    let conn = util::get_connection(None)?;
+    conn.execute(&format!("Delete from SexOffender where state='{}'", state), NO_PARAMS)?;
+    conn.execute(&final_import_query, NO_PARAMS);
+
     Ok(())
 }
 
