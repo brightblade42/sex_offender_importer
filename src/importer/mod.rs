@@ -16,6 +16,7 @@ use crate::util::{
 use extracts::Csv;
 use img::ImageArchive;
 
+
 pub trait Import {
     type Reader;
     fn open_reader(&self, has_headers: bool) -> GenResult<Self::Reader>;
@@ -26,7 +27,7 @@ pub trait Import {
 
 trait SqlHandler {
     type Reader;
-    fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> GenResult<String>;
+    fn create_table_query(&self, reader: &mut Self::Reader, tname: &str) -> GenResult<String>;
     fn create_insert_query(&self,reader: &mut Self::Reader, tname: &str) -> GenResult<String>;
 
     fn create_default_index(&self, name: &str) -> String {
@@ -90,6 +91,7 @@ impl Import for ExtractedFile {
 pub fn prepare_import() -> GenResult<()> {
     let conn = util::get_connection(None).expect("unable to connect to db");//Connection::open(sql_path)?;
     create_db(&conn).expect("something didn't create good.");
+
     Ok(())
 }
 
@@ -105,10 +107,10 @@ pub fn finalize_import(state: &str) -> GenResult<()> {
 
     let final_import_query = fs::read_to_string(pth)?;
 
-    println!("=======================================" );
+   /* println!("=======================================" );
     println!("{}", &final_import_query);
     println!("=======================================" );
-
+*/
     let conn = util::get_connection(None)?;
     conn.execute(&format!("Delete from SexOffender where state='{}'", state), NO_PARAMS)?;
     conn.execute(&final_import_query, NO_PARAMS)?;
@@ -178,8 +180,21 @@ fn create_db(conn: &Connection) -> GenResult<()> {
 
 //this seems to do bupkis!
 fn set_pragmas(conn: &Connection) {
-    match conn.pragma_update(None, "journal_mode", &String::from("OFF")) {
+/*    match conn.pragma_update(None, "journal_mode", &String::from("OFF")) {
         Ok(()) => println!("Updated pragma journal_mode: off"),
         Err(e) => println!("Could not update pragma journal_mode {}", e.description()),
     }
+*/
+    match conn.pragma_update(None, "synchronous", &String::from("OFF")) {
+        Ok(()) => println!("Updated pragma synchronous: off"),
+        Err(e) => println!("Could not update pragma synchronous {}", e.description()),
+    }
+}
+
+
+pub fn delete_old_photos(state: &str) -> Result<usize, rusqlite::Error> {
+
+    println!("Are you my mommy?");
+    let conn = util::get_connection(None).unwrap();
+    conn.execute( &format!("DELETE FROM Photos where state='{}'", state), NO_PARAMS, )
 }

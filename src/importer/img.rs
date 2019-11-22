@@ -14,6 +14,7 @@ use crate::{
 use super::{Import, SqlHandler};
 use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection, NO_PARAMS, params};
+use crate::importer::set_pragmas;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ImageArchive {
@@ -37,7 +38,8 @@ impl Import for ImageArchive {
     fn import_file_data(&self) -> GenResult<()> {
         let file = BufReader::new(File::open(&self.path)?);
         let conn = util::get_connection(None).expect("Unable to open connection");
-        self.delete_data(&conn, "Photos")?;
+        set_pragmas(&conn);
+        //self.delete_data(&conn, "Photos")?;
 
         //1. we've got an archive of images. we don't want to write them
         //to disk, we want to store them as blobs in sqlite.
@@ -48,7 +50,10 @@ impl Import for ImageArchive {
         let mut blob: Vec<u8> = vec![];
         let mut archive = zip::ZipArchive::new(file)?;
 
+        println!("Importing images from {}", &self.path.display());
         conn.execute("BEGIN TRANSACTION;", NO_PARAMS)?;
+
+        let mut insStmt = conn.prepare("INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)");
 
         for i in 0..archive.len() {
             let mut img_file = archive.by_index(i)?;
@@ -62,8 +67,9 @@ impl Import for ImageArchive {
             std::io::copy(&mut img_file, &mut blob)?;
 
             //TODO: make part of the SqlHandler trait impl.
-            conn.execute("INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)",
-                    params![photo_id, name, img_size, blob, self.state], )?;
+            &insStmt.as_mut().unwrap().execute(
+            //conn.execute("INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)",
+                    params![photo_id, name, img_size, blob, self.state.as_str().to_uppercase()], )?;
 
             blob.clear();
         }
@@ -75,7 +81,7 @@ impl Import for ImageArchive {
 
 impl SqlHandler for ImageArchive {
     type Reader = BufReader<File>;
-    fn create_table_query(&self, _reader: Option<&mut Self::Reader>, table_name: &str) -> GenResult<String>{
+    fn create_table_query(&self, _reader: &mut Self::Reader, table_name: &str) -> GenResult<String>{
         Ok(format!( "CREATE TABLE if not exists {} (id,name, size, data, state)",table_name ))
     }
 

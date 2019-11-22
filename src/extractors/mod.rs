@@ -9,10 +9,16 @@ use crate::util::{
     GenResult
 };
 
+
 use crate::config::PathVars;
 use crate::importer::{ExtractedFile, extracts::Csv, img::ImageArchive};
 
 
+pub enum ExtractOptions {
+    Default,
+    ImagesOnly,
+    CSVOnly
+}
 
 pub struct Extractor<'a> {
     config: &'a PathVars,
@@ -26,15 +32,32 @@ impl Extractor<'_> {
         }
     }
 
-    ///Takes a path to an archive file, extracts its contents and returns
+    ///Takes a path to an archive file, extracts its contents and return:ws
     /// a List of ExtractedFile objects that describe the contents.
     /// An Extracted file can be one of two variants. Csv or ImageArchive
-    pub fn extract_archive(&mut self, archive_path: PathBuf, skip_images: bool) -> GenResult<Vec<ExtractedFile>> {
+    pub fn extract_archive(&mut self, archive_path: PathBuf, options: &ExtractOptions, overwrite: bool) -> GenResult<Vec<ExtractedFile>> {
         let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
 
-        if skip_images && archive_path.to_string_lossy().contains("images") {
-            return Ok(vec![]) ;
-        }
+        println!("hello!?");
+          match options {
+                  ExtractOptions::CSVOnly => {
+                      if archive_path.to_string_lossy().contains("images") {
+                          println!("Importing just csv");
+                          return Ok(vec![]);
+                      }
+                  },
+                  ExtractOptions::ImagesOnly => {
+
+                      if archive_path.to_string_lossy().contains("records") {
+                          println!("Importing just images");
+                          return Ok(vec![]);
+                      }
+                  },
+                  _ => {
+                      println!("importing all the things");
+                  }
+              }
+
 
         let state_abbrev = &archive_path.file_name().unwrap().to_str().unwrap()[..2];
         let archive_file = BufReader::new(File::open(&archive_path)?);
@@ -49,10 +72,10 @@ impl Extractor<'_> {
             }
 
             let extracts_path = self.get_extract_path(&state_abbrev, &archive_path, embedded_file_name.as_os_str());
-            let mut outfile = BufWriter::new(File::create(&extracts_path)?);
-
-            std::io::copy(&mut embedded_file, &mut outfile)?;
-
+            if overwrite || !extracts_path.exists() {
+                let mut outfile = BufWriter::new(File::create(&extracts_path)?);
+                std::io::copy(&mut embedded_file, &mut outfile)?;
+            }
             match embedded_file_name.extension() {
 
                 Some(ext) if ext == "csv" => {

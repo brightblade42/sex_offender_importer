@@ -4,7 +4,7 @@ use std::{
     io::{self, Write},
 };
 
-use super::{Import, SqlHandler};
+use super::{Import, SqlHandler, set_pragmas};
 use crate::util::{
     self,
     GenResult,
@@ -124,6 +124,11 @@ impl Csv {
                     name: "Photo.txt".into(),
                     headers: vec!["IND_IDN","PhotoId","POS_DTE"]
                 },
+
+                CsvMetaData {
+                    name: "INDV.txt".into(),
+                    headers: vec!["IND_IDN","DPS_NBR"]
+                },
                 CsvMetaData {
                     name: "PERSON.txt".into(),
                     headers: vec!["IND_IDN","PER_IDN","SEX_COD","RAC_COD","HGT_QTY","WGT_QTY","HAI_COD","EYE_COD","ETH_COD"]
@@ -208,6 +213,8 @@ impl Import for Csv {
     fn import_file_data(&self) -> GenResult<()> {
 
         let conn = util::get_connection(None).expect("Unable to connect to db");
+
+        set_pragmas(&conn);
         //this should be filtered out, really.
         let dsp = self.path.display().to_string();
         //TODO: filter this out from elsewhere methinks.
@@ -222,11 +229,18 @@ impl Import for Csv {
         if self.state == "TX" {
            table_name = format!("TX{}", table_name);
         }
+
+        //TODO:: ensure this is temporary.
+        //let create_query = self.create_table_query(&mut csv_reader, &table_name)?;
+       // conn.execute(&create_query, NO_PARAMS)?;
+
         self.delete_data(&conn, &table_name)?;
         let insert_query = self.create_insert_query(&mut csv_reader, &table_name)?;
 
+
         conn.execute("Begin Transaction;", NO_PARAMS)?;
 
+        let mut insStmt = conn.prepare(&insert_query);
         let date_pos = self.find_date_position(&csv_reader.headers().unwrap());
         let mut rec_vals: Vec<String> = Vec::new();
         //we use bytes to work around non-utf-8 issues in csv.
@@ -235,14 +249,14 @@ impl Import for Csv {
                 Ok(record) => {
                     let rec = record.clone();
 
+                    ///TODO:: Extract this to a function, this will grow
+                    /// as more formatting is needed
                     for (idx, rr) in rec.iter().enumerate() {
                         let mut ascii_string = util::to_ascii_string(&rr);
 
                         if let Some(i) = date_pos {
                            if i == idx {
                                ascii_string = util::format_date(&ascii_string).to_string();
-                              // println!("aw sheeet {}", &ascii_string);
-                               //format date
                            }
                         }
 
@@ -251,7 +265,8 @@ impl Import for Csv {
 
                     rec_vals.push(self.state.to_uppercase());
 
-                    match conn.execute(&insert_query, &rec_vals)  {
+                   match &insStmt.as_mut().unwrap().execute(&rec_vals) {
+                   // match conn.execute(&insert_query, &rec_vals)  {
                         Ok(_) =>  () ,
                         Err(er) => {
                             //TODO: Consider logging these kinds of errors.
@@ -279,9 +294,8 @@ impl Import for Csv {
 impl SqlHandler for Csv {
 
     type Reader = csv::Reader<File>;
-    fn create_table_query(&self, reader: Option<&mut Self::Reader>, tname: &str) -> GenResult<String> {
+    fn create_table_query(&self, reader: &mut Self::Reader, tname: &str) -> GenResult<String> {
 
-        let reader = reader.unwrap();
 
         let q = format!("CREATE TABLE if not exists {} (", tname);
         //add the header names as column names for out table.

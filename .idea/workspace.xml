@@ -14,9 +14,14 @@
   <component name="ChangeListManager">
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/bin/sximp.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/sximp.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/extractors/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/extractors/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/importer/extracts.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/extracts.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/importer/img.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/img.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/importer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/util.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/util.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -54,6 +59,12 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="JsFlowSettings">
+    <service-enabled>true</service-enabled>
+    <exe-path />
+    <other-services-enabled>true</other-services-enabled>
+    <auto-save>true</auto-save>
+  </component>
   <component name="JsbtTreeLayoutManager">
     <layout place="tools.popupGrunt">
       <scroll-view-position x="0" y="0" />
@@ -66,7 +77,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../rust/image_tools" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -83,7 +94,7 @@
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/things.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/types.rs" value="true" />
     <property name="org.rust.hideToolchainNotifications" value="true" />
-    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+    <property name="settings.editor.selected.configurable" value="Settings.JavaScript" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -96,6 +107,11 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/bin" />
     </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="black" />
+    </option>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -162,19 +178,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <list>
-      <item itemvalue="Cargo Command.Run untitled" />
-      <item itemvalue="Cargo Command.Test sex_offender::downloader::tests::extract_nested_zip_file" />
-      <item itemvalue="Cargo Command.Test test_root_dirs" />
-      <item itemvalue="Cargo Command.Run sximp" />
-    </list>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Cargo Command.Run sximp" />
-        <item itemvalue="Cargo Command.Run untitled" />
-        <item itemvalue="Cargo Command.Test test_root_dirs" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="RustProjectSettings">
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
@@ -270,7 +273,22 @@
       <workItem from="1568650036716" duration="12875000" />
       <workItem from="1568821379717" duration="16055000" />
       <workItem from="1568908689326" duration="9940000" />
-      <workItem from="1569004216883" duration="115925000" />
+      <workItem from="1569004216883" duration="131433000" />
+      <workItem from="1570724088866" duration="12443000" />
+      <workItem from="1570829974365" duration="599000" />
+      <workItem from="1570892664723" duration="1259000" />
+      <workItem from="1570997540720" duration="192000" />
+      <workItem from="1570997772991" duration="526000" />
+      <workItem from="1571241240141" duration="8257000" />
+      <workItem from="1572659825284" duration="1204000" />
+      <workItem from="1572910118044" duration="2287000" />
+      <workItem from="1573165212427" duration="1221000" />
+      <workItem from="1573237883253" duration="602000" />
+      <workItem from="1573485160820" duration="1841000" />
+      <workItem from="1573527981750" duration="3981000" />
+      <workItem from="1573676621780" duration="5759000" />
+      <workItem from="1574089569490" duration="1064000" />
+      <workItem from="1574355908243" duration="7025000" />
     </task>
     <servers />
   </component>
@@ -295,12 +313,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/extractors/mod.rs</url>
-          <line>132</line>
+          <line>155</line>
           <option name="timeStamp" value="52" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/importer/mod.rs</url>
-          <line>135</line>
+          <line>137</line>
           <option name="timeStamp" value="53" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
@@ -319,15 +337,15 @@
     </breakpoint-manager>
     <watches-manager>
       <configuration name="CargoCommandRunConfiguration">
-        <watch expression="fo'" language="Rust" />
-        <watch expression="fp" language="Rust" />
-        <watch expression="st_files" language="Rust" />
-        <watch expression="file_path" language="Rust" />
-        <watch expression="avail_updates" language="Rust" />
-        <watch expression="base_path" language="Rust" />
-        <watch expression="remote_file_list" language="Rust" />
-        <watch expression="sx_arch_files" language="Rust" />
-        <watch expression="sx_archive" language="Rust" />
+        <watch expression="fo'" />
+        <watch expression="fp" />
+        <watch expression="st_files" />
+        <watch expression="file_path" />
+        <watch expression="avail_updates" />
+        <watch expression="base_path" />
+        <watch expression="remote_file_list" />
+        <watch expression="sx_arch_files" />
+        <watch expression="sx_archive" />
       </configuration>
     </watches-manager>
   </component>
