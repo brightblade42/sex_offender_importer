@@ -17,9 +17,10 @@
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/bin/sximp.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/sximp.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/downloader/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/downloader/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/extractors/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/extractors/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/importer/extracts.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/extracts.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/importer/img.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/img.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/importer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/util.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/util.rs" afterDir="false" />
     </list>
@@ -77,7 +78,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../rust/image_tools" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -94,7 +95,7 @@
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/things.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/types.rs" value="true" />
     <property name="org.rust.hideToolchainNotifications" value="true" />
-    <property name="settings.editor.selected.configurable" value="Settings.JavaScript" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -288,7 +289,18 @@
       <workItem from="1573527981750" duration="3981000" />
       <workItem from="1573676621780" duration="5759000" />
       <workItem from="1574089569490" duration="1064000" />
-      <workItem from="1574355908243" duration="7025000" />
+      <workItem from="1574355908243" duration="24396000" />
+      <workItem from="1575493231530" duration="5056000" />
+      <workItem from="1576249934395" duration="599000" />
+      <workItem from="1576693804296" duration="604000" />
+      <workItem from="1576705402170" duration="599000" />
+      <workItem from="1577721001256" duration="495000" />
+      <workItem from="1578009295017" duration="265000" />
+      <workItem from="1578071310129" duration="1890000" />
+      <workItem from="1578151377878" duration="1456000" />
+      <workItem from="1578263425301" duration="2033000" />
+      <workItem from="1578327975549" duration="2488000" />
+      <workItem from="1578678381831" duration="18594000" />
     </task>
     <servers />
   </component>
@@ -311,11 +323,6 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/extractors/mod.rs</url>
-          <line>155</line>
-          <option name="timeStamp" value="52" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/importer/mod.rs</url>
           <line>137</line>

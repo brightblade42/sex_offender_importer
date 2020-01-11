@@ -29,15 +29,13 @@ use crate::util::{
 };
 use archives::SexOffenderArchive;
 use crate::downloader::records::ImageInfo;
+use std::fs::DirBuilder;
 
 static SEX_OFFENDER_PATH: &'static str = "";
 const CHUNK_SIZE: usize = 2048;
 
-//type GenError = Box<dyn std::error::Error>;
-//type GenResult<T> = Result<T, GenError>;
-
-//pub type Result<T> = ::std::result::Result<T, Box<dyn std::error::Error>>;
-
+///Downloader connects to an ftp server,
+// downloads
 pub struct Downloader {
     stream: FtpStream,
     config: PathVars,
@@ -52,6 +50,7 @@ pub enum DownloadOption {
 impl Downloader {
 
     ///create the Downloader object, connect and login to ftp server
+    ///After that we're ready to query the server for available files and begin downloading.
     pub fn connect(addr: &str, user: &str, pwd: &str, config: PathVars) -> GenResult<Self>
     {
 
@@ -90,7 +89,7 @@ impl Downloader {
     ///returns a list of ALL available files for download from remote server.
     /// These may or may not be newer than what we already have
     ///a filter can be passed in to narrow the list.
-    pub fn get_updated_file_list(&mut self, filter: fn(&String) -> bool, _file_opt: DownloadOption) -> GenResult<Vec<GenResult<FileInfo>>> {
+    pub fn get_all_available_file_list(&mut self, filter: fn(&String) -> bool, _file_opt: DownloadOption) -> GenResult<Vec<GenResult<FileInfo>>> {
         let paths = &self.config.vars; //TODO: consider loading once instead of every function call.
         let remote_base_path = &paths["ftp_base_path"];
         let sex_offender_path = &paths["ftp_sex_offender_path"].to_string();
@@ -227,21 +226,6 @@ impl Downloader {
 
     }
 
-    ///return the base path to local archives
-    /* fn get_archive_path(&self, file_info: &FileInfo) -> PathBuf {
-
-        PathBuf::from(&self.config.vars["app_base_path"]).join(&self.config.vars["archives_path"])
-    }
-
-    ///return the absolute file path to an archive file
-    fn get_archive_file_path(&self, file_info: &FileInfo) -> PathBuf {
-
-        let mut p = self.get_archive_path(file_info);
-        p.push(file_info.name());
-        p
-    }
-*/
-
     ///downloads the remote archive file and writes to disk.
     fn save_archive(&mut self, file_info: &FileInfo) -> GenResult<SexOffenderArchive> {
         let file_name = file_info.name();
@@ -361,6 +345,36 @@ impl Downloader {
         }
 
         Ok(())
+    }
+
+
+    pub fn rebuild_log_from_archives(&self) -> GenResult<()>{
+
+        let expath = fs::read_dir(self.config.archive_path())?;
+
+
+        self.conn.execute("BEGIN TRANSACTION;", NO_PARAMS);
+        self.conn.execute("Delete from download_log", NO_PARAMS);
+        for entry in expath {
+            let item = &entry?;
+            let meta = item.metadata()?;
+
+            if meta.is_file() {
+                let name = item.file_name().to_str().unwrap().to_string();
+                let last_mod =  self.get_date_from_name(item.file_name().to_str().unwrap());
+                //println!("mod: {}", last_mod);
+                let size = meta.len().to_string();
+
+                self.conn.execute("Insert into download_log (name, last_modified, size, bytes_downloaded, status) VALUES (?,?,?,?,?)",
+                                    params![name, last_mod, size, size, "Success"])?;
+
+            }
+
+        }
+        self.conn.execute("END TRANSACTION;", NO_PARAMS);
+
+        Ok(())
+
     }
 }
 

@@ -231,8 +231,8 @@ impl Import for Csv {
         }
 
         //TODO:: ensure this is temporary.
-        //let create_query = self.create_table_query(&mut csv_reader, &table_name)?;
-       // conn.execute(&create_query, NO_PARAMS)?;
+        let create_query = self.create_table_query(&mut csv_reader, &table_name)?;
+        conn.execute(&create_query, NO_PARAMS)?;
 
         self.delete_data(&conn, &table_name)?;
         let insert_query = self.create_insert_query(&mut csv_reader, &table_name)?;
@@ -304,6 +304,7 @@ impl SqlHandler for Csv {
             .unwrap()
             .iter()
             .map(util::convert_state_field)
+            .map(util::convert_invalid_field_name)
             .map(util::convert_space_in_field)
             .fold(q, |acc, head| {
                 format!("{} {},", acc, head.replace("/", ""))
@@ -325,6 +326,7 @@ impl SqlHandler for Csv {
             .unwrap()
             .iter()
             .map(util::convert_state_field)
+            .map(util::convert_invalid_field_name)
             .map(util::convert_space_in_field)
             .fold(q, |acc, head| format!("{} {},", acc, head.replace("/", "")));
 

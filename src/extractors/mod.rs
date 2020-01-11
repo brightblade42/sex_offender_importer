@@ -38,7 +38,6 @@ impl Extractor<'_> {
     pub fn extract_archive(&mut self, archive_path: PathBuf, options: &ExtractOptions, overwrite: bool) -> GenResult<Vec<ExtractedFile>> {
         let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
 
-        println!("hello!?");
           match options {
                   ExtractOptions::CSVOnly => {
                       if archive_path.to_string_lossy().contains("images") {
@@ -136,7 +135,7 @@ impl Extractor<'_> {
             "counties",
             "education",
             "educationevent",
-            "indv",
+            //"indv",  turns out indv is used to match texas photo ids to photos.
             "indv_sor",
             "institute",
             "institutecampus",

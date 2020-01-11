@@ -7,10 +7,13 @@ use std::{
 use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection, NO_PARAMS, params};
 use serde_rusqlite::{self,  from_rows };
+use std::path::Path;
 
 static CONFIG: &'static str = "/opt/eyemetric/sex_offender/app/config.sqlite";
 
 
+///Represents development state of the Application
+///Useful for loading different configurations for various development scenarios
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Env {
     Test,
@@ -18,18 +21,23 @@ pub enum Env {
     Production,
 }
 
-
+///use Config to load a set of configuration variables based on an Environment (env).
 pub trait Config {
     fn load(env: &Env) -> ConfigResult;//Result<HashMap<String,String>, Box<std::error::Error>>;
 }
 
+///A set of key value string pairs representing configuration settings.
+pub type ConfigResult = Result<HashMap<String, String>, Box<dyn std::error::Error>>;
+///a Vec of State objects. States as in US states not some program state.
 pub type States = Vec<State>;
 
+///TODO: figure out why we didn't use Config
 pub trait LoadData {
     fn load() -> Result<States, Box<dyn Error>>;
 }
 
 impl LoadData for States {
+
     fn load() -> Result<States, Box<dyn Error>> {
         let conn = Connection::open(CONFIG).expect("Unable to open data connection");
         let mut stmt = conn.prepare("Select * from states").expect("Unable to get states data");
@@ -39,6 +47,7 @@ impl LoadData for States {
     }
 }
 
+///a type that contains a states name and it's abbreviation.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct State {
     pub state: String,
@@ -76,14 +85,15 @@ impl FtpConfig {
     }
 }
 
-pub type ConfigResult = Result<HashMap<String, String>, Box<dyn std::error::Error>>;
-
+///Contains the application directory paths based on
+///the Env. Env determines (Production / Staging / Dev)
 pub struct PathVars {
     pub env: Env,
     pub vars: HashMap<String, String>,
 }
 
 impl PathVars {
+    ///returns PathVars value which contains the data directories for an environment.
     pub fn new(env: Env) -> Self {
         let vars = PathVars::load(&env).expect("Unable to create PathVars hash map");
 
@@ -93,22 +103,30 @@ impl PathVars {
         }
     }
 
+    ///return path to archive folder. This is where we store the zip files downloaded
+    ///from the server.
     pub fn archive_path(&self) -> PathBuf {
-        PathBuf::from(&self.vars["app_base_path"]).join(&self.vars["archives_path"])
+        //PathBuf::from(&self.vars["app_base_path"]).join(&self.vars["archives_path"])
+        PathBuf::from(&self.vars["archives"])
     }
 
+    ///returns the top level directory to the application
     pub fn root_path(&self) -> PathBuf {
         PathBuf::from(&self.vars["app_base_path"]) //.join(&self.vars["archives_path"])
     }
 
+    ///returns the directory where we store the data we extract from the archive zip files.
+    ///csv and image archives are store here for each state.
     pub fn extracts_path(&self) -> PathBuf {
-        PathBuf::from(&self.vars["app_base_path"]).join(&self.vars["extracts_path"])
-    }
+        PathBuf::from(&self.vars["extracts"])
 
+    }
+    ///returns the full path to an archive (zip) file
     pub fn archive_file_path(&self, file_name: &str) -> PathBuf {
         PathBuf::from(self.archive_path().display().to_string()).join(file_name)
     }
 
+    ///return the path to the sexoffender.sqlite file.
     pub fn sql_path(&self) -> PathBuf {
          PathBuf::from(&self.vars["app_base_path"]).join(&self.vars["sex_offender_db"])
     }
@@ -116,6 +134,8 @@ impl PathVars {
 }
 
 impl Config for PathVars {
+    ///takes an env value and returns ConfigResult which is the set of key-value
+    ///configuration variables.
     fn load(env: &Env) -> ConfigResult //Result<HashMap<String,String>, Box<std::error::Error>>
     {
         let conn = Connection::open(CONFIG)?;

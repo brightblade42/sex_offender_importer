@@ -49,6 +49,16 @@ pub fn convert_state_field(field: &str) -> &str {
     }
 }
 
+pub fn convert_invalid_field_name(field: &str) -> &str {
+
+    match field {
+        "from" => "from_",
+        "to" => "to_",
+        _ => field
+    }
+}
+
+
 pub fn convert_space_in_field(field: &str) -> String {
 
     if field.trim().contains(" ") {
