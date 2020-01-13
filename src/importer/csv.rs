@@ -1,3 +1,11 @@
+//!
+//!
+//!
+//!
+//!
+//!
+//!
+//!
 use std::{
     fs::{self,File},
     path::{PathBuf, Path},
@@ -27,23 +35,29 @@ pub struct CsvMetaData<'a> {
 }
 
 
+///represents a csv file
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Csv {
+    ///path to csv file on disk
     pub path: PathBuf,
+    ///the US state to which this csv file belongs
     pub state: String,
+    ///the csv delimiter used to separate columns. not all files actually use a comma
+    ///despite the name  `comma separated values`
     pub delimiter: char,
 }
 
 impl Csv {
 
-    //Some csv files may not have headers, in those cases we want to add some.
+    ///Some csv files may not have headers, in those cases we want to add some.
+    ///We need headers to import into the database. Headers represent column names
     fn add_headers(&self) -> GenResult<()> {
 
         if let Some(meta) = self.load_csv_info() {
                 meta.iter().for_each(|md| {
                     if self.path.ends_with(md.name.clone()) {
                         let header_line = self.build_header_line(md);
-                        self.prepend_file(header_line.as_bytes(), &self.path).unwrap();
+                        self.add_headers_to_file(header_line.as_bytes(), &self.path).unwrap();
                         println!("{}", &header_line);
                     }
                 });
@@ -67,18 +81,21 @@ impl Csv {
     }
 
 
-    //Does the actual adding of the header line to a csv file.
-    fn prepend_file(&self, data: &[u8], file_path: &Path) -> io::Result<()> {
-        // Create a temporary file
+    ///Adds a header line to the top of a csv file that doesn't contain any headers.
+    ///
+    ///The import process requires that all csv files have headders, most do but some, don't.
+    ///looking at you Texas.
+    ///This modifies existing csv files on disk
+    fn add_headers_to_file(&self, data: &[u8], file_path: &Path) -> io::Result<()> {
+        //Temporary file dancing and shenanigans.
         println!("ex path: {:?}", file_path );
         let tmp_path = Temp::new_file()?;
 
         // Stop the temp file being automatically deleted when the variable
         // is dropped, by releasing it.
         let tmp_path = tmp_path.release();
-
         let mut tmp_file = File::create(&tmp_path)?;
-        // Open source file for reading
+        // Open the source file for reading
         let mut src_file = File::open(&file_path)?;
         // Write the data to prepend
         tmp_file.write_all(&data)?;
@@ -90,12 +107,14 @@ impl Csv {
         Ok(())
     }
 
-
+    ///
     fn load_csv_info(&self) -> Option<Vec<CsvMetaData>> {
 
         //Texas is the only state providing csv files without headers. It's a bummer.
         //I've gleaned the necessary header information from the SQLSchema dump files provided
         //directly from the Texas web site.
+        //TODO: keep an eye on this, it's entirely possible that these could change based on the whims
+        //of Texas.
         if self.state == "TX" {
             Some(vec![
                 CsvMetaData {
@@ -185,8 +204,6 @@ impl Csv {
 
 impl Import for Csv {
     type Reader = csv::Reader<File>;
-    //type Connection = ();
-
 
     fn open_reader(&self, has_headers: bool) -> GenResult<Self::Reader> {
 

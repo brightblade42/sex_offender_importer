@@ -22,8 +22,9 @@ use sex_offender::{
 };
 use sex_offender::extractors::ExtractOptions;
 use std::time::Duration;
-use sex_offender::util::GenResult;
+use sex_offender::util::{GenResult, GenError};
 use sex_offender::downloader::records::FileInfo;
+use std::borrow::Borrow;
 
 /*#[derive(Debug, StructOpt)]
 #[structopt(name= "sx-imp", about = "cli tool for downloading sex offender data")]
@@ -72,6 +73,8 @@ enum SXOCli {
         ///pass -n to list any new archives ready for download.
         new: bool,
         #[structopt(short,long)]
+        unchanged: bool,
+        #[structopt(short,long)]
         ///pass -a to list all available archives. Included those that have been downloaded.
         all: bool
     },
@@ -111,47 +114,64 @@ fn main()  {
     );
 
     match opt {
-        SXOCli::List { new, ..} => {
+
+        SXOCli::List { new, ..} if new => {
 
             let new_list = get_new_list(&mut downloader);
 
             let mut table = Table::new();
             table.add_row(row!["FILES READY FOR DOWNLOAD", &format!("total: {}",new_list.len())]);
-            table.add_row(row!["path", "file name", "last mod"]);
+            table.add_row(row!["path", "file name"]);
+
             for item in new_list {
 
                 let f = item.unwrap();
                 let path = f.remote_path().display().to_string();
                 let name = f.name();
-//                println!("{:?}", item.unwrap().name());
-                table.add_row(row![path,name,"time is a construct" ]);
+                table.add_row(row![path,name]);
+            }
+
+            table.printstd();
+        },
+        SXOCli::List { unchanged, .. } if unchanged => {
+           pb.set_message("Retrieving unchanged list..");
+            let unchanged_list = get_unchanged_list(&mut downloader);
+
+            let mut table = Table::new();
+            table.add_row(row!["Unchanged", &format!("total: {}",unchanged_list.len())]);
+            table.add_row(row!["path", "file name"]);
+
+            for item in unchanged_list {
+
+                let f = item.unwrap();
+                let path = f.remote_path().display().to_string();
+                let name = f.name();
+                table.add_row(row![path,name]);
+            }
+
+            table.printstd();
+        }
+        SXOCli::List { all, ..} if all => {
+
+            pb.set_message("Retrieving list of all files...");
+            let all_list = get_all_avail(&mut downloader);
+
+            let mut table = Table::new();
+            table.add_row(row!["ALL AVAIL", &format!("total: {}",all_list.len())]);
+            table.add_row(row!["path", "file name"]);
+
+            for item in all_list {
+
+                let f = item.unwrap();
+                let path = f.remote_path().display().to_string();
+                let name = f.name();
+                table.add_row(row![path,name]);
             }
 
             table.printstd();
 
-/*
-            println!("you want the new stuff huh bro");
-            let table = table!(["ABC","DEFG","HIJKLMNOP"],
-            ["foobar","bar","foo"],
-            ["monkey","puzzle","sort"]);
-
-            let table1 = table!(["ABC", "DEFG", "HIJKLMN"],
-                    ["foobar", "bar", "foo"],
-                    ["foobar2", "bar2", "foo2"]);
-
-            let table2 = table!(["Title 1", "Title 2"],
-                    ["This is\na multiline\ncell", "foo"],
-                    ["Yo dawg ;) You can even\nprint tables\ninto tables", table1],
-                    ["Like far out man,\n Far fucking out!", table]);
-
-            table2.printstd();
-
-            ptable!([bFg->"foobar", BriH2->"bar", "foo"]);
-*/
         },
-        SXOCli::List { all, ..} => {
-            println!("you want the ALL THE stuff huh bro");
-        },
+
         SXOCli::Build { download_log } if download_log => {
 
             pb.set_message("rebuilding download log...");
@@ -165,161 +185,127 @@ fn main()  {
                 }
             }
         },
+
         SXOCli::Get { new, state} => {
             if new {
-                println!("You wanna get that sweet new shit huh bro!?") ;
+
+                let file_list =  get_new_list(&mut downloader);//dloader.get_newest_update_list();
+
+               // let file_list = file_list.iter().filter(|f| f.unwrap().name())
+                pb.set_message("Retrieving available archives...");
+                let sex_offender_archives =  file_list.iter()
+                    .map(|fi| {
+                        let info = fi.as_ref().unwrap();
+                        pb.set_message(&format!("Downloading {}",info.name() ));
+
+                        let m = downloader.download_file(info);
+
+                        println!("downloaded: {}", info.name());
+                        m
+                    });
+                pb.finish_with_message("Done downloading archives! Ready to import.");
             } else if let Some(s) = state {
-               println!("Just this state bro? {}", s);
+
+                let file_list = get_new_list(&mut downloader );
+
+                let file_list = file_list.iter().filter(|f| f.as_ref().unwrap().name()[..2] == "AL".to_string());
+
+                for f in file_list {
+
+                    let info = f.as_ref().unwrap();
+                    pb.set_message(&format!("Retrieving {}..", info.name()));
+                    let m = downloader.download_file(info);
+                }
+
+                pb.finish_with_message("Done with requested files");
             }
         },
 
         _ => { println!("not ready for that one chief");}
     }
 
-/*   match opt {
-        SexOffenderCli { list, ..} if list == "cool" => {
-            println!("Damn right you are");
-            let record_filter = |x: &String| x.contains("records") || x.contains("images");
-
-            downloader.rebuild_log_from_archives(); */
-            //let record_filter = |x: &String| x.contains("records");
-
-           /* let file_list = downloader.get_all_available_file_list(record_filter, DownloadOption::Always);
-
-            for r in file_list {
-                println!("{:?}", r);
-            }
-*           */
-/*        },
-       _ => {
-           println!("{:#?}", opt);
-       }
-    }*/
-
-//    download_files();
-//    import_files();
-
-    //println!("{:#?}", opt);
 }
+
 fn get_new_list(dloader: &mut Downloader) -> Vec<GenResult<FileInfo>>{
 
     let record_filter = |x: &String| x.contains("records");
-    dloader.get_newest_update_list()
+    dloader.get_newest_available_list()
 
+}
+
+fn get_unchanged_list(dloader: &mut Downloader) -> Vec<GenResult<FileInfo>> {
+    dloader.get_unchanged_list()
+}
+
+fn get_all_avail(dloader: &mut Downloader) -> Vec<GenResult<FileInfo>> {
+
+    let file_filter = |x: &String| x.contains("records") || x.contains("images");
+    dloader.get_all_available_file_list(file_filter, DownloadOption::Always).unwrap()
 }
 fn create_downloader() -> Downloader {
 
-let _ftp_conf = FtpConfig::init(config::Env::Production);
-let addr = "ftptds.shadowsoft.com:21";
-let user = "swg_eyemetric";
-let pass = "metric123swg99";
+    let _ftp_conf = FtpConfig::init(config::Env::Production);
+    let addr = "ftptds.shadowsoft.com:21";
+    let user = "swg_eyemetric";
+    let pass = "metric123swg99";
 
-//println!("{}", &ftp_conf.address);
-let path_vars = PathVars::new(config::Env::Production);
+    //println!("{}", &ftp_conf.address);
+    let path_vars = PathVars::new(config::Env::Production);
 
-Downloader::connect(addr, user, pass , path_vars).expect("Unable to get a good connection")
+    Downloader::connect(addr, user, pass , path_vars).expect("Unable to get a good connection")
 }
+
 fn get_root_path(vars: &PathVars) -> PathBuf {
-PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["archives_path"])
-}
-
-fn get_updated_file_list() {
-
-}
-fn download_files()  {
-
-//maybe just download the enchilada?
-//let avail; //entire list
-//let avail_updates; //new than what we already have
-
-let _ftp_conf = FtpConfig::init(config::Env::Production);
-let addr = "ftptds.shadowsoft.com:21";
-let user = "swg_eyemetric";
-let pass = "metric123swg99";
-
-//println!("{}", &ftp_conf.address);
-let path_vars = PathVars::new(config::Env::Production);
-
-
-let mut downloader = Downloader::connect(addr, user, pass ,
-                                  path_vars).expect("Unable to get a good connection");
-
-let record_filter = |x: &String| x.contains("records") || x.contains("images");
-
-//let record_filter = |x: &String| x.contains("records");
-let file_list = downloader.get_all_available_file_list(record_filter, DownloadOption::Always);
-let file_list = downloader.get_newest_update_list();
-
-// println!("{:?}", file_list);
-
-
-
-let sex_offender_archives =  file_list.iter()
-.map(|fi| {
- let m = downloader.download_file(&fi.as_ref().unwrap());
- println!("downloaded: {}", fi.as_ref().unwrap().name());
- m
-});
-
-for arch in sex_offender_archives {
-
-if let Ok(sx) = arch {
- println!("all good {}", sx.path.display());
- //do something
-} else {
- println!("not good at all.");
- //err, bad download, add to error queue?
-}
+    PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["archives_path"])
 }
 
 
-}
 fn import_files() {
 
-let statelist: States = config::States::load().unwrap();
-//let statelist = statelist.iter().filter(|s| s.abbr != "TX" && s.abbr.chars().nth(0) > Some('H'));
-//     let statelist = statelist.iter().filter(|s| s.abbr != "HI" && s.abbr != "VA");
-//     let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) > Some('H')); // && s.abbr.chars().nth(0) != Some('T'));
-//    let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) == Some('T'));
-//let statelist = statelist.iter().filter(|s| s.abbr == "HI");
-let path_vars = PathVars::new(config::Env::Production);
-let  root_path = path_vars.archive_path();//util::get_root_path(&path_vars);
+    let statelist: States = config::States::load().unwrap();
+    //let statelist = statelist.iter().filter(|s| s.abbr != "TX" && s.abbr.chars().nth(0) > Some('H'));
+    //     let statelist = statelist.iter().filter(|s| s.abbr != "HI" && s.abbr != "VA");
+    //     let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) > Some('H')); // && s.abbr.chars().nth(0) != Some('T'));
+    //    let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) == Some('T'));
+    //let statelist = statelist.iter().filter(|s| s.abbr == "HI");
+    let path_vars = PathVars::new(config::Env::Production);
+    let  root_path = path_vars.archive_path();//util::get_root_path(&path_vars);
 
-let _prep_result = importer::prepare_import();
+    let _prep_result = importer::prepare_import();
 
-let extract_opt = ExtractOptions::Default; //ImagesOnly;
-let extract_opt = ExtractOptions::ImagesOnly;
-let overwrite_files = true;
-for state in statelist {
+    let extract_opt = ExtractOptions::Default; //ImagesOnly;
+    let extract_opt = ExtractOptions::ImagesOnly;
+    let overwrite_files = true;
+    for state in statelist {
 
-println!("=================================");
-println!("{}: {}", state.state, state.abbr);
-println!("=================================");
+    println!("=================================");
+    println!("{}: {}", state.state, state.abbr);
+    println!("=================================");
 
-let state_path = root_path.join(state.abbr.to_uppercase());
-println!("{:?}",&state_path);
-//let st_files = fs::read_dir(state_path).expect("A file but got us a directory");
+    let state_path = root_path.join(state.abbr.to_uppercase());
+    println!("{:?}",&state_path);
+    //let st_files = fs::read_dir(state_path).expect("A file but got us a directory");
 
-let st_files = fs::read_dir(&root_path).expect("A file but got us a directory");
-let st_files = st_files.filter(|fp| {
- let x = fp.as_ref().expect("a Dir Entry");
- x.file_name().to_str().unwrap()[..2] == state.abbr
-});
-importer::delete_old_photos(&state.abbr);
-for state_archive in st_files {
+    let st_files = fs::read_dir(&root_path).expect("A file but got us a directory");
+    let st_files = st_files.filter(|fp| {
+     let x = fp.as_ref().expect("a Dir Entry");
+     x.file_name().to_str().unwrap()[..2] == state.abbr
+    });
+    importer::delete_old_photos(&state.abbr);
+    for state_archive in st_files {
 
- println!("{:?}", state_archive);
+     println!("{:?}", state_archive);
 
- let archive = state_archive.unwrap();
- let mut extractor = Extractor::new(&path_vars);
+     let archive = state_archive.unwrap();
+     let mut extractor = Extractor::new(&path_vars);
 
- let extracted_files: Vec<ExtractedFile> = extractor.extract_archive(archive.path(), &extract_opt, overwrite_files).expect("A file but got a directory");
+     let extracted_files: Vec<ExtractedFile> = extractor.extract_archive(archive.path(), &extract_opt, overwrite_files).expect("A file but got a directory");
 
- for exfile in extracted_files {
-     println!("importing file {:?}", archive.file_name());
-     exfile.import().expect(&format!("Unable to complete file import {:?}", archive.file_name()));
-     println!("=================================");
- }
+     for exfile in extracted_files {
+         println!("importing file {:?}", archive.file_name());
+         exfile.import().expect(&format!("Unable to complete file import {:?}", archive.file_name()));
+         println!("=================================");
+     }
 
 }
 

@@ -1,4 +1,7 @@
-pub mod extracts;
+//! This module takes care of the import process. Importing
+//! It ensures that the SexOffender database exists and is properly created.
+//!
+pub mod csv;
 pub mod img;
 
 use std::{
@@ -13,7 +16,7 @@ use crate::util::{
     GenResult
 };
 //submodules
-use extracts::Csv;
+use csv::Csv;
 use img::ImageArchive;
 
 
@@ -53,14 +56,16 @@ trait SqlHandler {
 
 
 
-///ExtractedFile represents one of two possible types that are contained within
-/// the zip archives downloaded from the remote server.
+///ExtractedFile represents either a CSV file or an embedded Zip file that are contained within
+/// the top-level zip archives downloaded from the `public data` remote server.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ExtractedFile {
     Csv(Csv),
     ImageArchive(ImageArchive)
 }
 
+///Import implementation for ExtractedFile functions as a way to forward
+///import method calls to its variants.
 impl Import for ExtractedFile {
     type Reader = String;
 
@@ -68,6 +73,8 @@ impl Import for ExtractedFile {
         unimplemented!()
     }
 
+    ///forwards the import call to the specific import methods on CSV or ImageArchive,
+    ///depending on which is matched.
     fn import(&self) -> GenResult<()> {
         match self {
 
@@ -88,16 +95,20 @@ impl Import for ExtractedFile {
 //=============================
 //Module level functions
 //================================
+///ensures that the database schema is created before we try to import any data into the db.
 pub fn prepare_import() -> GenResult<()> {
-    let conn = util::get_connection(None).expect("unable to connect to db");//Connection::open(sql_path)?;
+    let conn = util::get_connection(None).expect("unable to connect to db");
     create_db(&conn).expect("something didn't create good.");
 
     Ok(())
 }
 
+///takes a state abbreviation and locates its corresponding ST_import.sql file.
+///An import sql file exists for each state which is responsible for importing
+///data from each individual state table into a common SexOffender table.
 pub fn finalize_import(state: &str) -> GenResult<()> {
 
-    let mut pth = PathBuf::from(util::SQL_FOLDER);
+    let mut pth = PathBuf::from(util::SQL_FOLDER); //folder containing all the state level import queries
     pth.push(format!("{}_import.sql", state.to_lowercase()));
 
     if !pth.exists() {
@@ -106,11 +117,6 @@ pub fn finalize_import(state: &str) -> GenResult<()> {
     }
 
     let final_import_query = fs::read_to_string(pth)?;
-
-    /*println!("=======================================" );
-    println!("{}", &final_import_query);
-    println!("=======================================" );
-*/
     let conn = util::get_connection(None)?;
     conn.execute(&format!("Delete from SexOffender where state='{}'", state), NO_PARAMS)?;
     conn.execute(&final_import_query, NO_PARAMS)?;
@@ -118,16 +124,18 @@ pub fn finalize_import(state: &str) -> GenResult<()> {
     Ok(())
 }
 
-fn create_default_index(name: &str) -> String {
+///returns a create index query string for some table_name
+fn create_default_index(table_name: &str) -> String {
     format!(
         r#"CREATE  INDEX if not exists {}__index ON {} (
          ID,
          State
      );"#,
-        name, name
+        table_name, table_name
     )
 }
 
+///returns the sql query string that creates the main SexOffender table.
 fn create_main() -> String {
     String::from(
         r#"CREATE TABLE IF NOT EXISTS SexOffender (
@@ -150,6 +158,16 @@ fn create_main() -> String {
     )
 }
 
+///ensures that all old photos are removed. Every time an import is run
+///we delete before we insert. It keeps the engine clean.
+pub fn delete_old_photos(state: &str) -> Result<usize, rusqlite::Error> {
+
+    println!("Are you my mommy?");
+    let conn = util::get_connection(None).unwrap();
+    conn.execute( &format!("DELETE FROM Photos where state='{}'", state), NO_PARAMS, )
+}
+
+///returns the sql query string that creates the main Photos table.
 fn create_photos() -> String {
     String::from(
         r#"CREATE TABLE IF NOT EXISTS Photos (
@@ -161,7 +179,7 @@ fn create_photos() -> String {
     )"#,
     )
 }
-
+///creates the necessary tables and indexes for the SexOffender database.
 fn create_db(conn: &Connection) -> GenResult<()> {
     set_pragmas(conn);
     conn.execute(create_main().as_str(), NO_PARAMS)
@@ -192,9 +210,3 @@ fn set_pragmas(conn: &Connection) {
 }
 
 
-pub fn delete_old_photos(state: &str) -> Result<usize, rusqlite::Error> {
-
-    println!("Are you my mommy?");
-    let conn = util::get_connection(None).unwrap();
-    conn.execute( &format!("DELETE FROM Photos where state='{}'", state), NO_PARAMS, )
-}

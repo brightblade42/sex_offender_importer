@@ -14,13 +14,10 @@
   <component name="ChangeListManager">
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/bin/sximp.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/sximp.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/downloader/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/downloader/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/extractors/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/extractors/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/importer/extracts.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/extracts.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/importer/extracts.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/csv.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/importer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/util.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/util.rs" afterDir="false" />
     </list>
@@ -78,7 +75,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../rust/b64" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -98,15 +95,15 @@
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/bin" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src" />
       <recent name="$PROJECT_DIR$/src/extractors" />
       <recent name="$PROJECT_DIR$/src/downloader" />
       <recent name="$PROJECT_DIR$/src/importer" />
       <recent name="$PROJECT_DIR$/src/sex_offender" />
-    </key>
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/src/bin" />
     </key>
   </component>
   <component name="RunAnythingCache">
@@ -300,7 +297,7 @@
       <workItem from="1578151377878" duration="1456000" />
       <workItem from="1578263425301" duration="2033000" />
       <workItem from="1578327975549" duration="2488000" />
-      <workItem from="1578678381831" duration="18594000" />
+      <workItem from="1578678381831" duration="40382000" />
     </task>
     <servers />
   </component>
@@ -325,12 +322,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/importer/mod.rs</url>
-          <line>137</line>
+          <line>145</line>
           <option name="timeStamp" value="53" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/importer/extracts.rs</url>
-          <line>101</line>
+          <url>file://$PROJECT_DIR$/src/importer/csv.rs</url>
+          <line>112</line>
           <option name="timeStamp" value="75" />
         </line-breakpoint>
       </breakpoints>

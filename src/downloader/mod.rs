@@ -18,7 +18,7 @@ use std::{
     clone::Clone,
 };
 
-use rusqlite::{self, Connection, params, NO_PARAMS};
+use rusqlite::{self, Connection, params, NO_PARAMS, Statement};
 use serde_rusqlite::{to_params_named};
 use crate::config::PathVars;
 use crate::util::{
@@ -89,16 +89,17 @@ impl Downloader {
     ///returns a list of ALL available files for download from remote server.
     /// These may or may not be newer than what we already have
     ///a filter can be passed in to narrow the list.
+    ///This will update our available log if there have been updates since we last checked.
     pub fn get_all_available_file_list(&mut self, filter: fn(&String) -> bool, _file_opt: DownloadOption) -> GenResult<Vec<GenResult<FileInfo>>> {
         let paths = &self.config.vars; //TODO: consider loading once instead of every function call.
         let remote_base_path = &paths["ftp_base_path"];
         let sex_offender_path = &paths["ftp_sex_offender_path"].to_string();
         let state_folders = self.stream.nlst(Some(remote_base_path)).expect("Unable to get a remote file listing");
 
-        println!("ftp paths");
+        /*println!("ftp paths");
         println!("{}", &remote_base_path);
         println!("{}", &sex_offender_path);
-
+*/
         let hard_filter = |x: &String| !x.contains(".txt") && !x.contains("united_states");
 
         let available_files: Vec<GenResult<FileInfo>> = state_folders
@@ -126,56 +127,76 @@ impl Downloader {
     }
 
 
+    ///Returns the list of files that have not changed since the last
+    ///update.
+    pub fn get_unchanged_list(&self) -> Vec<GenResult<FileInfo>> {
+       let mut qry = self.conn.prepare("select * from current_available where name in (select name from download_log where status='Success')  order by last_modified desc")
+           .expect("Unable to access data store");
+
+        let mut file_list = self.build_file_info_list(&mut qry);
+        file_list
+
+    }
     ///Filters out downloads that have already completed successfully.
     ///We may not get all the files in a single session. If we open a new session
     ///we want to make sure that we don't try to download everything again.
-    pub fn get_newest_update_list(&self) -> Vec<GenResult<FileInfo>>  {
+    pub fn get_newest_available_list(&self) -> Vec<GenResult<FileInfo>>  {
 
         let mut qry = self.conn.prepare("SELECT * from current_available WHERE name not in (Select name from download_log where status='Success')")
             .expect("Unable to get newest update list from db");
 
+        //let mut file_list: Vec<GenResult<FileInfo>> = Vec::new();
+
+        let mut file_list = self.build_file_info_list(&mut qry);
+
+        file_list
+    }
+
+    ///executes a sqlite statement and returns a list of FileInfo values.
+    fn build_file_info_list(&self, stmt: &mut Statement<'_>) -> Vec<GenResult<FileInfo>>  {
+
         let mut file_list: Vec<GenResult<FileInfo>> = Vec::new();
 
-       let res = qry.query_map(NO_PARAMS, |row| {
+        let res = stmt.query_map(NO_PARAMS, |row| {
             let rpath: String = row.get(0)?;
             let name: String =   row.get(1)?;
             let lmod = row.get(2)?;
-           let size = row.get(3)?;
-           let status = RecordStatus::None; //TODO: this isn't really used so think   //row.get(4)?;
+            let size = row.get(3)?;
+            let status = RecordStatus::None; //TODO: this isn't really used so think   //row.get(4)?;
 
-           let fi = if name.contains("images") {
+            let fi = if name.contains("images") {
                 FileInfo::Image(ImageInfo {
-                     rpath: Some(rpath),
+                    rpath: Some(rpath),
+                    name: Some(name),
+                    last_modified: Some(lmod),
+                    size: Some(size),
+                    status
+                })
+            } else {
+                FileInfo::Record(RecordInfo {
 
-                     name: Some(name),
-                     last_modified: Some(lmod),
-                     size: Some(size),
-                     status
-                     })
-           } else {
-               FileInfo::Record(RecordInfo {
+                    rpath: Some(rpath),
+                    name: Some(name),
+                    last_modified: Some(lmod),
+                    size: Some(size),
+                    status
+                })
+            };
 
-                   rpath: Some(rpath),
-                   name: Some(name),
-                   last_modified: Some(lmod),
-                   size: Some(size),
-                   status
-               })
-           };
-
-           Ok(fi)
-       });
+            Ok(fi)
+        });
 
         for x in res.unwrap() {
             file_list.push(Ok(x.unwrap()));
         }
 
         file_list
+
     }
 
     ///Transform a line of ftp file info to a FileInfo struct
     fn create_file_info(&self, remote_file_path: &str, ftp_line: &str) -> GenResult<FileInfo> {
-        println!("{}", ftp_line);
+        //println!("{}", ftp_line);
         let mut line = ftp_line.split_whitespace();
         //not sure about this.
         if line.clone().count() == 0 {

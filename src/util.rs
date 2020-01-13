@@ -5,13 +5,12 @@ use rusqlite::Connection;
 use std::fs::File;
 
 pub type GenError = Box<dyn std::error::Error>;
-//pub type Result<T> = ::std::result::Result<T, GenError>;
-pub type GenResult<T> = ::std::result::Result<T, GenError>;
+pub type GenResult<T> = ::std::result::Result<T, GenError>; //not bip bip bip.. Lelu.
 
 pub static IMPORT_LOG: &'static str = "/opt/eyemetric/sex_offender/app/importlog.sqlite";
 pub static SQL_FOLDER: &'static str = "/opt/eyemetric/sex_offender/app/sql";
 
-///Remove junk characters and leave only the cleanest of choice ascii characters.
+///Remove junk characters and leave only the cleanest and choicest ascii characters.
 pub fn to_ascii_string(chars: &[u8]) -> String {
 
     let mut ascii = String::new();
@@ -25,6 +24,8 @@ pub fn to_ascii_string(chars: &[u8]) -> String {
 }
 ///returns an open sqlite connection.
 ///if vars Option is None then connection will be from Production config values
+///TODO: figure out if caching the connection or using some connection pool crate would
+///be better. Probably
 pub fn get_connection(vars: Option<PathVars>) -> GenResult<Connection> {
 
     let sql_path  = if let Some(v) = vars {
@@ -40,6 +41,8 @@ pub fn get_connection(vars: Option<PathVars>) -> GenResult<Connection> {
     }
 }
 
+///Some fields are called `state` and that interferes with our custom state field.
+///this function returns a new field called Addr_State
 pub fn convert_state_field(field: &str) -> &str {
 
     if field == "State" || field == "state" {
@@ -49,6 +52,10 @@ pub fn convert_state_field(field: &str) -> &str {
     }
 }
 
+///examines the field string to determine if it violates
+///sql column naming rules and replaces bad field with good field.
+///Currently the only invalid names that have been discovered
+///are names containing `from` and `to`.
 pub fn convert_invalid_field_name(field: &str) -> &str {
 
     match field {
@@ -58,7 +65,8 @@ pub fn convert_invalid_field_name(field: &str) -> &str {
     }
 }
 
-
+///examines a field for whitespace which is not allowed and
+/// replaces them with _ underscores.
 pub fn convert_space_in_field(field: &str) -> String {
 
     if field.trim().contains(" ") {
@@ -68,13 +76,13 @@ pub fn convert_space_in_field(field: &str) -> String {
     }
 }
 
-//pub fn fix_invalid_column_names()
-
+///some date fields contain more than just the date string,
+///sometimes it's junk and sometimes it's other formatted data.
+///we need dates, nothing else.
 pub fn format_date(date_str: &str) -> &str {
     lazy_static! {
         static ref RE: Regex = Regex::new(r"\d{2}/\d{2}/\d{4}").unwrap();
     }
-//    let reg =  Regex::new(r"\d{2}/\d{2}/\d{4}").unwrap();
 
     if RE.is_match(date_str) {
         let c = RE.captures(date_str).unwrap();
