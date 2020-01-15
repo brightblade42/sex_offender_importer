@@ -1,7 +1,5 @@
 #![allow(dead_code)]
 
-//use std::time::{Duration, Instant};
-//use quicli::prelude::*;
 use structopt::StructOpt;
 use indicatif::{ProgressStyle, ProgressBar};
 use console::{self, style};
@@ -14,7 +12,6 @@ use sex_offender::{
     downloader::{
         Downloader,
         DownloadOption,
-
     },
     extractors::Extractor,
     config::{self, PathVars, States, LoadData, FtpConfig},
@@ -258,11 +255,9 @@ fn create_downloader() -> Downloader {
 fn import_files() {
 
     let statelist: States = config::States::load().unwrap();
-    //let statelist = statelist.iter().filter(|s| s.abbr != "TX" && s.abbr.chars().nth(0) > Some('H'));
-    //     let statelist = statelist.iter().filter(|s| s.abbr != "HI" && s.abbr != "VA");
-    //     let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) > Some('H')); // && s.abbr.chars().nth(0) != Some('T'));
-    //    let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) == Some('T'));
-    //let statelist = statelist.iter().filter(|s| s.abbr == "HI");
+
+    let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) >= Some('U')); // && s.abbr.chars().nth(0) != Some('T'));
+
     let path_vars = PathVars::new(config::Env::Production);
     let archive_path = path_vars.archive_path();
     let _prep_result = importer::prepare_import();
@@ -377,3 +372,12 @@ fn fix_directories() {
     }
 
 }
+
+/*
+
+    //let statelist = statelist.iter().filter(|s| s.abbr != "TX" && s.abbr.chars().nth(0) > Some('H'));
+    //     let statelist = statelist.iter().filter(|s| s.abbr != "HI" && s.abbr != "VA");
+    //     let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) > Some('H')); // && s.abbr.chars().nth(0) != Some('T'));
+    //    let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) == Some('T'));
+    //let statelist = statelist.iter().filter(|s| s.abbr == "HI");
+*/

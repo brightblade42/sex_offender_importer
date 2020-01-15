@@ -1,3 +1,4 @@
+//! This module
 use std::{
     path::{PathBuf},
     collections::HashMap,

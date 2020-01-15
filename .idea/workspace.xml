@@ -15,7 +15,7 @@
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/bin/sximp.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/sximp.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/extractors/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/extractors/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/importer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/mod.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -294,7 +294,7 @@
       <workItem from="1578151377878" duration="1456000" />
       <workItem from="1578263425301" duration="2033000" />
       <workItem from="1578327975549" duration="2488000" />
-      <workItem from="1578678381831" duration="52918000" />
+      <workItem from="1578678381831" duration="55206000" />
     </task>
     <servers />
   </component>

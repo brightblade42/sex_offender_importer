@@ -128,7 +128,7 @@ pub fn finalize_import(state: &str) -> GenResult<()> {
 pub fn transform_date_of_births() -> GenResult<()> {
 
     let mut pth = PathBuf::from(util::SQL_FOLDER); //folder containing all the state level import queries
-    pth.push("dataOfBirthConversion.sql");
+    pth.push("dateOfBirthConversion.sql");
 
     if !pth.exists() {
         println!("The import file is missing: {}", &pth.display());

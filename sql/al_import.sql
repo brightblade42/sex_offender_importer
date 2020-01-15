@@ -1,29 +1,46 @@
 Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
-select cast(r_Image as TEXT) as id
+select ID
      ,cast(name as TEXT) as name
-     ,cast(r_Birth_Date as TEXT) as dateOfBirth
-     ,cast(r_Eyes as TEXT)   as eyes
-     ,cast(r_Hair as TEXT)   as hair
-     ,cast(r_Height as TEXT)   as height
-     ,cast(r_Weight as TEXT)   as weight
-     ,cast(r_race as TEXT)   as race
-     ,cast(r_Sex as TEXT)   as sex
+     ,cast(age as TEXT) as dateOfBirth
+     ,eyes
+     ,hair
+     ,height
+     ,weight
+     ,race
+     ,sex
      ,trim(cast(state as TEXT)) as state
 
      -- aliases
-     ,json_array(cast(r_Aliases as Text)) as aliases
+     ,json_array("Unknown") as aliases
      --addresses
-     ,json_array(
-        json_object(
-                'address',ifnull(cast(r_Home_Address_1 as Text), '') || ' ' || ifnull(cast(r_Home_City_State_Zip as Text), '')
-            )) as addresses
+      ,(SELECT json_group_array(
+                      json_object('address', cast(Address as TEXT)
+                          || ' ' || cast(state AS TEXT),
+                                  'type', cast(AddressType as TEXT)
+                          ))
+
+       FROM (SELECT Address,state, AddressType
+             FROM ALSexOffenders_addresses arad
+             where arad.ID = ALSexOffenders_main.ID
+               and arad.state = ALSexOffenders_main.state)
+)as addresses
+
      --offenses
-     ,json_array(
-        json_object(
-                'offense',ifnull(cast(r_Sex_Crime as Text),'') || '. ' || ifnull(cast(r_Description as Text), '')
-            )) as offenses
-     ,json_array(cast(r_Scars_Marks_Tattoos as Text)) as scarsTattoos
+    , (SELECT json_group_array(json_object ( 'offense', cast(offense as Text) ))
+       FROM (SELECT description as offense
+             FROM ALSexOffenders_offenses offz
+             WHERE offz.id = ALSexOffenders_main.id
+               and ALSexOffenders_main.state = offz.state
+            )
+) as offenses
+  ,(select json_group_array( cast(smt as text))
+       from (select scars_marks_tattoos as smt from ALSexOffenders_smts smts
+             where smts.id = ALSexOffenders_main.id
+               and smts.state = ALSexOffenders_main.state)) as scarsTattoos
 
-     ,json_array(cast(r_Image as Text)) as photos
+  ,(select json_group_array(cast(PhotoFile as Text))
+       from (select PhotoFile from ALSexOffenders_photos stphotos
+             where stphotos.id = ALSexOffenders_main.id
+               and stphotos.state = ALSexOffenders_main.state)) as photos
 
-from al_sex_offenders;
+from ALSexOffenders_main;
