@@ -9,17 +9,18 @@ use crate::util::{
     GenResult
 };
 
-
 use crate::config::PathVars;
 use crate::importer::{ExtractedFile, csv_importer::Csv, img::ImageArchive};
 
-
+///We can choose whether to extract ALL files (Default), Images only, or Csv only.
 pub enum ExtractOptions {
     Default,
     ImagesOnly,
     CSVOnly
 }
 
+
+///Extractor
 pub struct Extractor<'a> {
     config: &'a PathVars,
 }
@@ -32,12 +33,14 @@ impl Extractor<'_> {
         }
     }
 
-    ///Takes a path to an archive file, extracts its contents and return:ws
-    /// a List of ExtractedFile objects that describe the contents.
-    /// An Extracted file can be one of two variants. Csv or ImageArchive
+    ///Takes a path to an archive file, examines the embedded files, extracts its contents, writes
+    /// the embedded files to disk and returns a Vec of ExtractedFile types
+    ///  ExtractedFile is a type that describes aspects of the embedded file (location, state, deliteter
+    /// character. An Extracted file can be one of two variants. Csv or ImageArchive
     pub fn extract_archive(&mut self, archive_path: PathBuf, options: &ExtractOptions, overwrite: bool) -> GenResult<Vec<ExtractedFile>> {
         let mut extracted_files: Vec<ExtractedFile> = Vec::new(); //store our list of csv files.
 
+       //TODO: examine whether this is actually useful to us. Finish or kill the feature
           match options {
                   ExtractOptions::CSVOnly => {
                       if archive_path.to_string_lossy().contains("images") {
@@ -75,6 +78,8 @@ impl Extractor<'_> {
                 let mut outfile = BufWriter::new(File::create(&extracts_path)?);
                 std::io::copy(&mut embedded_file, &mut outfile)?;
             }
+
+            ///determine the method of extraction based on the file extension
             match embedded_file_name.extension() {
 
                 Some(ext) if ext == "csv" => {
@@ -104,6 +109,7 @@ impl Extractor<'_> {
         }
         Ok(extracted_files)
     }
+
     ///After a file is extracted, it is saved to a configured Extraction path.
     ///This function builds up the path where Extracted files will be saved before their contents
     /// are parsed and imported.

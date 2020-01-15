@@ -1,4 +1,3 @@
-
 #![allow(dead_code)]
 
 //use std::time::{Duration, Instant};
@@ -25,24 +24,6 @@ use std::time::Duration;
 use sex_offender::util::{GenResult, GenError};
 use sex_offender::downloader::records::FileInfo;
 use std::borrow::Borrow;
-
-/*#[derive(Debug, StructOpt)]
-#[structopt(name= "sx-imp", about = "cli tool for downloading sex offender data")]
-struct SexOffenderCli {
-    #[structopt(long = "count", short = "n", default_value = "3")]
-    count: usize,
-    #[structopt(long = "extract", short = "x", default_value = "none")]
-    extract: String,
-    #[structopt(long = "import", short = "i", default_value = "new")]
-    import: String,
-    #[structopt(long = "download", short = "d", default_value = "new")]
-    download: String,
-
-    //pull from local db unless upgrade option set? like a lock file?
-    #[structopt(long = "list", short = "l", default_value = "new")]
-    list: String,
-}
-*/
 
 #[derive(Debug, StructOpt)]
 #[structopt(name= "sx-imp", about = "cli tool for downloading and managing sex offender data",
@@ -88,13 +69,28 @@ enum SXOCli {
         #[structopt(long="dlog")]
         ///pass -dlog to rebuild the download log from archives on disk. snoogans.
         download_log: bool,
-    }
+    },
+
+    #[structopt(name="import")]
+    Import {
+        #[structopt(long,short)]
+        ///pass -a to begin import for all extracted files
+        ///
+        ///The import process will delete any existing state data in favor of the update.
+        ///imports are all or nothing at the state level
+        all: bool,
+        #[structopt(long,short)]
+        ///pass -i to import just the new images
+        img: bool,
+        #[structopt(long,short)]
+        ///pass -c to import just the csv data.
+        csv: bool,
+    },
 }
 
 fn main()  {
 
     let mut downloader: Downloader = create_downloader();
-//    let opt = SexOffenderCli::from_args();
     let opt = SXOCli::from_args();
 
     let pb = ProgressBar::new_spinner();
@@ -191,7 +187,7 @@ fn main()  {
 
                 let file_list =  get_new_list(&mut downloader);//dloader.get_newest_update_list();
 
-               // let file_list = file_list.iter().filter(|f| f.unwrap().name())
+                //TODO: Find out why downloading is extremely slow compared to regular ftp clients
                 pb.set_message("Retrieving available archives...");
                 let sex_offender_archives =  file_list.iter()
                     .map(|fi| {
@@ -204,11 +200,11 @@ fn main()  {
                         m
                     });
                 pb.finish_with_message("Done downloading archives! Ready to import.");
-            } else if let Some(s) = state {
+            } else if let Some(st) = state { //download a single state.
 
                 let file_list = get_new_list(&mut downloader );
-
-                let file_list = file_list.iter().filter(|f| f.as_ref().unwrap().name()[..2] == "AL".to_string());
+                //let file_list = file_list.iter().filter(|f| f.as_ref().unwrap().name()[..2] == "AL".to_string());
+                let file_list = file_list.iter().filter(|f| f.as_ref().unwrap().name()[..2] == st);
 
                 for f in file_list {
 
@@ -220,6 +216,11 @@ fn main()  {
                 pb.finish_with_message("Done with requested files");
             }
         },
+        SXOCli::Import { all, ..} => {
+            pb.set_message("Importing all extracted files...");
+            import_files();
+            pb.finish_with_message("Import has completed");
+        }
 
         _ => { println!("not ready for that one chief");}
     }
@@ -227,10 +228,7 @@ fn main()  {
 }
 
 fn get_new_list(dloader: &mut Downloader) -> Vec<GenResult<FileInfo>>{
-
-    let record_filter = |x: &String| x.contains("records");
     dloader.get_newest_available_list()
-
 }
 
 fn get_unchanged_list(dloader: &mut Downloader) -> Vec<GenResult<FileInfo>> {
@@ -242,6 +240,8 @@ fn get_all_avail(dloader: &mut Downloader) -> Vec<GenResult<FileInfo>> {
     let file_filter = |x: &String| x.contains("records") || x.contains("images");
     dloader.get_all_available_file_list(file_filter, DownloadOption::Always).unwrap()
 }
+
+
 fn create_downloader() -> Downloader {
 
     let _ftp_conf = FtpConfig::init(config::Env::Production);
@@ -255,10 +255,6 @@ fn create_downloader() -> Downloader {
     Downloader::connect(addr, user, pass , path_vars).expect("Unable to get a good connection")
 }
 
-fn get_root_path(vars: &PathVars) -> PathBuf {
-    PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["archives_path"])
-}
-
 fn import_files() {
 
     let statelist: States = config::States::load().unwrap();
@@ -268,113 +264,116 @@ fn import_files() {
     //    let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) == Some('T'));
     //let statelist = statelist.iter().filter(|s| s.abbr == "HI");
     let path_vars = PathVars::new(config::Env::Production);
-    let  root_path = path_vars.archive_path();//util::get_root_path(&path_vars);
-
+    let archive_path = path_vars.archive_path();
     let _prep_result = importer::prepare_import();
-
     let extract_opt = ExtractOptions::Default; //ImagesOnly;
-    let extract_opt = ExtractOptions::ImagesOnly;
+    //let extract_opt = ExtractOptions::ImagesOnly;
     let overwrite_files = true;
+
     for state in statelist {
 
-    println!("=================================");
-    println!("{}: {}", state.state, state.abbr);
-    println!("=================================");
+        println!("=================================");
+        println!("{}: {}", state.state, state.abbr);
+        println!("=================================");
 
-    let state_path = root_path.join(state.abbr.to_uppercase());
-    println!("{:?}",&state_path);
-    //let st_files = fs::read_dir(state_path).expect("A file but got us a directory");
+        let state_archive_path = archive_path.join(state.abbr.to_uppercase());
+        println!("{:?}",&state_archive_path);
+        //let st_files = fs::read_dir(state_path).expect("A file but got us a directory");
 
-    let st_files = fs::read_dir(&root_path).expect("A file but got us a directory");
-    let st_files = st_files.filter(|fp| {
-     let x = fp.as_ref().expect("a Dir Entry");
-     x.file_name().to_str().unwrap()[..2] == state.abbr
-    });
-    importer::delete_old_photos(&state.abbr);
-    for state_archive in st_files {
+        let st_files = fs::read_dir(&archive_path).expect("A file but got us a directory");
+        let st_files = st_files.filter(|fp| {
+             let x = fp.as_ref().expect("a Dir Entry");
+             x.file_name().to_str().unwrap()[..2] == state.abbr
+        });
 
-     println!("{:?}", state_archive);
+        importer::delete_old_photos(&state.abbr);
 
-     let archive = state_archive.unwrap();
-     let mut extractor = Extractor::new(&path_vars);
+        for state_archive in st_files {
 
-     let extracted_files: Vec<ExtractedFile> = extractor.extract_archive(archive.path(), &extract_opt, overwrite_files).expect("A file but got a directory");
+             println!("{:?}", state_archive);
 
-     for exfile in extracted_files {
-         println!("importing file {:?}", archive.file_name());
-         exfile.import().expect(&format!("Unable to complete file import {:?}", archive.file_name()));
-         println!("=================================");
-     }
+             let archive = state_archive.unwrap();
+             let mut extractor = Extractor::new(&path_vars);
 
+             let extracted_files: Vec<ExtractedFile> = extractor.extract_archive(archive.path(), &extract_opt, overwrite_files)
+                 .expect("A file but got a directory");
+
+            //each archive contains 1 or more files
+             for exfile in extracted_files {
+                 println!("importing file {:?}", archive.file_name());
+                 exfile.import().expect(&format!("Unable to complete file import {:?}", archive.file_name()));
+                 println!("=================================");
+             }
+        }
+
+        importer::finalize_import(&state.abbr);
+        println!("=================================");
+    }
+
+    importer::transform_date_of_births();
+    println!("Dude, there's most of your data");
 }
 
-importer::finalize_import(&state.abbr);
-
-println!("=================================");
-}
-
-println!("Dude, there's most of your data");
-}
 #[test]
 fn connect_test() {
-let path_config = config::PathVars::new(config::Env::Production);
-let ftp_config = FtpConfig::init(config::Env::Production);
+    let path_config = config::PathVars::new(config::Env::Production);
+    let ftp_config = FtpConfig::init(config::Env::Production);
 
-assert_eq!(1, 0)
+    assert_eq!(1, 0)
 }
 
 #[test]
 fn disconnect_test() {
-assert_eq!(1, 0)
+    assert_eq!(1, 0)
 }
 
 //#[test]
 fn test_root_dirs() {
-let root_path = PathBuf::from("/home/d-rezzer/dev/eyemetric/ftp/us");
-let flist = fs::read_dir(root_path).unwrap();//.collect();
+    let root_path = PathBuf::from("/home/d-rezzer/dev/eyemetric/ftp/us");
+    let flist = fs::read_dir(root_path).unwrap();//.collect();
 
-for f in flist {
-let de = f.unwrap();
-println!("{:?}", de);
-for arch in fs::read_dir(de.path()).unwrap() {
- println!("==> {:?}", arch.unwrap());
-}
-}
+    for f in flist {
+        let de = f.unwrap();
+        println!("{:?}", de);
+        for arch in fs::read_dir(de.path()).unwrap() {
+             println!("==> {:?}", arch.unwrap());
+        }
+    }
 }
 
 
 fn fix_directories() {
 
-let statelist: States = config::States::load().unwrap();
-let path_vars = PathVars::new(config::Env::Production);
-let  root_path =  path_vars.archive_path();
+    let statelist: States = config::States::load().unwrap();
+    let path_vars = PathVars::new(config::Env::Production);
+    let  root_path =  path_vars.archive_path();
 
-for state in statelist {
-let npath = root_path.join(state.abbr.to_uppercase());
-if let Ok(()) = fs::create_dir(&npath) {
- println!("made dir : {:?}", &npath);
-} else {
- println!("path already exists, no need to create");
-}
+    for state in statelist {
+        let npath = root_path.join(state.abbr.to_uppercase());
+        if let Ok(()) = fs::create_dir(&npath) {
+         println!("made dir : {:?}", &npath);
+        } else {
+         println!("path already exists, no need to create");
+        }
 
-println!("=======================================================");
-for entry in fs::read_dir(&root_path).unwrap() {
- let entry = entry.unwrap();
- let data = entry.metadata().unwrap();
- let path = entry.path();
+        println!("=======================================================");
+        for entry in fs::read_dir(&root_path).unwrap() {
+             let entry = entry.unwrap();
+             let data = entry.metadata().unwrap();
+             let path = entry.path();
 
- if data.is_file() {
-     if let Some(ex) = path.extension() {
-         let pre = &entry.file_name().to_os_string().into_string().unwrap().to_uppercase()[0..2];
-         //println!("pre: {}", pre);
-         if ex == "zip" && pre == &state.abbr.to_uppercase() {
-             println!("{} length {}", path.display(), data.len());
-         }
-     }
- }
-}
-println!("=======================================================");
+             if data.is_file() {
+                 if let Some(ex) = path.extension() {
+                     let pre = &entry.file_name().to_os_string().into_string().unwrap().to_uppercase()[0..2];
+                     //println!("pre: {}", pre);
+                     if ex == "zip" && pre == &state.abbr.to_uppercase() {
+                         println!("{} length {}", path.display(), data.len());
+                     }
+                 }
+             }
+        }
+        println!("=======================================================");
 
-}
+    }
 
 }

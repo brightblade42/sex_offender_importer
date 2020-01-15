@@ -55,7 +55,8 @@ trait SqlHandler {
 
 
 
-///ExtractedFile represents either a CSV file or an embedded Zip file that are contained within
+///ExtractedFile represents either a CSV file or  embedded Zip files (image files are stored as zip files
+/// within an outer zip file) that are contained within
 /// the top-level zip archives downloaded from the `public data` remote server.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ExtractedFile {
@@ -63,8 +64,8 @@ pub enum ExtractedFile {
     ImageArchive(ImageArchive)
 }
 
-///Import implementation for ExtractedFile functions as a way to forward
-///import method calls to its variants.
+///we implement Import trait on Extracted file to forward import calls
+///to its variants.
 impl Import for ExtractedFile {
     type Reader = String;
 
@@ -91,9 +92,6 @@ impl Import for ExtractedFile {
     }
 }
 
-//=============================
-//Module level functions
-//================================
 ///ensures that the database schema is created before we try to import any data into the db.
 pub fn prepare_import() -> GenResult<()> {
     let conn = util::get_connection(None).expect("unable to connect to db");
@@ -127,7 +125,7 @@ pub fn finalize_import(state: &str) -> GenResult<()> {
 ///many of the dates are not in valid but inconsistent format.
 ///This function loads a sql file an converts all known formats into
 ///one unified format of MM/DD/YYYY
-fn transform_date_of_births() -> GenResult<()> {
+pub fn transform_date_of_births() -> GenResult<()> {
 
     let mut pth = PathBuf::from(util::SQL_FOLDER); //folder containing all the state level import queries
     pth.push("dataOfBirthConversion.sql");
