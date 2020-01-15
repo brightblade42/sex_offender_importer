@@ -1,6 +1,6 @@
 //! This module takes care of the import process which is comprised of reading csv files
 //! cleaning data, ensuring sex offender db is setup properly and finally importing into sqlite
-pub mod csv_extractor;
+pub mod csv_importer;
 pub mod img;
 
 use std::{
@@ -15,7 +15,7 @@ use crate::util::{
     GenResult
 };
 //submodules
-use csv_extractor::Csv;
+use csv_importer::Csv;
 use img::ImageArchive;
 
 
