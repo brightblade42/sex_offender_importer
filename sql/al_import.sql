@@ -11,15 +11,11 @@ select cast(r_Image as TEXT) as id
      ,trim(cast(state as TEXT)) as state
 
      -- aliases
-     ,json_array(
-        json_object(
-                'alias',ifnull(cast(r_Aliases as Text), '')
-            )) as aliases
+     ,json_array(cast(r_Aliases as Text)) as aliases
      --addresses
      ,json_array(
         json_object(
-                'address1',ifnull(cast(r_Home_Address_1 as Text), ''),
-                'address2', ifnull(cast(r_Home_City_State_Zip as Text), '')
+                'address',ifnull(cast(r_Home_Address_1 as Text), '') || ' ' || ifnull(cast(r_Home_City_State_Zip as Text), '')
             )) as addresses
      --offenses
      ,json_array(

@@ -11,7 +11,7 @@ use crate::util::{
 
 
 use crate::config::PathVars;
-use crate::importer::{ExtractedFile, csv::Csv, img::ImageArchive};
+use crate::importer::{ExtractedFile, csv_extractor::Csv, img::ImageArchive};
 
 
 pub enum ExtractOptions {

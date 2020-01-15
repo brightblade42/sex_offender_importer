@@ -15,9 +15,8 @@
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/bin/sximp.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/sximp.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/downloader/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/downloader/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/extractors/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/extractors/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/importer/extracts.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/csv.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/importer/csv.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/csv_extractor.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/importer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/importer/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/util.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/util.rs" afterDir="false" />
     </list>
@@ -297,7 +296,7 @@
       <workItem from="1578151377878" duration="1456000" />
       <workItem from="1578263425301" duration="2033000" />
       <workItem from="1578327975549" duration="2488000" />
-      <workItem from="1578678381831" duration="40382000" />
+      <workItem from="1578678381831" duration="46856000" />
     </task>
     <servers />
   </component>
@@ -322,11 +321,11 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/importer/mod.rs</url>
-          <line>145</line>
+          <line>163</line>
           <option name="timeStamp" value="53" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/importer/csv.rs</url>
+          <url>file://$PROJECT_DIR$/src/importer/csv_extractor.rs</url>
           <line>112</line>
           <option name="timeStamp" value="75" />
         </line-breakpoint>

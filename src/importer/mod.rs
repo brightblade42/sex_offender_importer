@@ -1,7 +1,6 @@
-//! This module takes care of the import process. Importing
-//! It ensures that the SexOffender database exists and is properly created.
-//!
-pub mod csv;
+//! This module takes care of the import process which is comprised of reading csv files
+//! cleaning data, ensuring sex offender db is setup properly and finally importing into sqlite
+pub mod csv_extractor;
 pub mod img;
 
 use std::{
@@ -16,7 +15,7 @@ use crate::util::{
     GenResult
 };
 //submodules
-use csv::Csv;
+use csv_extractor::Csv;
 use img::ImageArchive;
 
 
@@ -118,12 +117,32 @@ pub fn finalize_import(state: &str) -> GenResult<()> {
 
     let final_import_query = fs::read_to_string(pth)?;
     let conn = util::get_connection(None)?;
+    conn.execute("BEGIN TRANSACTION", NO_PARAMS);
     conn.execute(&format!("Delete from SexOffender where state='{}'", state), NO_PARAMS)?;
     conn.execute(&final_import_query, NO_PARAMS)?;
-
+    conn.execute("END TRANSACTION", NO_PARAMS);
     Ok(())
 }
 
+///many of the dates are not in valid but inconsistent format.
+///This function loads a sql file an converts all known formats into
+///one unified format of MM/DD/YYYY
+fn transform_date_of_births() -> GenResult<()> {
+
+    let mut pth = PathBuf::from(util::SQL_FOLDER); //folder containing all the state level import queries
+    pth.push("dataOfBirthConversion.sql");
+
+    if !pth.exists() {
+        println!("The import file is missing: {}", &pth.display());
+        return Ok(());
+    }
+
+    let date_of_births_conversion = fs::read_to_string(pth)?;
+    let conn = util::get_connection(None)?;
+    conn.execute(&date_of_births_conversion, NO_PARAMS)?;
+
+    Ok(())
+}
 ///returns a create index query string for some table_name
 fn create_default_index(table_name: &str) -> String {
     format!(
@@ -179,6 +198,7 @@ fn create_photos() -> String {
     )"#,
     )
 }
+
 ///creates the necessary tables and indexes for the SexOffender database.
 fn create_db(conn: &Connection) -> GenResult<()> {
     set_pragmas(conn);
@@ -196,7 +216,8 @@ fn create_db(conn: &Connection) -> GenResult<()> {
     Ok(())
 }
 
-//this seems to do bupkis!
+//this seems to do bupkis! We're trying to set up some sqlite optimizations but
+//it seems to have no effect!
 fn set_pragmas(conn: &Connection) {
 /*    match conn.pragma_update(None, "journal_mode", &String::from("OFF")) {
         Ok(()) => println!("Updated pragma journal_mode: off"),

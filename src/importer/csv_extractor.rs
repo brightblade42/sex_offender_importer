@@ -30,7 +30,7 @@ use std::fs::DirEntry;
 ///Headers are required for importing. This allows us to add some to a csv file if they don't exist
 #[derive(Debug, Serialize)]
 pub struct CsvMetaData<'a> {
-    name: String,
+    file_name: String,
     headers: Vec<&'a str>,
 }
 
@@ -53,9 +53,9 @@ impl Csv {
     ///We need headers to import into the database. Headers represent column names
     fn add_headers(&self) -> GenResult<()> {
 
-        if let Some(meta) = self.load_csv_info() {
+        if let Some(meta) = self.create_csv_metadata() {
                 meta.iter().for_each(|md| {
-                    if self.path.ends_with(md.name.clone()) {
+                    if self.path.ends_with(md.file_name.clone()) {
                         let header_line = self.build_header_line(md);
                         self.add_headers_to_file(header_line.as_bytes(), &self.path).unwrap();
                         println!("{}", &header_line);
@@ -107,8 +107,12 @@ impl Csv {
         Ok(())
     }
 
-    ///
-    fn load_csv_info(&self) -> Option<Vec<CsvMetaData>> {
+    ///returns metadata for csv files that need extra information to be successfully imported.
+    ///NOTE: Currently Texas csv files don't contain the header information required for import.
+    ///We return that header information as a Vec of CsvMetaData structs where each
+    ///item represents the header information for a specific file, also listed in the CsvMetaData
+    ///type.
+    fn create_csv_metadata(&self) -> Option<Vec<CsvMetaData>> {
 
         //Texas is the only state providing csv files without headers. It's a bummer.
         //I've gleaned the necessary header information from the SQLSchema dump files provided
@@ -118,38 +122,38 @@ impl Csv {
         if self.state == "TX" {
             Some(vec![
                 CsvMetaData {
-                    name: "Address.txt".into(),
+                    file_name: "Address.txt".into(),
                     headers: vec!["AddressId", "IND_IDN", "SNU_NBR", "SNA_TXT", "SUD_COD", "SUD_NBR", "CTY_TXT", "PLC_COD", "ZIP_TXT", "COU_COD", "LAT_NBR", "LON_NBR"],
                 },
                 CsvMetaData {
-                    name: "BRTHDATE.txt".into(),
+                    file_name: "BRTHDATE.txt".into(),
                     headers: vec!["DOB_IDN","PER_IDN","TYP_COD","DOB_DTE"]
                 },
                 CsvMetaData {
-                    name: "NAME.txt".into(),
+                    file_name: "NAME.txt".into(),
                     headers: vec!["NAM_IDN","PER_IDN","TYP_COD","NAM_TXT","LNA_TXT","FNA_TXT"]
                 },
                 CsvMetaData {
-                    name: "OFF_CODE_SOR.txt".into(),
+                    file_name: "OFF_CODE_SOR.txt".into(),
                     //headers: vec!["COO_COD","COJ_COD","JOO_COD","OFF_COD","VER_NBR","LEN_TXT","STS_COD","CIT_TXT"], //,"BeginDate","EndDate"]
                     headers: vec!["COO_COD","COJ_COD","JOO_COD","OFF_COD","VER_NBR","LEN_TXT","STS_COD","CIT_TXT","BeginDate","EndDate"]
                 },
                 CsvMetaData {
-                    name: "Offense.txt".into(),
+                    file_name: "Offense.txt".into(),
                     headers: vec!["IND_IDN","OffenseId","COO_COD","COJ_COD","JOO_COD","OFF_COD","VER_NBR","GOC_COD","DIS_FLG","OST_COD","CPR_COD","CDD_DTE","AOV_NBR","SOV_COD","CPR_VAL"]
 
                 },
                 CsvMetaData {
-                    name: "Photo.txt".into(),
+                    file_name: "Photo.txt".into(),
                     headers: vec!["IND_IDN","PhotoId","POS_DTE"]
                 },
 
                 CsvMetaData {
-                    name: "INDV.txt".into(),
+                    file_name: "INDV.txt".into(),
                     headers: vec!["IND_IDN","DPS_NBR"]
                 },
                 CsvMetaData {
-                    name: "PERSON.txt".into(),
+                    file_name: "PERSON.txt".into(),
                     headers: vec!["IND_IDN","PER_IDN","SEX_COD","RAC_COD","HGT_QTY","WGT_QTY","HAI_COD","EYE_COD","ETH_COD"]
                 },
             ])
@@ -201,13 +205,14 @@ impl Csv {
     }
 }
 
-
+///implement the Import trait that allows our csv data to be imported into the SexOffender
+///data stored
 impl Import for Csv {
     type Reader = csv::Reader<File>;
 
     fn open_reader(&self, has_headers: bool) -> GenResult<Self::Reader> {
 
-        let file = File::open(&self.path)?; //.unwrap();
+        let file = File::open(&self.path)?;
 
         let rdr = csv::ReaderBuilder::new()
             .delimiter(self.delimiter as u8)
@@ -233,9 +238,9 @@ impl Import for Csv {
 
         set_pragmas(&conn);
         //this should be filtered out, really.
-        let dsp = self.path.display().to_string();
+        let path = self.path.display().to_string();
         //TODO: filter this out from elsewhere methinks.
-        if dsp.contains("screenshot") {
+        if path.contains("screenshot") {
             println!("skipping screenshot file. It is useless");
             return Ok(());
         }
@@ -247,7 +252,7 @@ impl Import for Csv {
            table_name = format!("TX{}", table_name);
         }
 
-        //TODO:: ensure this is temporary.
+
         let create_query = self.create_table_query(&mut csv_reader, &table_name)?;
         conn.execute(&create_query, NO_PARAMS)?;
 
@@ -259,12 +264,14 @@ impl Import for Csv {
 
         let mut insStmt = conn.prepare(&insert_query);
         let date_pos = self.find_date_position(&csv_reader.headers().unwrap());
+        //stores the values of a row of csv data that will be passed to sql as a parameter array.
         let mut rec_vals: Vec<String> = Vec::new();
+        //iterate each csv row and import it into SexOffender db.
         //we use bytes to work around non-utf-8 issues in csv.
         for result in csv_reader.byte_records() {
             match result {
                 Ok(record) => {
-                    let rec = record.clone();
+                    let rec = record.clone(); //sometimes we need cloning to make a thing work. My Rust growing pains.
 
                     ///TODO:: Extract this to a function, this will grow
                     /// as more formatting is needed
@@ -280,10 +287,9 @@ impl Import for Csv {
                         rec_vals.push(ascii_string.parse().unwrap());
                     }
 
-                    rec_vals.push(self.state.to_uppercase());
+                    rec_vals.push(self.state.to_uppercase()); //our custom State value (not in csv)
 
                    match &insStmt.as_mut().unwrap().execute(&rec_vals) {
-                   // match conn.execute(&insert_query, &rec_vals)  {
                         Ok(_) =>  () ,
                         Err(er) => {
                             //TODO: Consider logging these kinds of errors.
@@ -294,7 +300,6 @@ impl Import for Csv {
                     rec_vals.clear();
                 }
                 Err(e) => {
-
                     println!("Row data error: {}", e);
                     println!("vals {:?}", rec_vals );
                 }
@@ -313,9 +318,8 @@ impl SqlHandler for Csv {
     type Reader = csv::Reader<File>;
     fn create_table_query(&self, reader: &mut Self::Reader, tname: &str) -> GenResult<String> {
 
-
         let q = format!("CREATE TABLE if not exists {} (", tname);
-        //add the header names as column names for out table.
+        //add the header names as column names for our table.
         let mut create_table = reader
             .headers()
             .unwrap()
@@ -334,7 +338,6 @@ impl SqlHandler for Csv {
 
     fn create_insert_query(&self, reader: &mut Self::Reader, tname: &str) -> GenResult<String> {
 
-        //being constructing the insert statement.
         let q = format!("INSERT INTO {} ( ", tname);
 
         //add the headers as columns

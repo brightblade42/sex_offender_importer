@@ -259,7 +259,6 @@ fn get_root_path(vars: &PathVars) -> PathBuf {
     PathBuf::from(&vars.vars["app_base_path"]).join(&vars.vars["archives_path"])
 }
 
-
 fn import_files() {
 
     let statelist: States = config::States::load().unwrap();

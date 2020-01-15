@@ -10,7 +10,7 @@ pub type GenResult<T> = ::std::result::Result<T, GenError>; //not bip bip bip.. 
 pub static IMPORT_LOG: &'static str = "/opt/eyemetric/sex_offender/app/importlog.sqlite";
 pub static SQL_FOLDER: &'static str = "/opt/eyemetric/sex_offender/app/sql";
 
-///Remove junk characters and leave only the cleanest and choicest ascii characters.
+///Removes junk characters and leave only the cleanest and choicest ascii characters.
 pub fn to_ascii_string(chars: &[u8]) -> String {
 
     let mut ascii = String::new();

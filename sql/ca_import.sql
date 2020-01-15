@@ -1,7 +1,7 @@
 Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 SELECT cast(id as TEXT) as id
      ,cast(name as TEXT) as name
-     ,'' as DateOfBirth
+     ,DateOfBirth
      ,cast(EyeColor as TEXT)   as eyes
      ,cast(HairColor as TEXT)   as hair
      ,cast(height as TEXT) as height

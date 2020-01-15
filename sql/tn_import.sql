@@ -12,10 +12,7 @@ select ifnull(cast(case_num as TEXT), '0') as id
      -- aliases
 
      -- aliases
-     ,json_array(
-        json_object(
-                'alias',ifnull(cast(r_Aliases as Text), '')
-            )) as aliases
+     ,json_array( cast(r_Aliases as Text) ) as aliases
      --addresses
      ,json_array(
         json_object(

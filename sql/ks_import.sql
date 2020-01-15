@@ -10,10 +10,7 @@ select ifnull(cast(r_Image as TEXT),'0') as id
      ,cast(r_Gender as TEXT)   as sex
      ,trim(cast(state as TEXT)) as state
      -- aliases
-     ,json_array(
-        json_object(
-                'alias',ifnull(cast(r_Aliases as Text), '')
-            )) as aliases
+     ,json_array(cast(r_Aliases as Text)) as aliases
      --addresses
      ,json_array(
         json_object(

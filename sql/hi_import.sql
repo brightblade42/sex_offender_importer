@@ -20,21 +20,19 @@ select cast(id as TEXT) as id
 ) as aliases
 
      --addresses
-/*
+
      ,(SELECT json_group_array(
                       json_object('address', cast(Address as TEXT)
-                          || ' ' ||  cast(City as TEXT)
-                          || ' ' || cast(Addr_State AS TEXT),
-                                  'type', cast(Type as TEXT)
+                          , 'type', cast(Type as TEXT)
                           ))
 
-       FROM (SELECT Address,City, Addr_State, Type
+       FROM (SELECT Address, address_type as Type
              FROM HI_sex_offender_addresses arad
              where arad.ID = HI_sex_offender_main.ID
                and arad.state = HI_sex_offender_main.state)
 )as addresses
-*/
-     ,json_array("Unknown") as addresses
+
+--     ,json_array("Unknown") as addresses
      --offenses
      ,(SELECT
            json_group_array (
