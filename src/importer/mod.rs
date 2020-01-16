@@ -126,21 +126,40 @@ pub fn finalize_import(state: &str) -> GenResult<()> {
 ///This function loads a sql file an converts all known formats into
 ///one unified format of MM/DD/YYYY
 pub fn transform_date_of_births() -> GenResult<()> {
+    execute_by_lines("formatDateOfBirth.sql")?;
+    Ok(())
+}
+
+pub fn transform_photo_names() -> GenResult<()> {
+    execute_by_lines("formatPhotoNames.sql")?;
+    Ok(())
+}
+
+///load a files that contains a list of sql statements and execute each in turn.
+fn execute_by_lines(sql_file_name: &str) -> GenResult<()>{
 
     let mut pth = PathBuf::from(util::SQL_FOLDER); //folder containing all the state level import queries
-    pth.push("dateOfBirthConversion.sql");
+    pth.push(sql_file_name);
 
     if !pth.exists() {
-        println!("The import file is missing: {}", &pth.display());
+        println!("The sql file is missing: {}", &pth.display());
         return Ok(());
     }
 
-    let date_of_births_conversion = fs::read_to_string(pth)?;
     let conn = util::get_connection(None)?;
-    conn.execute(&date_of_births_conversion, NO_PARAMS)?;
+    //conn.execute("BEGIN Transaction", NO_PARAMS);
 
+    fs::read_to_string(pth)?.lines()
+        .filter(|line| line.starts_with("update")) //only update queries
+        .for_each(|line | {
+     //       conn.execute(line, NO_PARAMS)?;
+            println!("{}", line);
+        });
+
+    //conn.execute("END Transaction", NO_PARAMS);
     Ok(())
 }
+
 ///returns a create index query string for some table_name
 fn create_default_index(table_name: &str) -> String {
     format!(

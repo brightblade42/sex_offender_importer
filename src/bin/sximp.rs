@@ -87,6 +87,9 @@ enum SXOCli {
 
 fn main()  {
 
+    importer::transform_date_of_births();
+    importer::transform_photo_names();
+
     let mut downloader: Downloader = create_downloader();
     let opt = SXOCli::from_args();
 
