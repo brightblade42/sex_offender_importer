@@ -87,8 +87,6 @@ enum SXOCli {
 
 fn main()  {
 
-    importer::transform_date_of_births();
-    importer::transform_photo_names();
 
     let mut downloader: Downloader = create_downloader();
     let opt = SXOCli::from_args();
@@ -304,11 +302,11 @@ fn import_files() {
              }
         }
 
-        importer::finalize_import(&state.abbr);
+        importer::finalize_state_import(&state.abbr);
         println!("=================================");
     }
 
-    importer::transform_date_of_births();
+    importer::finalize_import();
     println!("Dude, there's most of your data");
 }
 

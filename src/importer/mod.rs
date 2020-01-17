@@ -103,7 +103,7 @@ pub fn prepare_import() -> GenResult<()> {
 ///takes a state abbreviation and locates its corresponding ST_import.sql file.
 ///An import sql file exists for each state which is responsible for importing
 ///data from each individual state table into a common SexOffender table.
-pub fn finalize_import(state: &str) -> GenResult<()> {
+pub fn finalize_state_import(state: &str) -> GenResult<()> {
 
     let mut pth = PathBuf::from(util::SQL_FOLDER); //folder containing all the state level import queries
     pth.push(format!("{}_import.sql", state.to_lowercase()));
@@ -122,15 +122,23 @@ pub fn finalize_import(state: &str) -> GenResult<()> {
     Ok(())
 }
 
-///many of the dates are not in valid but inconsistent format.
+///Performs final updates on the imported data.
+///Formatting and cleanup jobs.
+pub fn finalize_import() -> GenResult<()> {
+    transform_photo_names()?;
+    transform_date_of_births()?;
+    Ok(())
+}
+
+///many of the dates are not invalid but inconsistent format.
 ///This function loads a sql file an converts all known formats into
 ///one unified format of MM/DD/YYYY
-pub fn transform_date_of_births() -> GenResult<()> {
+fn transform_date_of_births() -> GenResult<()> {
     execute_by_lines("formatDateOfBirth.sql")?;
     Ok(())
 }
 
-pub fn transform_photo_names() -> GenResult<()> {
+fn transform_photo_names() -> GenResult<()> {
     execute_by_lines("formatPhotoNames.sql")?;
     Ok(())
 }
@@ -147,16 +155,15 @@ fn execute_by_lines(sql_file_name: &str) -> GenResult<()>{
     }
 
     let conn = util::get_connection(None)?;
-    //conn.execute("BEGIN Transaction", NO_PARAMS);
+    conn.execute("BEGIN Transaction", NO_PARAMS);
 
     fs::read_to_string(pth)?.lines()
         .filter(|line| line.starts_with("update")) //only update queries
         .for_each(|line | {
-     //       conn.execute(line, NO_PARAMS)?;
-            println!("{}", line);
+            conn.execute(line, NO_PARAMS).expect(&format!("could not execute update {}", line));
         });
 
-    //conn.execute("END Transaction", NO_PARAMS);
+    conn.execute("END Transaction", NO_PARAMS);
     Ok(())
 }
 
@@ -244,6 +251,22 @@ fn set_pragmas(conn: &Connection) {
     match conn.pragma_update(None, "synchronous", &String::from("OFF")) {
         Ok(()) => println!("Updated pragma synchronous: off"),
         Err(e) => println!("Could not update pragma synchronous {}", e.description()),
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_transform_birthdates() {
+
+        assert!(false);
+
+    }
+    #[test]
+    fn test_transform_photo_names() {
+        assert!(false);
     }
 }
 
