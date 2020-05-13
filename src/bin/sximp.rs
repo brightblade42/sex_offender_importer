@@ -257,8 +257,9 @@ fn import_files() {
 
     let statelist: States = config::States::load().unwrap();
 
-    let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) >= Some('U')); // && s.abbr.chars().nth(0) != Some('T'));
+    //let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) >= Some('U')); // && s.abbr.chars().nth(0) != Some('T'));
 
+    let statelist = statelist.iter().filter(|s| s.abbr == "FL"); // && s.abbr.chars().nth(0) != Some('T'));
     let path_vars = PathVars::new(config::Env::Production);
     let archive_path = path_vars.archive_path();
     let _prep_result = importer::prepare_import();
