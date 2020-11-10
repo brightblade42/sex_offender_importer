@@ -127,6 +127,11 @@ impl Extractor<'_> {
         fs::create_dir_all(&extracts_path).expect("Unable to create extraction path");
         extracts_path.push(file_name);
 
+        println!("===================");
+        println!("Extracts path");
+        println!("{:?}", extracts_path);
+        println!("===================");
+
         extracts_path
     }
 

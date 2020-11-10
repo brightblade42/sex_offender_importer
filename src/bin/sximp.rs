@@ -259,7 +259,7 @@ fn import_files() {
 
     //let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) >= Some('U')); // && s.abbr.chars().nth(0) != Some('T'));
 
-    let statelist = statelist.iter().filter(|s| s.abbr == "FL"); // && s.abbr.chars().nth(0) != Some('T'));
+    let statelist = statelist.iter().filter(|s| s.abbr == "IA"); // && s.abbr.chars().nth(0) != Some('T'));
     let path_vars = PathVars::new(config::Env::Production);
     let archive_path = path_vars.archive_path();
     let _prep_result = importer::prepare_import();
@@ -274,24 +274,26 @@ fn import_files() {
         println!("=================================");
 
         let state_archive_path = archive_path.join(state.abbr.to_uppercase());
-        println!("{:?}",&state_archive_path);
+        println!("HELLO!!! {:?}",&state_archive_path);
         //let st_files = fs::read_dir(state_path).expect("A file but got us a directory");
 
-        let st_files = fs::read_dir(&archive_path).expect("A file but got us a directory");
+        let st_files = fs::read_dir(&state_archive_path).expect("A file but got us a directory");
         let st_files = st_files.filter(|fp| {
              let x = fp.as_ref().expect("a Dir Entry");
              x.file_name().to_str().unwrap()[..2] == state.abbr
         });
 
-        importer::delete_old_photos(&state.abbr);
+        //importer::delete_old_photos(&state.abbr);
 
         for state_archive in st_files {
 
-             println!("{:?}", state_archive);
+             println!("state archive: {:?}", state_archive);
 
              let archive = state_archive.unwrap();
+             println! ("{:?}", archive.file_name());
              let mut extractor = Extractor::new(&path_vars);
 
+            /*
              let extracted_files: Vec<ExtractedFile> = extractor.extract_archive(archive.path(), &extract_opt, overwrite_files)
                  .expect("A file but got a directory");
 
@@ -301,13 +303,15 @@ fn import_files() {
                  exfile.import().expect(&format!("Unable to complete file import {:?}", archive.file_name()));
                  println!("=================================");
              }
+
+             */
         }
 
-        importer::finalize_state_import(&state.abbr);
+        //importer::finalize_state_import(&state.abbr);
         println!("=================================");
     }
 
-    importer::finalize_import();
+    //importer::finalize_import();
     println!("Dude, there's most of your data");
 }
 

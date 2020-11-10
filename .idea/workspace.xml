@@ -15,6 +15,8 @@
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/bin/sximp.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/sximp.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/extractors/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/extractors/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,9 +39,6 @@
     </option>
     <expand />
     <select />
-  </component>
-  <component name="FavoritesManager">
-    <favorites_list name="untitled" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -68,12 +67,12 @@
   <component name="ProjectId" id="1OqCRy3JxZh0KkRgZCJF74FO58L" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -92,6 +91,7 @@
     <property name="org.rust.hideDetachedFileNotifications/home/d-rezzer/code/eyemetric/sexoffenderimporter/src/types.rs" value="true" />
     <property name="org.rust.hideToolchainNotifications" value="true" />
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+    <property name="vue.rearranger.settings.migration" value="true" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -110,12 +110,11 @@
       <command value="black" />
     </option>
   </component>
-  <component name="RunManager" selected="Cargo Command.Run sximp">
+  <component name="RunManager" selected="Cargo.Run sximp">
     <configuration name="Run sximp" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="run --package sex_offender --bin sximp" />
       <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
       <option name="backtrace" value="SHORT" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -128,7 +127,6 @@
       <option name="channel" value="DEFAULT" />
       <option name="command" value="run --package sex_offender --bin sex_offender" />
       <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
       <option name="backtrace" value="SHORT" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -141,7 +139,6 @@
       <option name="channel" value="DEFAULT" />
       <option name="command" value="test --package untitled --bin untitled sex_offender::downloader::tests::extract_nested_zip_file -- --exact" />
       <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
       <option name="backtrace" value="SHORT" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -154,7 +151,6 @@
       <option name="channel" value="DEFAULT" />
       <option name="command" value="test --package sex_offender --bin sex_offender test_root_dirs -- --exact" />
       <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
       <option name="backtrace" value="SHORT" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -163,11 +159,25 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo.Test test_root_dirs" />
+        <item itemvalue="Cargo.Test sex_offender::downloader::tests::extract_nested_zip_file" />
+        <item itemvalue="Cargo.Run untitled" />
+        <item itemvalue="Cargo.Run sximp" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="RustProjectSettings">
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
     <option name="version" value="2" />
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="StructureViewFactory">
     <option name="AUTOSCROLL_MODE" value="false" />
   </component>
@@ -279,31 +289,49 @@
       <workItem from="1580310792788" duration="1298000" />
       <workItem from="1583161969512" duration="245000" />
       <workItem from="1583164720248" duration="8612000" />
-      <workItem from="1589385184256" duration="619000" />
+      <workItem from="1589385184256" duration="1213000" />
+      <workItem from="1604965007480" duration="718000" />
+      <workItem from="1604985390909" duration="227000" />
+      <workItem from="1604985634817" duration="8317000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
+    <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="COLUMN_ORDER" />
-            </State>
+            <State />
           </value>
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="1386" y="562" key="com.intellij.ide.util.TipDialog" timestamp="1589385187724">
+    <state width="2240" height="320" key="GridCell.Tab.0.bottom" timestamp="1604968447916">
       <screen x="0" y="29" width="3440" height="1411" />
     </state>
-    <state x="1386" y="562" key="com.intellij.ide.util.TipDialog/0.29.3440.1411@0.29.3440.1411" timestamp="1589385187724" />
+    <state width="2240" height="320" key="GridCell.Tab.0.bottom/0.29.3440.1411@0.29.3440.1411" timestamp="1604968447916" />
+    <state width="2240" height="320" key="GridCell.Tab.0.center" timestamp="1604968447916">
+      <screen x="0" y="29" width="3440" height="1411" />
+    </state>
+    <state width="2240" height="320" key="GridCell.Tab.0.center/0.29.3440.1411@0.29.3440.1411" timestamp="1604968447916" />
+    <state width="2240" height="320" key="GridCell.Tab.0.left" timestamp="1604968447916">
+      <screen x="0" y="29" width="3440" height="1411" />
+    </state>
+    <state width="2240" height="320" key="GridCell.Tab.0.left/0.29.3440.1411@0.29.3440.1411" timestamp="1604968447916" />
+    <state width="2240" height="320" key="GridCell.Tab.0.right" timestamp="1604968447916">
+      <screen x="0" y="29" width="3440" height="1411" />
+    </state>
+    <state width="2240" height="320" key="GridCell.Tab.0.right/0.29.3440.1411@0.29.3440.1411" timestamp="1604968447916" />
+    <state x="1970" y="435" key="com.intellij.ide.util.TipDialog" timestamp="1604965013418">
+      <screen x="0" y="29" width="3440" height="1411" />
+    </state>
+    <state x="1970" y="435" key="com.intellij.ide.util.TipDialog/0.29.3440.1411@0.29.3440.1411" timestamp="1604965013418" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -317,6 +345,11 @@
           <url>file://$PROJECT_DIR$/src/importer/csv_importer.rs</url>
           <line>112</line>
           <option name="timeStamp" value="75" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/bin/sximp.rs</url>
+          <line>250</line>
+          <option name="timeStamp" value="76" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

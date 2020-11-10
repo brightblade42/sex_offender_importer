@@ -107,8 +107,8 @@ impl PathVars {
     ///return path to archive folder. This is where we store the zip files downloaded
     ///from the server.
     pub fn archive_path(&self) -> PathBuf {
-        //PathBuf::from(&self.vars["app_base_path"]).join(&self.vars["archives_path"])
-        PathBuf::from(&self.vars["archives"])
+        PathBuf::from(&self.vars["app_base_path"]).join(&self.vars["archives_path"])
+        //PathBuf::from(&self.vars["archives"])
     }
 
     ///returns the top level directory to the application
@@ -119,7 +119,8 @@ impl PathVars {
     ///returns the directory where we store the data we extract from the archive zip files.
     ///csv and image archives are store here for each state.
     pub fn extracts_path(&self) -> PathBuf {
-        PathBuf::from(&self.vars["extracts"])
+        PathBuf::from(&self.vars["app_base_path"]).join(&self.vars["extracts"])
+        //dfkPathBuf::from(&self.vars["extracts"])
 
     }
     ///returns the full path to an archive (zip) file
