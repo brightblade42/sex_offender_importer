@@ -32,7 +32,6 @@ pub type ConfigResult = Result<HashMap<String, String>, Box<dyn std::error::Erro
 ///a Vec of State objects. States as in US states not some program state.
 pub type States = Vec<State>;
 
-///TODO: figure out why we didn't use Config
 pub trait LoadData {
     fn load() -> Result<States, Box<dyn Error>>;
 }

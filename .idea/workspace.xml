@@ -16,7 +16,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/bin/sximp.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/sximp.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/extractors/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/extractors/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -292,7 +291,7 @@
       <workItem from="1589385184256" duration="1213000" />
       <workItem from="1604965007480" duration="718000" />
       <workItem from="1604985390909" duration="227000" />
-      <workItem from="1604985634817" duration="8317000" />
+      <workItem from="1604985634817" duration="17400000" />
     </task>
     <servers />
   </component>

@@ -283,7 +283,7 @@ fn import_files() {
              x.file_name().to_str().unwrap()[..2] == state.abbr
         });
 
-        //importer::delete_old_photos(&state.abbr);
+        importer::delete_old_photos(&state.abbr);
 
         for state_archive in st_files {
 
@@ -293,9 +293,10 @@ fn import_files() {
              println! ("{:?}", archive.file_name());
              let mut extractor = Extractor::new(&path_vars);
 
-            /*
+
              let extracted_files: Vec<ExtractedFile> = extractor.extract_archive(archive.path(), &extract_opt, overwrite_files)
                  .expect("A file but got a directory");
+
 
             //each archive contains 1 or more files
              for exfile in extracted_files {
@@ -304,14 +305,13 @@ fn import_files() {
                  println!("=================================");
              }
 
-             */
         }
 
-        //importer::finalize_state_import(&state.abbr);
+        importer::finalize_state_import(&state.abbr);
         println!("=================================");
     }
 
-    //importer::finalize_import();
+    importer::finalize_import();
     println!("Dude, there's most of your data");
 }
 
