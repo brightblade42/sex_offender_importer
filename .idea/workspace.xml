@@ -14,8 +14,6 @@
   <component name="ChangeListManager">
     <list default="true" id="43525c9d-5ea3-4052-83ab-b1d0dfe684de" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bin/sximp.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/sximp.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,7 +70,7 @@
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../sex_offender_search" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -291,7 +289,7 @@
       <workItem from="1589385184256" duration="1213000" />
       <workItem from="1604965007480" duration="718000" />
       <workItem from="1604985390909" duration="227000" />
-      <workItem from="1604985634817" duration="17400000" />
+      <workItem from="1604985634817" duration="19334000" />
     </task>
     <servers />
   </component>
@@ -311,6 +309,10 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="2450" y="515" width="424" height="497" key="FileChooserDialogImpl" timestamp="1605139670876">
+      <screen x="0" y="29" width="3440" height="1411" />
+    </state>
+    <state x="2450" y="515" width="424" height="497" key="FileChooserDialogImpl/0.29.3440.1411@0.29.3440.1411" timestamp="1605139670876" />
     <state width="2240" height="320" key="GridCell.Tab.0.bottom" timestamp="1604968447916">
       <screen x="0" y="29" width="3440" height="1411" />
     </state>

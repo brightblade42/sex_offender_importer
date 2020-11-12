@@ -845,8 +845,8 @@ create table IA_sex_offender_convictions
 	conviction,
 	conviction_date,
 	registrant_age,
-	iowa_code,
-	vehicle_used,
+	-- iowa_code,
+	-- vehicle_used,
 	county,
 	victim_gender,
 	victim_age,
@@ -856,6 +856,29 @@ create table IA_sex_offender_convictions
 create index IA_sex_offender_convictions__index
 	on IA_sex_offender_convictions (ID, state);
 
+
+create table IA_sex_offender_main
+(
+    ID,
+    Birthdate,
+   Employment,
+   Exclusion,
+   Eyes,
+   Gender,
+   Hair,
+   Height,
+   Name,
+   Race,
+   Registrant_Number,
+   Residency,
+   Tier,
+   Weight,
+   state
+);
+
+create index IA_sex_offender_main__index
+    on IA_sex_offender_main (ID, state);
+/*
 create table IA_sex_offender_main
 (
 	ID,
@@ -895,9 +918,7 @@ create table IA_sex_offender_main
 	weight_pounds,
 	state
 );
-
-create index IA_sex_offender_main__index
-	on IA_sex_offender_main (ID, state);
+*/
 
 create table IA_sex_offender_photos
 (
@@ -1057,7 +1078,6 @@ create table ILSexOffenders_main
 	Zip,
 	state
 );
-
 create index ILSexOffenders_main__index
 	on ILSexOffenders_main (ID, state);
 

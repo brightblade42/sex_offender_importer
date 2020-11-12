@@ -1,14 +1,15 @@
 Insert into SexOffender (id,name,dateOfBirth, eyes, hair, height, weight, race,sex,state,aliases,addresses,offenses,scarsTattoos,photos)
 select cast(id as TEXT) as id
-     ,ifnull(cast(First_Name as TEXT),'') || ', ' || ifnull(cast(middle_name as TEXT),'') || ' '
-          || ifnull(cast(last_name as TEXT),'') as name
-     ,cast(birthdate as TEXT)   as DateOfBirth
-     ,cast(eye_color as TEXT)   as Eyes
-     ,cast(hair_color as TEXT)   as Hair
-     ,cast(height_inches as TEXT)   as Height
-     ,cast(weight_pounds as TEXT)   as Weight
-     ,cast(race as TEXT) as race
-     ,cast(gender as TEXT)   as sex
+     --,ifnull(cast(First_Name as TEXT),'') || ', ' || ifnull(cast(middle_name as TEXT),'') || ' '
+     --     || ifnull(cast(last_name as TEXT),'') as name
+     ,cast(Name as TEXT) as Name
+     ,cast(Birthdate as TEXT)   as DateOfBirth
+     ,cast(Eyes as TEXT)   as Eyes
+     ,cast(Hair as TEXT)   as Hair
+     ,cast(Height as TEXT)   as Height
+     ,cast(Weight as TEXT)   as Weight
+     ,cast(Race as TEXT) as race
+     ,cast(Gender as TEXT)   as sex
      ,trim(cast(state as TEXT)) as state
      -- aliases
      ,( SELECT json_group_array (cast(last_name as TEXT) || ',' || cast(first_name as TEXT ) || ' ' || cast(middle_name as TEXT))
@@ -21,7 +22,8 @@ select cast(id as TEXT) as id
 ) as aliases
 
      --addresses
-     ,json_array(json_object('address', cast(address as TEXT))) as addresses
+     ,'[]' as addresses
+     --,json_array(json_object('address', cast(address as TEXT))) as addresses
      --offenses
      ,(SELECT
            json_group_array (
@@ -30,9 +32,9 @@ select cast(id as TEXT) as id
        FROM
 
            (SELECT conviction as offense
-            FROM IA_sex_offender_convictions aro
-            where IA_sex_offender_main.ID = aro.ID
-              and IA_sex_offender_main.state = aro.state
+            FROM IA_sex_offender_convictions conv
+            where IA_sex_offender_main.ID = conv.ID
+              and IA_sex_offender_main.state = conv.state
            )
 ) as offenses
      --scars tattoos
@@ -43,8 +45,8 @@ select cast(id as TEXT) as id
 
      --photos
      ,(select json_group_array(cast(PhotoFile as TEXT))
-       from (select PhotoFile from IA_sex_offender_photos azp
-             where azp.id = IA_sex_offender_main.id
-               and azp.state = IA_sex_offender_main.state)) as photos
+       from (select PhotoFile from IA_sex_offender_photos photos
+             where photos.id = IA_sex_offender_main.id
+               and photos.state = IA_sex_offender_main.state)) as photos
 
 from IA_sex_offender_main
