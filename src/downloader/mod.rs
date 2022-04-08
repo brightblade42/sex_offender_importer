@@ -18,8 +18,8 @@ use std::{
     clone::Clone,
 };
 
-use rusqlite::{self, Connection, params, NO_PARAMS, Statement};
-use serde_rusqlite::{to_params_named};
+use rusqlite::{self, Connection, params,  Statement};
+use serde_rusqlite::to_params_named;
 use crate::config::PathVars;
 use crate::util::{
     self,
@@ -29,9 +29,9 @@ use crate::util::{
 };
 use archives::SexOffenderArchive;
 use crate::downloader::records::ImageInfo;
-use std::fs::DirBuilder;
+//use std::fs::DirBuilder;
 
-static SEX_OFFENDER_PATH: &'static str = "";
+static SEX_OFFENDER_PATH: &str = "";
 const CHUNK_SIZE: usize = 2048;
 
 ///Downloader connects to an ftp server,
@@ -105,7 +105,7 @@ impl Downloader {
         let available_files: Vec<GenResult<FileInfo>> = state_folders
             .into_iter()
             .map(|state_folder| {
-                let sex_offender_folder = format!("{}{}", state_folder.to_string(), sex_offender_path);
+                let sex_offender_folder = format!("{}{}", state_folder, sex_offender_path);
 
                 let file_list: Vec<GenResult<FileInfo>> = self.stream
                     .list(Some(&sex_offender_folder)) //list remote dir
@@ -147,9 +147,10 @@ impl Downloader {
 
         //let mut file_list: Vec<GenResult<FileInfo>> = Vec::new();
 
-        let mut file_list = self.build_file_info_list(&mut qry);
+        //let mut file_list = self.build_file_info_list(&mut qry);
+        self.build_file_info_list(&mut qry)
 
-        file_list
+       // file_list
     }
 
     ///executes a sqlite statement and returns a list of FileInfo values.
@@ -157,7 +158,7 @@ impl Downloader {
 
         let mut file_list: Vec<GenResult<FileInfo>> = Vec::new();
 
-        let res = stmt.query_map(NO_PARAMS, |row| {
+        let res = stmt.query_map([], |row| {
             let rpath: String = row.get(0)?;
             let name: String =   row.get(1)?;
             let lmod = row.get(2)?;
@@ -292,7 +293,7 @@ impl Downloader {
             total_bytes += bytes_read;
 
             while bytes_read > 0 {
-                archive_writer.write(&buff[..bytes_read]).expect("Unable to write bytes");
+                archive_writer.write_all(&buff[..bytes_read]).expect("Unable to write bytes");
                 bytes_read = stream.read(&mut buff).expect("Unable to read stream");
                 total_bytes += bytes_read;
                 update_log(total_bytes);
@@ -323,16 +324,16 @@ impl Downloader {
     }
 
     ///log the list of available archives we received from the server.
-    fn log_available_updates(&self, remote_files: &Vec<GenResult<FileInfo>>) -> GenResult<()> {
+    fn log_available_updates(&self, remote_files: &[GenResult<FileInfo>]) -> GenResult<()> {
 
         self.conn.execute(
                 "CREATE TABLE if not exists current_available (rpath, name, last_modified, size integer, status) ",
-                NO_PARAMS,
+                [],
             )?;
 
-        self.conn.execute("BEGIN TRANSACTION", NO_PARAMS)?; //.expect("Unable to start transaction");
+        self.conn.execute("BEGIN TRANSACTION", [])?; //.expect("Unable to start transaction");
         //clear out
-        self.conn.execute("DELETE FROM current_available", NO_PARAMS)?; //.expect("Unable to delete from current_available")?;
+        self.conn.execute("DELETE FROM current_available", [])?; //.expect("Unable to delete from current_available")?;
         for r_file in remote_files {
             if let Ok(FileInfo::Record(ri)) = r_file {
                 self.conn.execute_named(r#"INSERT INTO current_available (rpath, name, last_modified, size, status)
@@ -341,7 +342,7 @@ impl Downloader {
             }
         }
 
-        self.conn.execute("COMMIT TRANSACTION", NO_PARAMS)?; //.expect("Failed to Commit Transaction!");
+        self.conn.execute("COMMIT TRANSACTION", [])?; //.expect("Failed to Commit Transaction!");
 
         Ok(())
     }
@@ -374,8 +375,8 @@ impl Downloader {
         let expath = fs::read_dir(self.config.archive_path())?;
 
 
-        self.conn.execute("BEGIN TRANSACTION;", NO_PARAMS);
-        self.conn.execute("Delete from download_log", NO_PARAMS);
+        self.conn.execute("BEGIN TRANSACTION;", []);
+        self.conn.execute("Delete from download_log", []);
         for entry in expath {
             let item = &entry?;
             let meta = item.metadata()?;
@@ -392,7 +393,7 @@ impl Downloader {
             }
 
         }
-        self.conn.execute("END TRANSACTION;", NO_PARAMS);
+        self.conn.execute("END TRANSACTION;", []);
 
         Ok(())
 

@@ -1,11 +1,3 @@
-//!
-//!
-//!
-//!
-//!
-//!
-//!
-//!
 use std::{
     fs::{self,File},
     path::{PathBuf, Path},
@@ -19,9 +11,9 @@ use crate::util::{
 };
 use mktemp::Temp;
 use serde_derive::{Serialize, Deserialize};
-use rusqlite::{Connection, NO_PARAMS};
-use std::error::Error;
-use std::fs::DirEntry;
+use rusqlite::{params_from_iter, Connection};
+//use std::error::Error;
+//use std::fs::DirEntry;
 
 ///CsvMetaData contains some basic information about a csv file.
 ///name: The file name and extension of the csv file.
@@ -181,7 +173,7 @@ impl Csv {
         println!("=======================================" );
         let conn = util::get_connection(None)?;
         //conn.execute(&format!("Delete from SexOffender where state='{}'", self.state), NO_PARAMS)?;
-        conn.execute(&final_import_query, NO_PARAMS).expect("Unable to do final import");
+        conn.execute(&final_import_query, []).expect("Unable to do final import");
 
         Ok(())
     }
@@ -254,17 +246,18 @@ impl Import for Csv {
 
 
         let create_query = self.create_table_query(&mut csv_reader, &table_name)?;
-        conn.execute(&create_query, NO_PARAMS)?;
+        conn.execute(&create_query, [])?;
 
         self.delete_data(&conn, &table_name)?;
         let insert_query = self.create_insert_query(&mut csv_reader, &table_name)?;
 
 
-        conn.execute("Begin Transaction;", NO_PARAMS)?;
+        conn.execute("Begin Transaction;", [])?;
 
         let mut insStmt = conn.prepare(&insert_query);
-        let date_pos = self.find_date_position(&csv_reader.headers().unwrap());
+        let date_pos = self.find_date_position(csv_reader.headers().unwrap());
         //stores the values of a row of csv data that will be passed to sql as a parameter array.
+        //let mut rec_vals: Vec<String> = Vec::new();
         let mut rec_vals: Vec<String> = Vec::new();
         //iterate each csv row and import it into SexOffender db.
         //we use bytes to work around non-utf-8 issues in csv.
@@ -273,8 +266,8 @@ impl Import for Csv {
                 Ok(record) => {
                     let rec = record.clone(); //sometimes we need cloning to make a thing work. My Rust growing pains.
 
-                    ///TODO:: Extract this to a function, this will grow
-                    /// as more formatting is needed
+                    //TODO:: Extract this to a function, this will grow
+                    // as more formatting is needed
                     for (idx, rr) in rec.iter().enumerate() {
                         let mut ascii_string = util::to_ascii_string(&rr);
 
@@ -289,11 +282,11 @@ impl Import for Csv {
 
                     rec_vals.push(self.state.to_uppercase()); //our custom State value (not in csv)
 
-                   match &insStmt.as_mut().unwrap().execute(&rec_vals) {
+                   match &insStmt.as_mut().unwrap().execute(params_from_iter(&rec_vals)) {
                         Ok(_) =>  () ,
                         Err(er) => {
                             //TODO: Consider logging these kinds of errors.
-                            println!("Unable to insert csv record: {}", er.description());
+                           println!("Unable to insert csv record: {}", er);
                            println!("csv record: {:?}", rec_vals );
                         }
                     }
@@ -306,7 +299,7 @@ impl Import for Csv {
             }
         }
 
-        conn.execute("COMMIT TRANSACTION;", NO_PARAMS)?;
+        conn.execute("COMMIT TRANSACTION;", [])?;
         Ok(())
     }
 }

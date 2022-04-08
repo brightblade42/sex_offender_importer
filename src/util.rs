@@ -2,13 +2,13 @@ use regex::{self,  Regex};
 
 use crate::config::{PathVars, Env};
 use rusqlite::Connection;
-use std::fs::File;
+//use std::fs::File;
 
 pub type GenError = Box<dyn std::error::Error>;
 pub type GenResult<T> = ::std::result::Result<T, GenError>; //not bip bip bip.. Lelu.
 
-pub static IMPORT_LOG: &'static str = "/opt/eyemetric/sex_offender/app/importlog.sqlite";
-pub static SQL_FOLDER: &'static str = "/opt/eyemetric/sex_offender/app/sql";
+pub static IMPORT_LOG: &str = "/opt/eyemetric/sex_offender/app/importlog.sqlite";
+pub static SQL_FOLDER: &str = "/opt/eyemetric/sex_offender/app/sql";
 
 ///Removes junk characters and leave only the cleanest and choicest ascii characters.
 pub fn to_ascii_string(chars: &[u8]) -> String {
@@ -16,8 +16,7 @@ pub fn to_ascii_string(chars: &[u8]) -> String {
     let mut ascii = String::new();
     for byte in chars {
         if byte.is_ascii() && !byte.is_ascii_control() {
-            let c = byte.clone() as char;
-            ascii.push(c);
+            ascii.push(*byte as char);
         }
     }
     ascii
@@ -69,8 +68,8 @@ pub fn convert_invalid_field_name(field: &str) -> &str {
 /// replaces them with _ underscores.
 pub fn convert_space_in_field(field: &str) -> String {
 
-    if field.trim().contains(" ") {
-        field.replace(" ", "_")
+    if field.trim().contains(' ') {
+        field.replace(' ', "_")
     } else {
         field.to_owned()
     }

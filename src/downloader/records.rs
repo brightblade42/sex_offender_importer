@@ -1,6 +1,4 @@
-use std::{
-    path::{self, PathBuf},
-};
+use std::path::{self, PathBuf};
 
 use super::SEX_OFFENDER_PATH;
 use serde_derive::{Serialize, Deserialize};

@@ -5,9 +5,7 @@ use std::{
     ffi::OsStr,
 };
 
-use crate::util::{
-    GenResult
-};
+use crate::util::GenResult ;
 
 use crate::config::PathVars;
 use crate::importer::{ExtractedFile, csv_importer::Csv, img::ImageArchive};
@@ -69,17 +67,17 @@ impl Extractor<'_> {
 
             let mut embedded_file = archive.by_index(i)?;
             let embedded_file_name = embedded_file.sanitized_name();
-            if self.is_file_blacklisted(&embedded_file_name.to_str().unwrap()) {
+            if self.is_file_blacklisted(embedded_file_name.to_str().unwrap()) {
                 continue; //move along to zee next file
             }
 
-            let extracts_path = self.get_extract_path(&state_abbrev, &archive_path, embedded_file_name.as_os_str());
+            let extracts_path = self.get_extract_path(state_abbrev, &archive_path, embedded_file_name.as_os_str());
             if overwrite || !extracts_path.exists() {
                 let mut outfile = BufWriter::new(File::create(&extracts_path)?);
                 std::io::copy(&mut embedded_file, &mut outfile)?;
             }
 
-            ///determine the method of extraction based on the file extension
+            //determine the method of extraction based on the file extension
             match embedded_file_name.extension() {
 
                 Some(ext) if ext == "csv" => {

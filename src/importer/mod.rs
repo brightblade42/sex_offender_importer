@@ -8,7 +8,7 @@ use std::{
     fs,
     path::{PathBuf}
 };
-use rusqlite::{Connection, NO_PARAMS};
+use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use crate::util::{
     self,
@@ -42,12 +42,12 @@ trait SqlHandler {
 
     //this could be a drop table or a delete all data
     fn drop_table(&self, conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Error> {
-        let r = conn.execute(&format!("DROP TABLE if exists {}", table_name), NO_PARAMS);
+        let r = conn.execute(&format!("DROP TABLE if exists {}", table_name), []);
         r
     }
 
     fn delete_data(&self, conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Error> {
-        conn.execute(&format!("Delete from {}", table_name), NO_PARAMS)
+        conn.execute(&format!("Delete from {}", table_name), [])
     }
 
     fn execute(&self, conn: &Connection) -> Result<usize, rusqlite::Error>;
@@ -115,10 +115,10 @@ pub fn finalize_state_import(state: &str) -> GenResult<()> {
 
     let final_import_query = fs::read_to_string(pth)?;
     let conn = util::get_connection(None)?;
-    conn.execute("BEGIN TRANSACTION", NO_PARAMS);
-    conn.execute(&format!("Delete from SexOffender where state='{}'", state), NO_PARAMS)?;
-    conn.execute(&final_import_query, NO_PARAMS)?;
-    conn.execute("END TRANSACTION", NO_PARAMS);
+    conn.execute("BEGIN TRANSACTION", []);
+    conn.execute(&format!("Delete from SexOffender where state='{}'", state), [])?;
+    conn.execute(&final_import_query, [])?;
+    conn.execute("END TRANSACTION", []);
     Ok(())
 }
 
@@ -155,15 +155,15 @@ fn execute_by_lines(sql_file_name: &str) -> GenResult<()>{
     }
 
     let conn = util::get_connection(None)?;
-    conn.execute("BEGIN Transaction", NO_PARAMS);
+    conn.execute("BEGIN Transaction", []);
 
     fs::read_to_string(pth)?.lines()
         .filter(|line| line.starts_with("update")) //only update queries
         .for_each(|line | {
-            conn.execute(line, NO_PARAMS).expect(&format!("could not execute update {}", line));
+            conn.execute(line, []).expect(&format!("could not execute update {}", line));
         });
 
-    conn.execute("END Transaction", NO_PARAMS);
+    conn.execute("END Transaction", []);
     Ok(())
 }
 
@@ -207,7 +207,7 @@ pub fn delete_old_photos(state: &str) -> Result<usize, rusqlite::Error> {
 
     println!("Are you my mommy?");
     let conn = util::get_connection(None).unwrap();
-    conn.execute( &format!("DELETE FROM Photos where state='{}'", state), NO_PARAMS, )
+    conn.execute( &format!("DELETE FROM Photos where state='{}'", state), [], )
 }
 
 ///returns the sql query string that creates the main Photos table.
@@ -226,15 +226,15 @@ fn create_photos() -> String {
 ///creates the necessary tables and indexes for the SexOffender database.
 fn create_db(conn: &Connection) -> GenResult<()> {
     set_pragmas(conn);
-    conn.execute(create_main().as_str(), NO_PARAMS)
+    conn.execute(create_main().as_str(), [])
         .expect("Unable to create main");
-    conn.execute(create_photos().as_str(), NO_PARAMS)
+    conn.execute(create_photos().as_str(), [])
         .expect("unable to create photos");
-    conn.execute(create_default_index("SexOffender").as_str(), NO_PARAMS)
+    conn.execute(create_default_index("SexOffender").as_str(), [])
         .expect("unable to create main index");
     conn.execute(
         create_default_index("Photos").as_str(),
-        NO_PARAMS,
+        [],
     )
         .expect("Unable to create photos index");
     Ok(())
@@ -250,7 +250,7 @@ fn set_pragmas(conn: &Connection) {
 */
     match conn.pragma_update(None, "synchronous", &String::from("OFF")) {
         Ok(()) => println!("Updated pragma synchronous: off"),
-        Err(e) => println!("Could not update pragma synchronous {}", e.description()),
+        Err(e) => println!("Could not update pragma synchronous {}", e),
     }
 }
 

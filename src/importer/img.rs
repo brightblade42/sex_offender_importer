@@ -4,16 +4,16 @@ use std::{
     io::BufReader,
 };
 
-use crate::{
+use crate::
     util::{
         self,
         GenResult
-    },
-};
+    }
+;
 
 use super::{Import, SqlHandler};
 use serde_derive::{Serialize, Deserialize};
-use rusqlite::{Connection, NO_PARAMS, params};
+use rusqlite::{Connection,  params};
 use crate::importer::set_pragmas;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -51,7 +51,7 @@ impl Import for ImageArchive {
         let mut archive = zip::ZipArchive::new(file)?;
 
         println!("Importing images from {}", &self.path.display());
-        conn.execute("BEGIN TRANSACTION;", NO_PARAMS)?;
+        conn.execute("BEGIN TRANSACTION;", [])?;
 
         let mut insStmt = conn.prepare("INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)");
 
@@ -74,7 +74,7 @@ impl Import for ImageArchive {
             blob.clear();
         }
 
-        conn.execute("COMMIT TRANSACTION;", NO_PARAMS)?;
+        conn.execute("COMMIT TRANSACTION;", [])?;
         Ok(())
     }
 }
@@ -90,7 +90,7 @@ impl SqlHandler for ImageArchive {
     }
 
     fn delete_data(&self, conn: &Connection, table_name: &str) -> Result<usize, rusqlite::Error> {
-        conn.execute( &format!("DELETE FROM {} where state='{}'", table_name, &self.state), NO_PARAMS, )
+        conn.execute( &format!("DELETE FROM {} where state='{}'", table_name, &self.state), [], )
     }
 
     fn execute(&self, _conn: &Connection) -> Result<usize, rusqlite::Error> {

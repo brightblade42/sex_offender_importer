@@ -1,38 +1,72 @@
 let SessionLoad = 1
-let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
+let s:so_save = &g:so | let s:siso_save = &g:siso | setg so=0 siso=0 | setl so=-1 siso=-1
 let v:this_session=expand("<sfile>:p")
 silent only
-cd ~/code/eyemetric/sexoffenderimporter
+silent tabonly
+cd ~/dev/sex_offender/sex_offender_importer
 if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +5 term://.//29464:/usr/bin/fish
-badd +469 ~/.config/nvim/init.vim
-badd +3 term://.//28808:/usr/bin/fish
-badd +35 src/downloader.rs
-badd +3 term://.//29239:/usr/bin/fish
-badd +3 term://.//29235:/usr/bin/fish
-badd +1 ~/.config/nvim/README.md
-badd +1 ~/.config/nvim/Session.vim
-badd +0 term://.//29539:/usr/bin/fish
 argglobal
-silent! argdel *
-edit src/downloader.rs
+%argdel
+$argadd src/bin/sximp.rs
+set stal=2
+tabnew
+tabrewind
+edit src/downloader/mod.rs
+let s:save_splitbelow = &splitbelow
+let s:save_splitright = &splitright
+set splitbelow splitright
+let &splitbelow = s:save_splitbelow
+let &splitright = s:save_splitright
+wincmd t
+let s:save_winminheight = &winminheight
+let s:save_winminwidth = &winminwidth
+set winminheight=0
+set winheight=1
+set winminwidth=0
+set winwidth=1
+argglobal
+balt src/downloader/archives.rs
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 334 - ((29 * winheight(0) + 24) / 49)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 334
+normal! 054|
+tabnext
+edit src/downloader/mod.rs
+let s:save_splitbelow = &splitbelow
+let s:save_splitright = &splitright
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
 1wincmd h
 wincmd w
+let &splitbelow = s:save_splitbelow
+let &splitright = s:save_splitright
 wincmd t
+let s:save_winminheight = &winminheight
+let s:save_winminwidth = &winminwidth
 set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe 'vert 1resize ' . ((&columns * 88 + 88) / 177)
-exe 'vert 2resize ' . ((&columns * 88 + 88) / 177)
+wincmd =
 argglobal
-setlocal fdm=marker
+balt src/downloader/archives.rs
+setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
 setlocal fdi=#
@@ -40,16 +74,22 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 35 - ((30 * winheight(0) + 28) / 56)
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 377 - ((27 * winheight(0) + 24) / 48)
 if s:l < 1 | let s:l = 1 | endif
-exe s:l
+keepjumps exe s:l
 normal! zt
-35
-normal! 0
+keepjumps 377
+normal! 028|
 wincmd w
 argglobal
-if bufexists('term://.//29539:/usr/bin/fish') | buffer term://.//29539:/usr/bin/fish | else | edit term://.//29539:/usr/bin/fish | endif
-setlocal fdm=marker
+if bufexists("term://~/dev/sex_offender/sex_offender_importer//93152:/bin/zsh") | buffer term://~/dev/sex_offender/sex_offender_importer//93152:/bin/zsh | else | edit term://~/dev/sex_offender/sex_offender_importer//93152:/bin/zsh | endif
+if &buftype ==# 'terminal'
+  silent file term://~/dev/sex_offender/sex_offender_importer//93152:/bin/zsh
+endif
+balt src/downloader/mod.rs
+setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
 setlocal fdi=#
@@ -57,26 +97,50 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 5 - ((4 * winheight(0) + 28) / 56)
+let s:l = 685 - ((47 * winheight(0) + 24) / 48)
 if s:l < 1 | let s:l = 1 | endif
-exe s:l
+keepjumps exe s:l
 normal! zt
-5
-normal! 039|
+keepjumps 685
+normal! 02|
 wincmd w
-exe 'vert 1resize ' . ((&columns * 88 + 88) / 177)
-exe 'vert 2resize ' . ((&columns * 88 + 88) / 177)
-tabnext 1
-if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
+2wincmd w
+wincmd =
+tabnext 2
+set stal=1
+badd +135 src/bin/sximp.rs
+badd +14 ~/dev/sex_offender/sex_offender_importer/Cargo.toml
+badd +147 src/downloader/mod.rs
+badd +1 src/importer/csv_importer.rs
+badd +158 ~/dev/sex_offender/sex_offender_importer/src/extractors/mod.rs
+badd +2 ~/dev/sex_offender/sex_offender_importer/src/config.rs
+badd +78 ~/dev/sex_offender/sex_offender_importer/src/util.rs
+badd +214 src/importer/mod.rs
+badd +1 src/importer/img.rs
+badd +1 term
+badd +9997 term://~/dev/sex_offender/sex_offender_importer//68684:/bin/zsh
+badd +10 ~/dev/sex_offender/sex_offender_importer/src/lib.rs
+badd +50 ~/dev/sex_offender/sex_offender_importer/src/downloader/records.rs
+badd +15 src/downloader/archives.rs
+badd +2313 sql/create_master.sql
+badd +39 sql/nj_import.sql
+badd +2357 sql/full_db.sql
+badd +2222 sql/The_big_query.sql
+badd +0 term://~/dev/sex_offender/sex_offender_importer//93152:/bin/zsh
+if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
 endif
 unlet! s:wipebuf
-set winheight=1 winwidth=20 winminheight=1 winminwidth=1 shortmess=filnxtToOFc
+set winheight=1 winwidth=20 shortmess=olxTOinFtfcI
+let &winminheight = s:save_winminheight
+let &winminwidth = s:save_winminwidth
 let s:sx = expand("<sfile>:p:r")."x.vim"
-if file_readable(s:sx)
+if filereadable(s:sx)
   exe "source " . fnameescape(s:sx)
 endif
-let &so = s:so_save | let &siso = s:siso_save
+let &g:so = s:so_save | let &g:siso = s:siso_save
+let g:this_session = v:this_session
+let g:this_obsession = v:this_session
 doautoall SessionLoadPost
 unlet SessionLoad
 " vim: set ft=vim :

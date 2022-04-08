@@ -175,7 +175,9 @@ fn main()  {
                     pb.finish_with_message("Download logs have been rebuilt")
                 },
                 Err(e) => {
-                    pb.finish_with_message(&format!("There was a problem rebuilding the logs! {}",e));
+                    let err_msg = format!("There was a problem rebuilding the logs! {}",e);
+                    //pb.finish_with_message(&format!("There was a problem rebuilding the logs! {}",e));
+                    pb.finish_with_message(err_msg);
                 }
             }
         },
@@ -190,7 +192,8 @@ fn main()  {
                 let sex_offender_archives =  file_list.iter()
                     .map(|fi| {
                         let info = fi.as_ref().unwrap();
-                        pb.set_message(&format!("Downloading {}",info.name() ));
+                        let name = format!("Downloading {}", info.name().clone());
+                        pb.set_message(name);
 
                         let m = downloader.download_file(info);
 
@@ -207,7 +210,7 @@ fn main()  {
                 for f in file_list {
 
                     let info = f.as_ref().unwrap();
-                    pb.set_message(&format!("Retrieving {}..", info.name()));
+                    pb.set_message(format!("Retrieving {}..", info.name()));
                     let m = downloader.download_file(info);
                 }
 

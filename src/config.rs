@@ -6,11 +6,11 @@ use std::{
 };
 
 use serde_derive::{Serialize, Deserialize};
-use rusqlite::{Connection, NO_PARAMS, params};
+use rusqlite::{Connection,  params};
 use serde_rusqlite::{self,  from_rows };
-use std::path::Path;
+//use std::path::Path;
 
-static CONFIG: &'static str = "/opt/eyemetric/sex_offender/app/config.sqlite";
+static CONFIG: &str = "/opt/eyemetric/sex_offender/app/config.sqlite";
 
 
 ///Represents development state of the Application
@@ -40,10 +40,18 @@ impl LoadData for States {
 
     fn load() -> Result<States, Box<dyn Error>> {
         let conn = Connection::open(CONFIG).expect("Unable to open data connection");
-        let mut stmt = conn.prepare("Select * from states").expect("Unable to get states data");
-        let rows = stmt.query(NO_PARAMS)?;
-        let r = from_rows::<State>(rows).collect();
-        Ok(r)
+        let mut stmt = conn.prepare("Select state, abbr from states").expect("Unable to get states data");
+        let mut rows = stmt.query([])?;
+        
+        let mut rr = Vec::new();
+        while let Some(row) = rows.next()? {
+            rr.push(State {
+                state: row.get(0)?,
+                abbr: row.get(1)?
+            });
+        }
+        //let r = from_rows::<State>(rows).collect();
+        Ok(rr)
     }
 }
 
@@ -79,7 +87,7 @@ impl FtpConfig {
         let name = FtpConfig::conf(&env);
         let mut stmt = conn.prepare("Select * from ftp where name = ?").expect("a statement "); //unwrap();
         let rows = stmt.query(params![name]).unwrap();
-        let r = from_rows::<FtpConfig>(rows).last().expect("A row");
+        let r = from_rows::<FtpConfig>(rows).last().expect("A row").expect("stuff");
 
         r
     }
