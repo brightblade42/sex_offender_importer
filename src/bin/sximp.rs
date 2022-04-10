@@ -278,7 +278,6 @@ fn get_all_avail(dloader: &mut Downloader) -> Vec<GenResult<FileInfo>> {
 
 
 fn import_files(config: &Config) {
-//fn import_files(importer: &Importer) {
 
     //let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) >= Some('U')); // && s.abbr.chars().nth(0) != Some('T'));
     //let statelist = statelist.iter().filter(|s| s.abbr == "IA"); // && s.abbr.chars().nth(0) != Some('T'));
@@ -301,7 +300,7 @@ fn import_files(config: &Config) {
         let state_archive_path = archive_path.join(state.abbr.to_uppercase());
         println!("HELLO!!! {:?}",&state_archive_path);
         //let st_files = fs::read_dir(state_path).expect("A file but got us a directory");
-
+        fs::create_dir_all(&state_archive_path).expect("ability to create a dir");
         let st_files = fs::read_dir(&state_archive_path).expect("A file but got us a directory");
         let st_files = st_files.filter(|fp| {
              let x = fp.as_ref().expect("a Dir Entry");

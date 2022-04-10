@@ -22,9 +22,9 @@ pub struct Config  {
 impl Config {
 
     pub fn new(root_path: PathBuf) -> Self {
-        let extracts_path = root_path.join("extracts");
-        let archives_path = root_path.join("archives");
-        let offender_db = root_path.join("db/sexoffenders.sqlite");
+        let extracts_path = root_path.join("data/extracts");
+        let archives_path = root_path.join("data/archives");
+        let offender_db = root_path.join("data/db/sexoffenders.sqlite");
 
         Self {
             root_path,
@@ -34,7 +34,7 @@ impl Config {
             //these should always be the same, except maybe for testing.
             ftp_base_path: "us",
             ftp_sex_offender_path: "/state/sex_offender", //utah/state/sex_offender
-            address: "ftptds.shadowsoft.com",//host
+            address: "ftptds.shadowsoft.com:21",//host
             name: "swg_eyemetric", //user
             pass: "metric123swg99",
             port: 21

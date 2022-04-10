@@ -18,15 +18,15 @@ use std::{
     clone::Clone,
 };
 
-use rusqlite::{self, Connection, params,  Statement};
-use serde_rusqlite::to_params_named;
+//use rusqlite::{self, Connection, params,  Statement};
+//use serde_rusqlite::to_params_named;
 use crate::config::Config;
 
 use crate::util::{
-    self,
+  //  self,
     GenResult,
     GenError,
-    IMPORT_LOG,
+ //   IMPORT_LOG,
 };
 
 use archives::SexOffenderArchive;
@@ -41,7 +41,7 @@ const CHUNK_SIZE: usize = 2048;
 pub struct Downloader {
     stream: FtpStream,
     config: Config,
-    conn: Connection,
+    //conn: Option<Connection>,
 }
 
 pub enum DownloadOption {
@@ -54,10 +54,11 @@ impl Downloader {
     ///create the Downloader object, connect and login to ftp server
     ///After that we're ready to query the server for available files and begin downloading.
     pub fn connect(config: &Config) -> GenResult<Self> {
+        println!("conf: {:?}", config);
         let mut dloader = Self {
             stream: FtpStream::connect(config.address)?,
             config: config.clone(), //why do we need ths?
-            conn: Connection::open(util::IMPORT_LOG).expect("A data connection"),
+            //conn: Connection::open(util::IMPORT_LOG).expect("A data connection"),
         };
 
         dloader.stream.login(&config.name, &config.pass).expect("Unable to login to ftp site");
@@ -128,25 +129,28 @@ impl Downloader {
     ///Returns the list of files that have not changed since the last
     ///update.
     pub fn get_unchanged_list(&self) -> Vec<GenResult<FileInfo>> {
-       let mut qry = self.conn.prepare("select * from current_available where name in (select name from download_log where status='Success')  order by last_modified desc")
-           .expect("Unable to access data store");
+        unimplemented!()
+       //let mut qry = self.conn.prepare("select * from current_available where name in (select name from download_log where status='Success')  order by last_modified desc")
+       //    .expect("Unable to access data store");
 
-        let mut file_list = self.build_file_info_list(&mut qry);
-        file_list
-
+       // let mut file_list = self.build_file_info_list(&mut qry);
+       // file_list
+        //Err("not used")
     }
     ///Filters out downloads that have already completed successfully.
     ///We may not get all the files in a single session. If we open a new session
     ///we want to make sure that we don't try to download everything again.
     pub fn get_newest_available_list(&self) -> Vec<GenResult<FileInfo>>  {
+        unimplemented!()
+    
+        //let mut qry = self.conn.prepare("SELECT * from current_available WHERE name not in (Select name from download_log where status='Success')")
+        //    .expect("Unable to get newest update list from db");
 
-        let mut qry = self.conn.prepare("SELECT * from current_available WHERE name not in (Select name from download_log where status='Success')")
-            .expect("Unable to get newest update list from db");
-
-        self.build_file_info_list(&mut qry)
+        //self.build_file_info_list(&mut qry)
     }
 
     ///executes a sqlite statement and returns a list of FileInfo values.
+    /*
     fn build_file_info_list(&self, stmt: &mut Statement<'_>) -> Vec<GenResult<FileInfo>>  {
 
         let mut file_list: Vec<GenResult<FileInfo>> = Vec::new();
@@ -187,7 +191,7 @@ impl Downloader {
         file_list
 
     }
-
+    */
     ///Transform a line of ftp file info to a FileInfo struct
     fn create_file_info(&self, remote_file_path: &str, ftp_line: &str) -> GenResult<FileInfo> {
         //println!("{}", ftp_line);
@@ -256,13 +260,16 @@ impl Downloader {
         self.stream.cwd(remote_path.to_str().unwrap()).expect("could not change ftp dir"); //.is_err() {
         println!("dir change success");
 
-        let conn = Connection::open(IMPORT_LOG).expect("Unable to open Connection");
+        //let conn = Connection::open(IMPORT_LOG).expect("Unable to open Connection");
 
+        //TODO: no current logging. Rethink for new version
+        //maybe write to disk as a file?
+        /*
         let update_log = |byte_count: usize | {
 
             let bytes = byte_count as i64;
             conn.execute("UPDATE download_log set bytes_downloaded=? where name=?",
-                                       params![bytes, file_info.name()]).expect("Unable to log byte count");
+                                      params![bytes, file_info.name()]).expect("Unable to log byte count");
         };
 
         let update_download_status = |status: &str| {
@@ -272,7 +279,7 @@ impl Downloader {
 
             println!("dbcode: {} status: {}", rc, status);
         };
-
+        */
         //FTP RETR command = download
         let res = self.stream.retr(&file_name, |stream| {
 
@@ -290,7 +297,7 @@ impl Downloader {
                 archive_writer.write_all(&buff[..bytes_read]).expect("Unable to write bytes");
                 bytes_read = stream.read(&mut buff).expect("Unable to read stream");
                 total_bytes += bytes_read;
-                update_log(total_bytes);
+                //update_log(total_bytes);
             }
             //TODO: if the file size from the server doesn't match
             //the total bytes we've received then we didn't get the whole file
@@ -298,11 +305,11 @@ impl Downloader {
             match  archive_writer.flush() {
                 Ok(()) => {
                     println!("bytes written:: {}", total_bytes);
-                    update_download_status("Success");
+                   // update_download_status("Success");
                 }
                 Err(e) => {
                     println!("bad mojo {}", e);
-                    update_download_status("Failure");
+                    //update_download_status("Failure");
                     //TODO queue for a resume if possible.
                 }
             }
@@ -320,7 +327,7 @@ impl Downloader {
     ///log the list of available archives we received from the server.
     fn log_available_updates(&self, remote_files: &[GenResult<FileInfo>]) -> GenResult<()> {
 
-        self.conn.execute(
+        /*self.conn.execute(
                 "CREATE TABLE if not exists current_available (rpath, name, last_modified, size integer, status) ",
                 [],
             )?;
@@ -337,7 +344,7 @@ impl Downloader {
         }
 
         self.conn.execute("COMMIT TRANSACTION", [])?; //.expect("Failed to Commit Transaction!");
-
+        */
         Ok(())
     }
 
@@ -345,6 +352,8 @@ impl Downloader {
     ///Adds a new log entry with a status of "InFlight"
     fn start_download_log(&self, file_info: &FileInfo) -> GenResult<()>  {
 
+        println!("we would log a download here...");
+        /*
         match file_info {
             FileInfo::Record(record_info) => {
 
@@ -359,6 +368,7 @@ impl Downloader {
                                            params![record_info.name, record_info.last_modified, record_info.size, 0, "InFlight" ])?;
             }
         }
+        */
 
         Ok(())
     }
@@ -368,7 +378,8 @@ impl Downloader {
 
         let expath = fs::read_dir(&self.config.archives_path)?; //archive_path())?;
 
-
+        println!("rebuild_log_from_archives called");
+        /*
         self.conn.execute("BEGIN TRANSACTION;", []);
         self.conn.execute("Delete from download_log", []);
         for entry in expath {
@@ -388,7 +399,7 @@ impl Downloader {
 
         }
         self.conn.execute("END TRANSACTION;", []);
-
+        */
         Ok(())
 
     }
