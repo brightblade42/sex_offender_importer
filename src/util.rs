@@ -1,6 +1,6 @@
+use std::path::PathBuf;
 use regex::{self,  Regex};
 
-use crate::config::{PathVars, Env};
 use rusqlite::Connection;
 //use std::fs::File;
 
@@ -21,20 +21,9 @@ pub fn to_ascii_string(chars: &[u8]) -> String {
     }
     ascii
 }
-///returns an open sqlite connection.
-///if vars Option is None then connection will be from Production config values
-///TODO: figure out if caching the connection or using some connection pool crate would
-///be better. Probably
-pub fn get_connection(vars: Option<PathVars>) -> GenResult<Connection> {
 
-    let sql_path  = if let Some(v) = vars {
-        v.sql_path()
-    } else {
-        let v = PathVars::new(Env::Production);
-        v.sql_path()
-    };
-
-    match  Connection::open(sql_path) {
+pub fn get_connection(db: PathBuf) -> GenResult<Connection> {
+    match  Connection::open(db) {
         Ok(conn) => Ok(conn),
         Err(err) => Err(GenError::from(err))
     }

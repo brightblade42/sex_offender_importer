@@ -4,11 +4,11 @@ use std::{
     io::{self, Write},
 };
 
-use super::{Import, SqlHandler, set_pragmas};
-use crate::util::{
+use super::{Import, SqlHandler, Importer}; // set_pragmas};
+use crate::{util::{
     self,
     GenResult,
-};
+}, config::Config};
 use mktemp::Temp;
 use serde_derive::{Serialize, Deserialize};
 use rusqlite::{params_from_iter, Connection};
@@ -157,6 +157,8 @@ impl Csv {
 
     ///After csv data is converted to table data, we still need to convert data
     /// into the final data format which goes into the main SexOffender table.
+    //TODO: this seems like a duplicate of what we have in the Importer 
+    /*
     fn import_final_phase(&self) -> GenResult<()> {
         let mut pth = PathBuf::from(util::SQL_FOLDER);
         pth.push(format!("{}_import.sql", self.state.to_lowercase()));
@@ -176,7 +178,7 @@ impl Csv {
         conn.execute(&final_import_query, []).expect("Unable to do final import");
 
         Ok(())
-    }
+    }*/
 
 
     fn find_date_position(&self, headers: &csv::StringRecord) -> Option<usize> {
@@ -226,9 +228,10 @@ impl Import for Csv {
 
     fn import_file_data(&self) -> GenResult<()> {
 
-        let conn = util::get_connection(None).expect("Unable to connect to db");
+        let config = Config::new(std::env::current_dir().unwrap());
+        let conn = util::get_connection(config.offender_db).expect("Unable to connect to db");
 
-        set_pragmas(&conn);
+        //set_pragmas(&conn);
         //this should be filtered out, really.
         let path = self.path.display().to_string();
         //TODO: filter this out from elsewhere methinks.

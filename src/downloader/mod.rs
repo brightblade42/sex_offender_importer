@@ -12,21 +12,23 @@ use std::{
     str,
     fs::{self, File},
     io::{BufWriter, Write},
-    iter::{Iterator},
-    path::{PathBuf},
-    convert::{ From},
+    iter::Iterator,
+    path::PathBuf,
+    convert::From,
     clone::Clone,
 };
 
 use rusqlite::{self, Connection, params,  Statement};
 use serde_rusqlite::to_params_named;
-use crate::config::PathVars;
+use crate::config::Config;
+
 use crate::util::{
     self,
     GenResult,
     GenError,
     IMPORT_LOG,
 };
+
 use archives::SexOffenderArchive;
 use crate::downloader::records::ImageInfo;
 //use std::fs::DirBuilder;
@@ -38,7 +40,7 @@ const CHUNK_SIZE: usize = 2048;
 // downloads
 pub struct Downloader {
     stream: FtpStream,
-    config: PathVars,
+    config: Config,
     conn: Connection,
 }
 
@@ -51,18 +53,14 @@ impl Downloader {
 
     ///create the Downloader object, connect and login to ftp server
     ///After that we're ready to query the server for available files and begin downloading.
-    pub fn connect(addr: &str, user: &str, pwd: &str, config: PathVars) -> GenResult<Self>
-    {
-
-        let mut dloader = Downloader {
-            stream: FtpStream::connect(addr)?,
-           config,
+    pub fn connect(config: &Config) -> GenResult<Self> {
+        let mut dloader = Self {
+            stream: FtpStream::connect(config.address)?,
+            config: config.clone(), //why do we need ths?
             conn: Connection::open(util::IMPORT_LOG).expect("A data connection"),
         };
 
-        dloader
-            .stream
-            .login(user, pwd).expect("Unable to login to ftp site");
+        dloader.stream.login(&config.name, &config.pass).expect("Unable to login to ftp site");
 
         Ok(dloader)
     }
@@ -91,9 +89,9 @@ impl Downloader {
     ///a filter can be passed in to narrow the list.
     ///This will update our available log if there have been updates since we last checked.
     pub fn get_all_available_file_list(&mut self, filter: fn(&String) -> bool, _file_opt: DownloadOption) -> GenResult<Vec<GenResult<FileInfo>>> {
-        let paths = &self.config.vars; //TODO: consider loading once instead of every function call.
-        let remote_base_path = &paths["ftp_base_path"];
-        let sex_offender_path = &paths["ftp_sex_offender_path"].to_string();
+        let remote_base_path = self.config.ftp_base_path; 
+        let sex_offender_path = self.config.ftp_sex_offender_path; 
+
         let state_folders = self.stream.nlst(Some(remote_base_path)).expect("Unable to get a remote file listing");
 
         /*println!("ftp paths");
@@ -111,8 +109,8 @@ impl Downloader {
                     .list(Some(&sex_offender_folder)) //list remote dir
                     .into_iter()
                     .flatten()
-                    .filter(hard_filter)
-                    .filter(filter)
+                    .filter(hard_filter) //base filter
+                    .filter(filter) //user provided
                     .map(|line| self.create_file_info(&state_folder, &line))
                     .collect();
 
@@ -145,12 +143,7 @@ impl Downloader {
         let mut qry = self.conn.prepare("SELECT * from current_available WHERE name not in (Select name from download_log where status='Success')")
             .expect("Unable to get newest update list from db");
 
-        //let mut file_list: Vec<GenResult<FileInfo>> = Vec::new();
-
-        //let mut file_list = self.build_file_info_list(&mut qry);
         self.build_file_info_list(&mut qry)
-
-       // file_list
     }
 
     ///executes a sqlite statement and returns a list of FileInfo values.
@@ -244,15 +237,16 @@ impl Downloader {
             }
         };
 
-        PathBuf::from(format!("{}{}", pb, &self.config.vars["ftp_sex_offender_path"]))
+        PathBuf::from(format!("{}{}", pb, &self.config.ftp_sex_offender_path)) 
 
     }
 
     ///downloads the remote archive file and writes to disk.
     fn save_archive(&mut self, file_info: &FileInfo) -> GenResult<SexOffenderArchive> {
         let file_name = file_info.name();
-        let archive_base = self.config.archive_path();
-        let archive_file_path = self.config.archive_file_path(&file_info.name());
+        let archive_base = &self.config.archives_path; //self.config.archive_path();
+        let archive_file_path = archive_base.join(&file_info.name()); 
+        //let archive_file_path = self.config.archive_file_path(&file_info.name());
 
         //make sure we're setup to dload binary files
         self.stream.transfer_type(FileType::Binary)?;
@@ -372,7 +366,7 @@ impl Downloader {
 
     pub fn rebuild_log_from_archives(&self) -> GenResult<()>{
 
-        let expath = fs::read_dir(self.config.archive_path())?;
+        let expath = fs::read_dir(&self.config.archives_path)?; //archive_path())?;
 
 
         self.conn.execute("BEGIN TRANSACTION;", []);

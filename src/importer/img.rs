@@ -4,17 +4,16 @@ use std::{
     io::BufReader,
 };
 
-use crate::
+use crate::{
     util::{
         self,
         GenResult
-    }
-;
+    }, config::Config};
 
 use super::{Import, SqlHandler};
 use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection,  params};
-use crate::importer::set_pragmas;
+//use crate::importer::set_pragmas;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ImageArchive {
@@ -37,8 +36,9 @@ impl Import for ImageArchive {
 
     fn import_file_data(&self) -> GenResult<()> {
         let file = BufReader::new(File::open(&self.path)?);
-        let conn = util::get_connection(None).expect("Unable to open connection");
-        set_pragmas(&conn);
+        let config = Config::new(std::env::current_dir().unwrap());
+        let conn = util::get_connection(config.offender_db).expect("Unable to open connection");
+        //set_pragmas(&conn);
         //self.delete_data(&conn, "Photos")?;
 
         //1. we've got an archive of images. we don't want to write them

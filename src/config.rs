@@ -1,101 +1,59 @@
+//#[macro_use] extern crate lazy_static;
 //! This module
-use std::{
-    path::{PathBuf},
-    collections::HashMap,
-    error::Error
-};
-
+use std::path::PathBuf;
 use serde_derive::{Serialize, Deserialize};
-use rusqlite::{Connection,  params};
-use serde_rusqlite::{self,  from_rows };
-//use std::path::Path;
 
-static CONFIG: &str = "/opt/eyemetric/sex_offender/app/config.sqlite";
-
-
-///Represents development state of the Application
-///Useful for loading different configurations for various development scenarios
-#[derive(Debug, Serialize, Deserialize)]
-pub enum Env {
-    Test,
-    Dev,
-    Production,
+#[derive( Debug, Clone)]
+pub struct Config  {
+    //local data paths
+    pub root_path: PathBuf,
+    pub archives_path: PathBuf,
+    pub extracts_path: PathBuf,
+    pub offender_db: PathBuf,
+    //ftp
+    pub ftp_base_path: &'static str, 
+    pub ftp_sex_offender_path: &'static str,
+    pub address: &'static str,
+    pub pass: &'static str,
+    pub name: &'static str,
+    pub port: i32,
 }
 
-///use Config to load a set of configuration variables based on an Environment (env).
-pub trait Config {
-    fn load(env: &Env) -> ConfigResult;//Result<HashMap<String,String>, Box<std::error::Error>>;
-}
+impl Config {
 
-///A set of key value string pairs representing configuration settings.
-pub type ConfigResult = Result<HashMap<String, String>, Box<dyn std::error::Error>>;
-///a Vec of State objects. States as in US states not some program state.
-pub type States = Vec<State>;
+    pub fn new(root_path: PathBuf) -> Self {
+        let extracts_path = root_path.join("extracts");
+        let archives_path = root_path.join("archives");
+        let offender_db = root_path.join("db/sexoffenders.sqlite");
 
-pub trait LoadData {
-    fn load() -> Result<States, Box<dyn Error>>;
-}
-
-impl LoadData for States {
-
-    fn load() -> Result<States, Box<dyn Error>> {
-        let conn = Connection::open(CONFIG).expect("Unable to open data connection");
-        let mut stmt = conn.prepare("Select state, abbr from states").expect("Unable to get states data");
-        let mut rows = stmt.query([])?;
-        
-        let mut rr = Vec::new();
-        while let Some(row) = rows.next()? {
-            rr.push(State {
-                state: row.get(0)?,
-                abbr: row.get(1)?
-            });
+        Self {
+            root_path,
+            archives_path,
+            extracts_path,
+            offender_db,
+            //these should always be the same, except maybe for testing.
+            ftp_base_path: "us",
+            ftp_sex_offender_path: "/state/sex_offender", //utah/state/sex_offender
+            address: "ftptds.shadowsoft.com",//host
+            name: "swg_eyemetric", //user
+            pass: "metric123swg99",
+            port: 21
         }
-        //let r = from_rows::<State>(rows).collect();
-        Ok(rr)
-    }
+     }
+
 }
 
 ///a type that contains a states name and it's abbreviation.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct State {
-    pub state: String,
-    pub abbr: String,
+    pub state: &'static str,
+    pub abbr: &'static str,
 }
 
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FtpConfig {
-    pub address: String,
-    pub user: String,
-    pub pass: String,
-    pub name: String,
-    pub port: i32,
-
-}
-
-
-impl FtpConfig {
-    fn conf(env: &Env) -> &'static str {
-        match env {
-            Env::Test => "local test",
-            Env::Dev => "public data",
-            Env::Production => "public data",
-        }
-    }
-    pub fn init(env: Env) -> Self {
-        let conn = Connection::open(CONFIG).expect("A good connection");
-        let name = FtpConfig::conf(&env);
-        let mut stmt = conn.prepare("Select * from ftp where name = ?").expect("a statement "); //unwrap();
-        let rows = stmt.query(params![name]).unwrap();
-        let r = from_rows::<FtpConfig>(rows).last().expect("A row").expect("stuff");
-
-        r
-    }
-}
-
-///Contains the application directory paths based on
-///the Env. Env determines (Production / Staging / Dev)
-pub struct PathVars {
+//Contains the application directory paths based on
+//the Env. Env determines (Production / Staging / Dev)
+/*pub struct PathVars {
     pub env: Env,
     pub vars: HashMap<String, String>,
 }
@@ -161,10 +119,9 @@ impl Config for PathVars {
             hashmp.insert(row.get(0)?, row.get(1)?);
         }
 
-
         Ok(hashmp)
     }
 }
-
+*/
 
 

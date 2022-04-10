@@ -8,18 +8,17 @@ use prettytable::{Table, Row, Cell};
 use std::{fs::{self, read_dir}, path::PathBuf, thread};
 
 use sex_offender::{
-    importer::{self, Import, ExtractedFile },
+    importer::{self, Import, Importer },
     downloader::{
         Downloader,
         DownloadOption,
+        records::FileInfo, self
     },
-    extractors::Extractor,
-    config::{self, PathVars, States, LoadData, FtpConfig},
+    extractors::{Extractor, ExtractedFile, ExtractOptions},
+    config::{Config, State },
+    util::{GenError, GenResult} 
 };
-use sex_offender::extractors::ExtractOptions;
 use std::time::Duration;
-use sex_offender::util::{GenResult, GenError};
-use sex_offender::downloader::records::FileInfo;
 use std::borrow::Borrow;
 
 #[derive(Debug, StructOpt)]
@@ -85,10 +84,45 @@ enum SXOCli {
     },
 }
 
+fn get_states() -> Vec<State> {
+    vec![ 
+        State { state: "Alabama", abbr: "AL"}, State { state: "Alaska", abbr: "AK"},
+        State { state: "Arizona", abbr: "AZ"}, State { state: "Arkansas", abbr: "AR"},
+        State { state: "California", abbr: "CA"}, State { state: "Colorado", abbr: "CO"},
+        State { state: "Connecticut", abbr: "CT"}, State { state: "Delaware", abbr: "DE"},
+        State { state: "Florida", abbr: "FL"}, State { state: "Georgia", abbr: "GA"},
+        State { state: "Hawaii", abbr: "HI"}, State { state: "Idaho", abbr: "ID"},
+        State { state: "Illinois", abbr: "IL"}, State { state: "Indiana", abbr: "IN"},
+        State { state: "Iowa", abbr: "IA"}, State { state: "Kansas", abbr: "KS"},
+        State { state: "Kentucky", abbr: "KY"}, State { state: "Louisiana", abbr: "LA"},
+        State { state: "Maine", abbr: "ME"}, State { state: "Maryland", abbr: "MD"},
+        State { state: "Massachusetts", abbr: "MA"}, State { state: "Michigan", abbr: "MI"},
+        State { state: "Minnesota", abbr: "MN"}, State { state: "Mississippi", abbr: "MS"},
+        State { state: "Missouri", abbr: "MO"}, State { state: "Montana", abbr: "MT"},
+        State { state: "Nebraska", abbr: "NE"}, State { state: "Nevada", abbr: "NV"},
+        State { state: "New_Hampshire", abbr: "NH"}, State { state: "New_Jersey", abbr: "NJ"},
+        State { state: "New_Mexico", abbr: "NM"}, State { state: "New_York", abbr: "NY"},
+        State { state: "North_Carolina", abbr: "NC"}, State { state: "North_Dakota", abbr: "ND"},
+        State { state: "Ohio", abbr: "OH"}, State { state: "Oklahoma", abbr: "OK"},
+        State { state: "Oregon", abbr: "OR"}, State { state: "Pennsylvania", abbr: "PA"},
+        State { state: "Rhode_Island", abbr: "RI"}, State { state: "South_Carolina", abbr: "SC"},
+        State { state: "South_Dakota", abbr: "SD"}, State { state: "Tennessee", abbr: "TN"},
+        State { state: "Texas", abbr: "TX"}, State { state: "Utah", abbr: "UT"},
+        State { state: "Vermont", abbr: "VT"}, State { state: "Virginia", abbr: "VA"},
+        State { state: "Washington", abbr: "WA"}, State { state: "West_Virginia", abbr: "WV"},
+        State { state: "Wisconsin", abbr: "WI"}, State { state: "Wyoming", abbr: "WY"},
+    ]
+
+}
+
+
+
 fn main()  {
 
-
-    let mut downloader: Downloader = create_downloader();
+    //root path could come from env
+    let config = Config::new(std::env::current_dir().unwrap());
+    let mut downloader = Downloader::connect(&config).expect("Unable to get a good ftp connection");
+    let importer = Importer::new(&config);
     let opt = SXOCli::from_args();
 
     let pb = ProgressBar::new_spinner();
@@ -219,7 +253,7 @@ fn main()  {
         },
         SXOCli::Import { all, ..} => {
             pb.set_message("Importing all extracted files...");
-            import_files();
+            import_files(&config);
             pb.finish_with_message("Import has completed");
         }
 
@@ -243,29 +277,17 @@ fn get_all_avail(dloader: &mut Downloader) -> Vec<GenResult<FileInfo>> {
 }
 
 
-fn create_downloader() -> Downloader {
-
-    let _ftp_conf = FtpConfig::init(config::Env::Production);
-    let addr = "ftptds.shadowsoft.com:21";
-    let user = "swg_eyemetric";
-    let pass = "metric123swg99";
-
-    //println!("{}", &ftp_conf.address);
-    let path_vars = PathVars::new(config::Env::Production);
-
-    Downloader::connect(addr, user, pass , path_vars).expect("Unable to get a good connection")
-}
-
-fn import_files() {
-
-    let statelist: States = config::States::load().unwrap();
+fn import_files(config: &Config) {
+//fn import_files(importer: &Importer) {
 
     //let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) >= Some('U')); // && s.abbr.chars().nth(0) != Some('T'));
-
-    let statelist = statelist.iter().filter(|s| s.abbr == "IA"); // && s.abbr.chars().nth(0) != Some('T'));
-    let path_vars = PathVars::new(config::Env::Production);
-    let archive_path = path_vars.archive_path();
-    let _prep_result = importer::prepare_import();
+    //let statelist = statelist.iter().filter(|s| s.abbr == "IA"); // && s.abbr.chars().nth(0) != Some('T'));
+    let state_v = get_states();
+    let statelist = state_v.iter().filter(|s| s.abbr == "IA"); // && s.abbr.chars().nth(0) != Some('T'));
+    //let path_vars = PathVars::new(config::Env::Production);
+    let archive_path = &config.archives_path; 
+    let importer = Importer::new(config);
+    let _prep_result = importer.prepare_import(); 
     let extract_opt = ExtractOptions::Default; //ImagesOnly;
     //let extract_opt = ExtractOptions::ImagesOnly;
     let overwrite_files = true;
@@ -283,10 +305,10 @@ fn import_files() {
         let st_files = fs::read_dir(&state_archive_path).expect("A file but got us a directory");
         let st_files = st_files.filter(|fp| {
              let x = fp.as_ref().expect("a Dir Entry");
-             x.file_name().to_str().unwrap()[..2] == state.abbr
+             &x.file_name().to_str().unwrap()[..2] == state.abbr
         });
-
-        importer::delete_old_photos(&state.abbr);
+        
+        let _res = importer.delete_old_photos(state.abbr);
 
         for state_archive in st_files {
 
@@ -294,12 +316,10 @@ fn import_files() {
 
              let archive = state_archive.unwrap();
              println! ("{:?}", archive.file_name());
-             let mut extractor = Extractor::new(&path_vars);
+             let mut extractor = Extractor::new(config);
 
-
-             let extracted_files: Vec<ExtractedFile> = extractor.extract_archive(archive.path(), &extract_opt, overwrite_files)
+             let extracted_files = extractor.extract_archive(archive.path(), &extract_opt, overwrite_files)
                  .expect("A file but got a directory");
-
 
             //each archive contains 1 or more files
              for exfile in extracted_files {
@@ -310,18 +330,18 @@ fn import_files() {
 
         }
 
-        importer::finalize_state_import(&state.abbr);
+        let _res = importer.finalize_state_import(state.abbr);
         println!("=================================");
     }
 
-    importer::finalize_import();
+    let _res = importer.finalize_import();
     println!("Dude, there's most of your data");
 }
 
 #[test]
 fn connect_test() {
-    let path_config = config::PathVars::new(config::Env::Production);
-    let ftp_config = FtpConfig::init(config::Env::Production);
+    //let path_config = config::PathVars::new(config::Env::Production);
+    //let ftp_config = FtpConfig::init(config::Env::Production);
 
     assert_eq!(1, 0)
 }
@@ -345,12 +365,13 @@ fn test_root_dirs() {
     }
 }
 
-
+//why is this a thing?
 fn fix_directories() {
 
-    let statelist: States = config::States::load().unwrap();
-    let path_vars = PathVars::new(config::Env::Production);
-    let  root_path =  path_vars.archive_path();
+    let config = Config::new(std::env::current_dir().unwrap());
+    let statelist = get_states();
+    //let path_vars = PathVars::new(config::Env::Production);
+    let  root_path =  config.root_path;
 
     for state in statelist {
         let npath = root_path.join(state.abbr.to_uppercase());
