@@ -9,8 +9,9 @@ use sex_offender::{
     config::{Config, State },
 };
 
+/*
 #[derive(Debug, StructOpt)]
-#[structopt(name= "sx-imp", about = "cli tool for downloading and managing sex offender data",
+#[structopt(name= "sx-imp", about = "cli tool for importing sex offender data",
 author="ryan lee martin")]
 enum SXOCli {
 
@@ -28,8 +29,18 @@ enum SXOCli {
         #[structopt(long,short)]
         ///pass -c to import just the csv data.
         csv: bool,
+        #[structopt(short="s", long, help="add a comma separated list of states by abbreviation to filter the imports")]
+        state: String
     },
 }
+*/
+#[derive(StructOpt, Debug)]
+#[structopt(name= "sx-imp", about = "cli tool for importing sex offender data")]
+struct CLI {
+    #[structopt(long,short)]
+    state: Option<Vec<String>>
+}
+
 
 fn get_states() -> Vec<State> {
     vec![ 
@@ -66,8 +77,11 @@ fn main()  {
 
     //root path could come from env
     let config = Config::new(std::env::current_dir().unwrap());
-    let opt = SXOCli::from_args();
+    //let opt = SXOCli::from_args();
+    let opt = CLI::from_args();
 
+
+    println!("something");
     let pb = ProgressBar::new_spinner();
     pb.enable_steady_tick(120);
     pb.set_style(
@@ -84,24 +98,48 @@ fn main()  {
             .template("{spinner:.blue} {msg}"),
     );
 
+    if opt.state.is_some() {
+            println!("opt {:#?}", opt.state);
+            pb.set_message(format!("Importing extracted files for : {:?}", opt.state.as_ref().unwrap()));
+            import_files(&config, opt.state);
+            pb.finish_with_message("Import has completed");
+    } else {
+        println!("sup dude");
+    }
+    
+    /*
     match opt {
 
-        SXOCli::Import { all, ..} => {
+        SXOCli::Import { all, ..} if all  => {
             pb.set_message("Importing all extracted files...");
             import_files(&config);
             pb.finish_with_message("Import has completed");
+        },
+        SXOCli::Import { state, .. } => {
+            println!("you want to import : {:?}", state);
         }
 
         //_ => { println!("not ready for that one chief");}
-    }
+    }*/
 }
 
 ///start the importing
-fn import_files(config: &Config) {
+fn import_files(config: &Config, states: Option<Vec<String>>) {
 
     let state_v = get_states();
+    let statelist = match states {
+        Some(states) => {
+           state_v.into_iter().filter(|s| { states.contains(&s.abbr.to_owned()) }).collect()
+        },
+        None => state_v
+        
+    };
+    if statelist.is_empty() {
+        println!("There were no matching states. check your state abbreviations!");
+        return;
+    }
     //TODO: get state list from cmd line
-    let statelist = state_v.iter().filter(|s| s.abbr == "NY"); 
+    //let statelist = state_v.iter().filter(|s| s.abbr == "NY"); 
     let archive_path = &config.archives_path; 
     let importer = Importer::new(config);
     let _prep_result = importer.prepare_import(); 
@@ -150,6 +188,7 @@ fn import_files(config: &Config) {
 
     let _res = importer.finalize_import();
     println!("The import has completed");
+
 }
 
 

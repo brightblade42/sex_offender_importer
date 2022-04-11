@@ -11,7 +11,7 @@ set shortmess=aoO
 argglobal
 %argdel
 $argadd src/bin/sximp.rs
-edit src/bin/sximp.rs
+edit src/importer/csv_importer.rs
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
@@ -30,7 +30,7 @@ set winminwidth=0
 set winwidth=1
 wincmd =
 argglobal
-balt src/importer/img.rs
+balt src/importer/mod.rs
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -41,12 +41,12 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 1 - ((0 * winheight(0) + 19) / 39)
+let s:l = 224 - ((22 * winheight(0) + 16) / 33)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 1
-normal! 010|
+keepjumps 224
+normal! 032|
 wincmd w
 argglobal
 if bufexists("term://~/dev/sex_offender/sex_offender_importer//22712:/bin/zsh") | buffer term://~/dev/sex_offender/sex_offender_importer//22712:/bin/zsh | else | edit term://~/dev/sex_offender/sex_offender_importer//22712:/bin/zsh | endif
@@ -61,23 +61,23 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 5525 - ((38 * winheight(0) + 19) / 39)
+let s:l = 7844 - ((32 * winheight(0) + 16) / 33)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 5525
+keepjumps 7844
 normal! 02|
 wincmd w
 2wincmd w
 wincmd =
 tabnext 1
-badd +99 src/bin/sximp.rs
+badd +180 src/bin/sximp.rs
 badd +14 ~/dev/sex_offender/sex_offender_importer/Cargo.toml
-badd +194 src/importer/csv_importer.rs
+badd +225 src/importer/csv_importer.rs
 badd +12 src/extractors/mod.rs
 badd +33 src/config.rs
 badd +22 src/util.rs
-badd +104 src/importer/mod.rs
+badd +19 src/importer/mod.rs
 badd +33 src/importer/img.rs
 badd +1 term
 badd +9997 term://~/dev/sex_offender/sex_offender_importer//68684:/bin/zsh

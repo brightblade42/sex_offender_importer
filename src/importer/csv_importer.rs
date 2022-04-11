@@ -221,10 +221,11 @@ impl Import for Csv {
            table_name = format!("TX{}", table_name);
         }
 
+        self.drop_table(&conn, &table_name)?;
         let create_query = self.create_table_query(&mut csv_reader, &table_name)?;
         conn.execute(&create_query, [])?;
 
-        self.delete_data(&conn, &table_name)?;
+        //self.delete_data(&conn, &table_name)?;
         let insert_query = self.create_insert_query(&mut csv_reader, &table_name)?;
 
         conn.execute("Begin Transaction;", [])?;
