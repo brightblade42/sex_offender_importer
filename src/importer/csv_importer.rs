@@ -67,7 +67,7 @@ impl Csv {
             format!("{}{}{}",acc, self.delimiter, head )
         });
 
-        header_line.push_str("\n");
+        header_line.push('\n');
 
         String::from(header_line.trim_start())
     }
@@ -90,7 +90,7 @@ impl Csv {
         // Open the source file for reading
         let mut src_file = File::open(&file_path)?;
         // Write the data to prepend
-        tmp_file.write_all(&data)?;
+        tmp_file.write_all(data)?;
         // Copy the rest of the source file
         io::copy(&mut src_file, &mut tmp_file)?;
         fs::remove_file(&file_path)?;
@@ -257,7 +257,7 @@ impl Import for Csv {
 
         conn.execute("Begin Transaction;", [])?;
 
-        let mut insStmt = conn.prepare(&insert_query);
+        let mut ins_stmt = conn.prepare(&insert_query);
         let date_pos = self.find_date_position(csv_reader.headers().unwrap());
         //stores the values of a row of csv data that will be passed to sql as a parameter array.
         //let mut rec_vals: Vec<String> = Vec::new();
@@ -272,7 +272,7 @@ impl Import for Csv {
                     //TODO:: Extract this to a function, this will grow
                     // as more formatting is needed
                     for (idx, rr) in rec.iter().enumerate() {
-                        let mut ascii_string = util::to_ascii_string(&rr);
+                        let mut ascii_string = util::to_ascii_string(rr);
 
                         if let Some(i) = date_pos {
                            if i == idx {
@@ -285,7 +285,7 @@ impl Import for Csv {
 
                     rec_vals.push(self.state.to_uppercase()); //our custom State value (not in csv)
 
-                   match &insStmt.as_mut().unwrap().execute(params_from_iter(&rec_vals)) {
+                   match &ins_stmt.as_mut().unwrap().execute(params_from_iter(&rec_vals)) {
                         Ok(_) =>  () ,
                         Err(er) => {
                             //TODO: Consider logging these kinds of errors.
@@ -313,7 +313,7 @@ impl SqlHandler for Csv {
 
     type Reader = csv::Reader<File>;
     fn create_table_query(&self, reader: &mut Self::Reader, tname: &str) -> GenResult<String> {
-
+        //TODO: what if we just dropped the table, need to gen index on ID
         let q = format!("CREATE TABLE if not exists {} (", tname);
         //add the header names as column names for our table.
         let mut create_table = reader
@@ -324,7 +324,7 @@ impl SqlHandler for Csv {
             .map(util::convert_invalid_field_name)
             .map(util::convert_space_in_field)
             .fold(q, |acc, head| {
-                format!("{} {},", acc, head.replace("/", ""))
+                format!("{} {},", acc, head.replace('/', ""))
             });
 
         create_table.push_str("state )"); //add our extra state field and close the ()
@@ -344,7 +344,7 @@ impl SqlHandler for Csv {
             .map(util::convert_state_field)
             .map(util::convert_invalid_field_name)
             .map(util::convert_space_in_field)
-            .fold(q, |acc, head| format!("{} {},", acc, head.replace("/", "")));
+            .fold(q, |acc, head| format!("{} {},", acc, head.replace('/', "")));
 
         insert_query.push_str("state ) VALUES ("); //add our extra state field and close the ()
 

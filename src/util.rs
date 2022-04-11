@@ -1,14 +1,11 @@
 use std::path::PathBuf;
 use regex::{self,  Regex};
-
 use rusqlite::Connection;
-//use std::fs::File;
 
 pub type GenError = Box<dyn std::error::Error>;
 pub type GenResult<T> = ::std::result::Result<T, GenError>; //not bip bip bip.. Lelu.
 
-pub static IMPORT_LOG: &str = "/opt/eyemetric/sex_offender/app/importlog.sqlite";
-pub static SQL_FOLDER: &str = "/opt/eyemetric/sex_offender/app/sql";
+//pub static SQL_FOLDER: &str = "/opt/eyemetric/sex_offender/app/sql";
 
 ///Removes junk characters and leave only the cleanest and choicest ascii characters.
 pub fn to_ascii_string(chars: &[u8]) -> String {

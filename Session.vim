@@ -11,16 +11,13 @@ set shortmess=aoO
 argglobal
 %argdel
 $argadd src/bin/sximp.rs
-edit src/downloader/mod.rs
+edit src/bin/sximp.rs
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
-wincmd _ | wincmd |
-vsplit
-2wincmd h
-wincmd w
+1wincmd h
 wincmd w
 let &splitbelow = s:save_splitbelow
 let &splitright = s:save_splitright
@@ -33,7 +30,7 @@ set winminwidth=0
 set winwidth=1
 wincmd =
 argglobal
-balt src/bin/sximp.rs
+balt src/importer/mod.rs
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -44,40 +41,18 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 285 - ((39 * winheight(0) + 25) / 50)
+let s:l = 111 - ((14 * winheight(0) + 19) / 39)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 285
-normal! 0
-wincmd w
-argglobal
-if bufexists("term://~/dev/sex_offender/sex_offender_importer//7873:/bin/zsh") | buffer term://~/dev/sex_offender/sex_offender_importer//7873:/bin/zsh | else | edit term://~/dev/sex_offender/sex_offender_importer//7873:/bin/zsh | endif
-if &buftype ==# 'terminal'
-  silent file term://~/dev/sex_offender/sex_offender_importer//7873:/bin/zsh
-endif
-balt term://~/dev/sex_offender/sex_offender_importer//22712:/bin/zsh
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-let s:l = 393 - ((49 * winheight(0) + 25) / 50)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 393
-normal! 022|
+keepjumps 111
+normal! 059|
 wincmd w
 argglobal
 if bufexists("term://~/dev/sex_offender/sex_offender_importer//22712:/bin/zsh") | buffer term://~/dev/sex_offender/sex_offender_importer//22712:/bin/zsh | else | edit term://~/dev/sex_offender/sex_offender_importer//22712:/bin/zsh | endif
 if &buftype ==# 'terminal'
   silent file term://~/dev/sex_offender/sex_offender_importer//22712:/bin/zsh
 endif
-balt src/downloader/mod.rs
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -86,37 +61,34 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 3454 - ((49 * winheight(0) + 25) / 50)
+let s:l = 4978 - ((38 * winheight(0) + 19) / 39)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 3454
+keepjumps 4978
 normal! 02|
 wincmd w
-3wincmd w
+2wincmd w
 wincmd =
 tabnext 1
-badd +248 src/bin/sximp.rs
+badd +111 src/bin/sximp.rs
 badd +14 ~/dev/sex_offender/sex_offender_importer/Cargo.toml
-badd +30 src/downloader/mod.rs
-badd +368 src/importer/csv_importer.rs
-badd +74 src/extractors/mod.rs
-badd +27 src/config.rs
-badd +23 src/util.rs
-badd +66 src/importer/mod.rs
-badd +1 src/importer/img.rs
+badd +172 src/importer/csv_importer.rs
+badd +2 src/extractors/mod.rs
+badd +33 src/config.rs
+badd +45 src/util.rs
+badd +26 src/importer/mod.rs
+badd +93 src/importer/img.rs
 badd +1 term
 badd +9997 term://~/dev/sex_offender/sex_offender_importer//68684:/bin/zsh
-badd +4 ~/dev/sex_offender/sex_offender_importer/src/lib.rs
-badd +50 ~/dev/sex_offender/sex_offender_importer/src/downloader/records.rs
-badd +15 src/downloader/archives.rs
+badd +6 ~/dev/sex_offender/sex_offender_importer/src/lib.rs
 badd +2313 sql/create_master.sql
 badd +39 sql/nj_import.sql
 badd +2357 sql/full_db.sql
 badd +2222 sql/The_big_query.sql
 badd +2492 term://~/dev/sex_offender/sex_offender_importer//93152:/bin/zsh
 badd +1204 term://~/dev/sex_offender/sex_offender_importer//22712:/bin/zsh
-badd +0 term://~/dev/sex_offender/sex_offender_importer//7873:/bin/zsh
+badd +394 term://~/dev/sex_offender/sex_offender_importer//7873:/bin/zsh
 badd +43 ~/.cargo/registry/src/github.com-1ecc6299db9ec823/ftp-3.0.1/src/ftp.rs
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf

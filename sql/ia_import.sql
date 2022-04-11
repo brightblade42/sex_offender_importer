@@ -22,8 +22,8 @@ select cast(id as TEXT) as id
 ) as aliases
 
      --addresses
-     ,'[]' as addresses
-     --,json_array(json_object('address', cast(address as TEXT))) as addresses
+     --,'[]' as addresses
+     ,json_array(json_object('address', cast(address as TEXT))) as addresses
      --offenses
      ,(SELECT
            json_group_array (

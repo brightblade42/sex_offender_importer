@@ -53,7 +53,7 @@ impl Import for ImageArchive {
         println!("Importing images from {}", &self.path.display());
         conn.execute("BEGIN TRANSACTION;", [])?;
 
-        let mut insStmt = conn.prepare("INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)");
+        let mut ins_stmt = conn.prepare("INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)");
 
         for i in 0..archive.len() {
             let mut img_file = archive.by_index(i)?;
@@ -67,9 +67,8 @@ impl Import for ImageArchive {
             std::io::copy(&mut img_file, &mut blob)?;
 
             //TODO: make part of the SqlHandler trait impl.
-            &insStmt.as_mut().unwrap().execute(
-            //conn.execute("INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)",
-                    params![photo_id, name, img_size, blob, self.state.as_str().to_uppercase()], )?;
+            let _ = &ins_stmt.as_mut().unwrap()
+                .execute(params![photo_id, name, img_size, blob, self.state.as_str().to_uppercase()], )?;
 
             blob.clear();
         }
