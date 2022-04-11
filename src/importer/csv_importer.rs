@@ -4,7 +4,7 @@ use std::{
     io::{self, Write},
 };
 
-use super::{Import, SqlHandler, Importer}; // set_pragmas};
+use super::{Import, SqlHandler }; 
 use crate::{util::{
     self,
     GenResult,
@@ -252,10 +252,8 @@ impl Import for Csv {
                                ascii_string = util::format_date(&ascii_string).to_string();
                            }
                         }
-
                         rec_vals.push(ascii_string.parse().unwrap());
                     }
-
                     //we add a custom state column
                     rec_vals.push(self.state.to_uppercase()); //our custom State value (not in csv)
 

@@ -41,12 +41,12 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 224 - ((22 * winheight(0) + 16) / 33)
+let s:l = 87 - ((11 * winheight(0) + 25) / 50)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 224
-normal! 032|
+keepjumps 87
+normal! 034|
 wincmd w
 argglobal
 if bufexists("term://~/dev/sex_offender/sex_offender_importer//22712:/bin/zsh") | buffer term://~/dev/sex_offender/sex_offender_importer//22712:/bin/zsh | else | edit term://~/dev/sex_offender/sex_offender_importer//22712:/bin/zsh | endif
@@ -61,11 +61,11 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 7844 - ((32 * winheight(0) + 16) / 33)
+let s:l = 7904 - ((49 * winheight(0) + 25) / 50)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 7844
+keepjumps 7904
 normal! 02|
 wincmd w
 2wincmd w
@@ -73,7 +73,7 @@ wincmd =
 tabnext 1
 badd +180 src/bin/sximp.rs
 badd +14 ~/dev/sex_offender/sex_offender_importer/Cargo.toml
-badd +225 src/importer/csv_importer.rs
+badd +1 src/importer/csv_importer.rs
 badd +12 src/extractors/mod.rs
 badd +33 src/config.rs
 badd +22 src/util.rs
