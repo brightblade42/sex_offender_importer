@@ -4,23 +4,16 @@ use std::{
     io::BufReader,
 };
 
-use crate::{
-    util::{
-        self,
-        GenResult
-    }, config::Config};
-
+use crate::{ util::{ self, GenResult }, config::Config};
 use super::{Import, SqlHandler};
 use serde_derive::{Serialize, Deserialize};
 use rusqlite::{Connection,  params};
-//use crate::importer::set_pragmas;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ImageArchive {
     pub path: PathBuf,
     pub state: String,
 }
-
 
 impl Import for ImageArchive {
     type Reader = BufReader<File>;
@@ -38,8 +31,6 @@ impl Import for ImageArchive {
         let file = BufReader::new(File::open(&self.path)?);
         let config = Config::new(std::env::current_dir().unwrap());
         let conn = util::get_connection(config.offender_db).expect("Unable to open connection");
-        //set_pragmas(&conn);
-        //self.delete_data(&conn, "Photos")?;
 
         //1. we've got an archive of images. we don't want to write them
         //to disk, we want to store them as blobs in sqlite.
@@ -50,12 +41,15 @@ impl Import for ImageArchive {
         let mut blob: Vec<u8> = vec![];
         let mut archive = zip::ZipArchive::new(file)?;
 
+        //NOTE: previous state images are deleted at beginning of import prcess
         println!("Importing images from {}", &self.path.display());
+
         conn.execute("BEGIN TRANSACTION;", [])?;
 
         let mut ins_stmt = conn.prepare("INSERT into Photos (id,name, size, data,state) VALUES (?,?,?,?,?)");
 
         for i in 0..archive.len() {
+
             let mut img_file = archive.by_index(i)?;
             let img_name = img_file.sanitized_name();
             let img_size = img_file.size() as u32;
@@ -63,14 +57,14 @@ impl Import for ImageArchive {
             let idx = if let Some(char_idx) = name.find('_') { char_idx } else { name.len() };
             if name.contains("table") { continue; } //not an image
 
-            let photo_id = &name[0..idx];
+            let photo_id = &name[0..idx]; //parse id from img name
             std::io::copy(&mut img_file, &mut blob)?;
 
             //TODO: make part of the SqlHandler trait impl.
             let _ = &ins_stmt.as_mut().unwrap()
                 .execute(params![photo_id, name, img_size, blob, self.state.as_str().to_uppercase()], )?;
 
-            blob.clear();
+            blob.clear(); //we reuse the blob for the next image
         }
 
         conn.execute("COMMIT TRANSACTION;", [])?;
@@ -79,6 +73,7 @@ impl Import for ImageArchive {
 }
 
 impl SqlHandler for ImageArchive {
+
     type Reader = BufReader<File>;
     fn create_table_query(&self, _reader: &mut Self::Reader, table_name: &str) -> GenResult<String>{
         Ok(format!( "CREATE TABLE if not exists {} (id,name, size, data, state)",table_name ))

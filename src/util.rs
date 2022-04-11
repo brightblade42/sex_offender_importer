@@ -1,11 +1,11 @@
+//! functions for fixing and compensating for the shitshow that is csv data
+//! aggregated from across 50 states.
 use std::path::PathBuf;
 use regex::{self,  Regex};
 use rusqlite::Connection;
 
 pub type GenError = Box<dyn std::error::Error>;
 pub type GenResult<T> = ::std::result::Result<T, GenError>; //not bip bip bip.. Lelu.
-
-//pub static SQL_FOLDER: &str = "/opt/eyemetric/sex_offender/app/sql";
 
 ///Removes junk characters and leave only the cleanest and choicest ascii characters.
 pub fn to_ascii_string(chars: &[u8]) -> String {
@@ -50,8 +50,7 @@ pub fn convert_invalid_field_name(field: &str) -> &str {
     }
 }
 
-///examines a field for whitespace which is not allowed and
-/// replaces them with _ underscores.
+///examines a field for whitespace which is not allowed and replaces them with _ underscores.
 pub fn convert_space_in_field(field: &str) -> String {
 
     if field.trim().contains(' ') {

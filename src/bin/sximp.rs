@@ -2,15 +2,11 @@
 
 use structopt::StructOpt;
 use indicatif::{ProgressStyle, ProgressBar};
-use console::{self, style};
-//#[macro_use] extern crate prettytable;
-//use prettytable::{Table, Row, Cell};
 use std::fs;
 use sex_offender::{
-    importer::{self, Import, Importer },
-    extractors::{Extractor, ExtractedFile, ExtractOptions},
+    importer::{ Import, Importer },
+    extractors::{Extractor,  ExtractOptions},
     config::{Config, State },
-    util::{GenError, GenResult} 
 };
 
 #[derive(Debug, StructOpt)]
@@ -96,25 +92,20 @@ fn main()  {
             pb.finish_with_message("Import has completed");
         }
 
-        _ => { println!("not ready for that one chief");}
+        //_ => { println!("not ready for that one chief");}
     }
-
 }
 
-
+///start the importing
 fn import_files(config: &Config) {
 
-    //let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) >= Some('U')); // && s.abbr.chars().nth(0) != Some('T'));
-    //let statelist = statelist.iter().filter(|s| s.abbr == "IA"); // && s.abbr.chars().nth(0) != Some('T'));
     let state_v = get_states();
-    //let statelist = state_v.iter().filter(|s| s.abbr == "IA"); // && s.abbr.chars().nth(0) != Some('T'));
-    let statelist = state_v.iter().filter(|s| s.abbr == "NY"); // && s.abbr.chars().nth(0) != Some('T'));
-    //let path_vars = PathVars::new(config::Env::Production);
+    //TODO: get state list from cmd line
+    let statelist = state_v.iter().filter(|s| s.abbr == "NY"); 
     let archive_path = &config.archives_path; 
     let importer = Importer::new(config);
     let _prep_result = importer.prepare_import(); 
-    let extract_opt = ExtractOptions::Default; //ImagesOnly;
-    //let extract_opt = ExtractOptions::ImagesOnly;
+    let extract_opt = ExtractOptions::Default; 
     let overwrite_files = true;
 
     for state in statelist {
@@ -124,8 +115,7 @@ fn import_files(config: &Config) {
         println!("=================================");
 
         let state_archive_path = archive_path.join(state.abbr.to_uppercase());
-        println!("HELLO!!! {:?}",&state_archive_path);
-        //let st_files = fs::read_dir(state_path).expect("A file but got us a directory");
+        println!("Achive Path:: {:?}",&state_archive_path);
         fs::create_dir_all(&state_archive_path).expect("ability to create a dir");
         let st_files = fs::read_dir(&state_archive_path).expect("A file but got us a directory");
         let st_files = st_files.filter(|fp| {
@@ -133,7 +123,7 @@ fn import_files(config: &Config) {
              &x.file_name().to_str().unwrap()[..2] == state.abbr
         });
         
-        let _res = importer.delete_old_photos(state.abbr);
+        let _res = importer.delete_old_photos(state.abbr); //from main photo table
 
         for state_archive in st_files {
 
@@ -152,7 +142,6 @@ fn import_files(config: &Config) {
                  exfile.import().unwrap_or_else(|_| panic!("Unable to complete file import {:?}", archive.file_name()));
                  println!("=================================");
              }
-
         }
 
         let _res = importer.finalize_state_import(state.abbr);
@@ -160,53 +149,7 @@ fn import_files(config: &Config) {
     }
 
     let _res = importer.finalize_import();
-    println!("Dude, there's most of your data");
+    println!("The import has completed");
 }
 
 
-//why is this a thing?
-fn fix_directories() {
-
-    let config = Config::new(std::env::current_dir().unwrap());
-    let statelist = get_states();
-    //let path_vars = PathVars::new(config::Env::Production);
-    let  root_path =  config.root_path;
-
-    for state in statelist {
-        let npath = root_path.join(state.abbr.to_uppercase());
-        if let Ok(()) = fs::create_dir(&npath) {
-         println!("made dir : {:?}", &npath);
-        } else {
-         println!("path already exists, no need to create");
-        }
-
-        println!("=======================================================");
-        for entry in fs::read_dir(&root_path).unwrap() {
-             let entry = entry.unwrap();
-             let data = entry.metadata().unwrap();
-             let path = entry.path();
-
-             if data.is_file() {
-                 if let Some(ex) = path.extension() {
-                     let pre = &entry.file_name().to_os_string().into_string().unwrap().to_uppercase()[0..2];
-                     //println!("pre: {}", pre);
-                     if ex == "zip" && pre == &state.abbr.to_uppercase() {
-                         println!("{} length {}", path.display(), data.len());
-                     }
-                 }
-             }
-        }
-        println!("=======================================================");
-
-    }
-
-}
-
-/*
-
-    //let statelist = statelist.iter().filter(|s| s.abbr != "TX" && s.abbr.chars().nth(0) > Some('H'));
-    //     let statelist = statelist.iter().filter(|s| s.abbr != "HI" && s.abbr != "VA");
-    //     let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) > Some('H')); // && s.abbr.chars().nth(0) != Some('T'));
-    //    let statelist = statelist.iter().filter(|s| s.abbr.chars().nth(0) == Some('T'));
-    //let statelist = statelist.iter().filter(|s| s.abbr == "HI");
-*/

@@ -1,6 +1,6 @@
 
 use std::{
-    path::PathBuf,
+    path::{PathBuf, Path},
     io::{BufWriter, BufReader},
     fs::{self, File},
     ffi::OsStr,
@@ -9,6 +9,7 @@ use serde::{Serialize, Deserialize};
 use crate::util::GenResult ;
 use crate::importer::{Import, csv_importer::Csv, img::ImageArchive};
 use crate::config::Config;
+
 ///We can choose whether to extract ALL files (Default), Images only, or Csv only.
 pub enum ExtractOptions {
     Default,
@@ -16,6 +17,8 @@ pub enum ExtractOptions {
     CSVOnly
 }
 
+///Reaches into the soul of a zip file and extracts the csv files and Images
+///and saves them to disk for the importer. 
 pub struct Extractor<'a> {
     config: &'a Config,
 }
@@ -108,15 +111,11 @@ impl Extractor<'_> {
     ///After a file is extracted, it is saved to a configured Extraction path.
     ///This function builds up the path where Extracted files will be saved before their contents
     /// are parsed and imported.
-    fn get_extract_path(&self, state: &str, archive_path: &PathBuf, file_name: &OsStr) -> PathBuf {
+    fn get_extract_path(&self, state: &str, archive_path: &Path, file_name: &OsStr) -> PathBuf {
 
         let extracts_path = &mut self.config.extracts_path.to_path_buf(); 
         extracts_path.push(state);
 
-        //example paths
-        //data/extracts/Iowa/records
-        //data/extracts/Iowa/images
-       
         //what kind of an archive are we working with , csv or image
         if archive_path.to_string_lossy().contains("records") {
             extracts_path.push("records");
@@ -201,6 +200,7 @@ impl Import for ExtractedFile {
         }
     }
 
+    //just to satisfy the trait impl
     fn import_file_data(&self) -> GenResult<()> {
         Ok(())
     }

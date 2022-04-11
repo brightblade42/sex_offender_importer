@@ -154,33 +154,7 @@ impl Csv {
         }
     }
 
-
-    ///After csv data is converted to table data, we still need to convert data
-    /// into the final data format which goes into the main SexOffender table.
-    //TODO: this seems like a duplicate of what we have in the Importer 
-    /*
-    fn import_final_phase(&self) -> GenResult<()> {
-        let mut pth = PathBuf::from(util::SQL_FOLDER);
-        pth.push(format!("{}_import.sql", self.state.to_lowercase()));
-
-        if !pth.exists() {
-            println!("The import file is missing: {}", &pth.display());
-            return Ok(());
-        }
-
-        let final_import_query = fs::read_to_string(pth)?;
-
-        println!("=======================================" );
-        println!("{}", &final_import_query);
-        println!("=======================================" );
-        let conn = util::get_connection(None)?;
-        //conn.execute(&format!("Delete from SexOffender where state='{}'", self.state), NO_PARAMS)?;
-        conn.execute(&final_import_query, []).expect("Unable to do final import");
-
-        Ok(())
-    }*/
-
-
+    //TODO: remember why we need this for NJ
     fn find_date_position(&self, headers: &csv::StringRecord) -> Option<usize> {
 
         match self.state.as_str() {
@@ -204,6 +178,7 @@ impl Csv {
 impl Import for Csv {
     type Reader = csv::Reader<File>;
 
+    ///open a csv file load it into the Reader
     fn open_reader(&self, has_headers: bool) -> GenResult<Self::Reader> {
 
         let file = File::open(&self.path)?;
@@ -219,10 +194,10 @@ impl Import for Csv {
     }
 
 
+    ///import the csv contents into the database, possibly creating a table
     fn import(&self) -> GenResult<()>  {
         self.add_headers()?;
         self.import_file_data()?;
-//        self.import_final_phase()?;
         Ok(())
     }
 
@@ -231,8 +206,6 @@ impl Import for Csv {
         let config = Config::new(std::env::current_dir().unwrap());
         let conn = util::get_connection(config.offender_db).expect("Unable to connect to db");
 
-        //set_pragmas(&conn);
-        //this should be filtered out, really.
         let path = self.path.display().to_string();
         //TODO: filter this out from elsewhere methinks.
         if path.contains("screenshot") {
@@ -243,17 +216,16 @@ impl Import for Csv {
         let has_headers = true;
         let mut csv_reader = self.open_reader(has_headers)?;
         let mut  table_name = String::from(self.path.file_stem().unwrap().to_str().unwrap());
+        //seems like TX doesn't conform to the naming convention. friggin texas
         if self.state == "TX" {
            table_name = format!("TX{}", table_name);
         }
-
 
         let create_query = self.create_table_query(&mut csv_reader, &table_name)?;
         conn.execute(&create_query, [])?;
 
         self.delete_data(&conn, &table_name)?;
         let insert_query = self.create_insert_query(&mut csv_reader, &table_name)?;
-
 
         conn.execute("Begin Transaction;", [])?;
 
@@ -283,6 +255,7 @@ impl Import for Csv {
                         rec_vals.push(ascii_string.parse().unwrap());
                     }
 
+                    //we add a custom state column
                     rec_vals.push(self.state.to_uppercase()); //our custom State value (not in csv)
 
                    match &ins_stmt.as_mut().unwrap().execute(params_from_iter(&rec_vals)) {
@@ -312,6 +285,7 @@ impl Import for Csv {
 impl SqlHandler for Csv {
 
     type Reader = csv::Reader<File>;
+    //create a custom table for each csv file that we import. 
     fn create_table_query(&self, reader: &mut Self::Reader, tname: &str) -> GenResult<String> {
         //TODO: what if we just dropped the table, need to gen index on ID
         let q = format!("CREATE TABLE if not exists {} (", tname);
@@ -332,6 +306,7 @@ impl SqlHandler for Csv {
         Ok(create_table)
     }
 
+    ///builds an insert query for our csv row data
     fn create_insert_query(&self, reader: &mut Self::Reader, tname: &str) -> GenResult<String> {
 
         let q = format!("INSERT INTO {} ( ", tname);

@@ -2,14 +2,8 @@
 //! cleaning data, ensuring sex offender db is setup properly and finally importing into sqlite
 pub mod csv_importer;
 pub mod img;
-
-use std::{
-    error::Error,
-    fs,
-    path::PathBuf
-};
+use std::{ error::Error, fs, };
 use rusqlite::Connection;
-//use serde::{Deserialize, Serialize};
 use crate::util::{ self, GenResult };
 use crate::config::Config;
 
@@ -69,7 +63,6 @@ impl Importer {
     pub fn finalize_state_import(&self, state: &str) -> GenResult<()> {
 
         let mut pth = self.config.sql_path.to_path_buf();
-        //let mut pth = PathBuf::from(util::SQL_FOLDER); //folder containing all the state level import queries
         pth.push(format!("{}_import.sql", state.to_lowercase()));
 
         if !pth.exists() {
@@ -79,6 +72,7 @@ impl Importer {
 
         let final_import_query = fs::read_to_string(pth)?;
         let _res = self.conn.execute("BEGIN TRANSACTION", []);
+        //always remove the previous sex offender data for a state. 
         self.conn.execute(&format!("Delete from SexOffender where state='{}'", state), [])?;
         self.conn.execute(&final_import_query, [])?;
         let _res = self.conn.execute("END TRANSACTION", []);
@@ -94,6 +88,8 @@ impl Importer {
     }
 
 
+    //the birthdate formats across states is fucked. have a look at the sql
+    //file used to normalize the formats
     fn transform_date_of_births(&self) -> GenResult<()> {
         self.execute_by_lines("formatDateOfBirth.sql")?;
         Ok(())
@@ -108,7 +104,6 @@ impl Importer {
     fn execute_by_lines(&self, sql_file_name: &str) -> GenResult<()>{
 
         let mut pth = self.config.sql_path.to_path_buf();
-        //let mut pth = PathBuf::from(util::SQL_FOLDER); //folder containing all the state level import queries
         pth.push(sql_file_name);
 
         if !pth.exists() {
@@ -141,8 +136,7 @@ impl Importer {
     }
 
     ///returns the sql query string that creates the main SexOffender table.
-    fn create_main(&self) -> String {
-        String::from(
+    fn create_main(&self) -> &str {
             r#"CREATE TABLE IF NOT EXISTS SexOffender (
             id Integer,
             name,
@@ -159,8 +153,8 @@ impl Importer {
             offenses,
             scarsTattoos,
             photos
-            )"#,
-        )
+            )"#
+        
     }
 
     ///ensures that all old photos are removed. Every time an import is run
@@ -168,34 +162,31 @@ impl Importer {
     pub fn delete_old_photos(&self, state: &str) -> Result<usize, rusqlite::Error> {
 
         println!("deleting old photos");
-        //let conn = util::get_connection(None).unwrap();
         self.conn.execute( &format!("DELETE FROM Photos where state='{}'", state), [], )
     }
 
     ///returns the sql query string that creates the main Photos table.
-    fn create_photos(&self) -> String {
-        String::from(
+    fn create_photos(&self) -> &str {
             r#"CREATE TABLE IF NOT EXISTS Photos (
             id INTEGER,
             name TEXT,
             size Integer,
             data Blob,
             state TEXT
-        )"#,
-        )
+        )"#
     }
 
     ///creates the necessary tables and indexes for the SexOffender database.
     fn create_db(&self) -> GenResult<()> {
         self.set_pragmas();
-        self.conn.execute(self.create_main().as_str(), [])
+        self.conn.execute(self.create_main(), [])
             .expect("Unable to create main");
-        self.conn.execute(self.create_photos().as_str(), [])
+        self.conn.execute(self.create_photos(), [])
             .expect("unable to create photos");
-        self.conn.execute(self.create_default_index("SexOffender").as_str(), [])
+        self.conn.execute(&self.create_default_index("SexOffender"),[])
             .expect("unable to create main index");
         self.conn.execute(
-            self.create_default_index("Photos").as_str(),
+            &self.create_default_index("Photos"),
             [],
         )
             .expect("Unable to create photos index");
